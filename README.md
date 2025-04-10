@@ -20,5 +20,5 @@ This repository contains Terraform configurations to automate the deployment of 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/terraform-jenkins-aws.git
+   git clone https://github.com/tukue/terraform-jenkins-aws.git
    cd terraform-jenkins-aws
