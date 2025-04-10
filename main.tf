@@ -27,7 +27,7 @@ module "jenkins" {
   user_data_install_jenkins = templatefile("./jenkins-runner-script/jenkins-installer.sh", {})
 }
 
-/*
+
 module "lb_target_group" {
   source                   = "./load-balancer-target-group"
   lb_target_group_name     = "jenkins-lb-target-group"
@@ -37,6 +37,7 @@ module "lb_target_group" {
   ec2_instance_id          = module.jenkins.jenkins_ec2_instance_ip
 }
 
+/*
 module "alb" {
   source                    = "./load-balancer"
   lb_name                   = "dev-proj-1-alb"
@@ -54,7 +55,7 @@ module "alb" {
   lb_https_listner_protocol = "HTTPS"
   dev_proj_1_acm_arn        = module.aws_ceritification_manager.dev_proj_1_acm_arn
   lb_target_group_attachment_port = 8080
-}
+} 
 
 module "hosted_zone" {
   source          = "./hosted-zone"
@@ -67,5 +68,7 @@ module "aws_ceritification_manager" {
   source         = "./certificate-manager"
   domain_name    = "jenkins.jhooq.org"
   hosted_zone_id = module.hosted_zone.hosted_zone_id
-} 
-*/
+}  */
+
+
+
