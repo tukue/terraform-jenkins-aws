@@ -23,9 +23,8 @@ resource "aws_instance" "jenkins_ec2_instance_ip" {
   ami           = var.ami_id
   instance_type = var.instance_type
   tags = {
-    Name = var.tag_name
-    Environment = "development"
-    AutoStop = "true"  # Can be used with AWS Lambda to stop instance during non-work hours
+    Name        = var.tag_name
+    Environment = var.environment
   }
   key_name                    = "aws_ec2_terraform"
   subnet_id                   = var.subnet_id

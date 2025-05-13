@@ -20,7 +20,8 @@ output "public_subnet_cidr_block" {
 resource "aws_vpc" "dev_proj_1_vpc_eu_north_1" {
   cidr_block = var.vpc_cidr
   tags = {
-    Name = var.vpc_name
+    Name        = var.vpc_name
+    Environment = var.environment
   }
 }
 

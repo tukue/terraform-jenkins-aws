@@ -37,3 +37,8 @@ variable "ec2_ami_id" {
   type        = string
   description = "DevOps Project 1 AMI Id for EC2 instance"
 }
+
+variable "environment" {
+  type        = string
+  description = "The environment for the workspace (e.g., dev, QA, production)"
+}

@@ -5,6 +5,7 @@ module "networking" {
   cidr_public_subnet   = var.cidr_public_subnet
   eu_availability_zone = var.eu_availability_zone
   cidr_private_subnet  = var.cidr_private_subnet
+  environment          = var.environment
 }
 
 module "security_group" {
@@ -12,6 +13,7 @@ module "security_group" {
   ec2_sg_name         = "SG for EC2 to enable SSH(22), HTTPS(443) and HTTP(80)"
   vpc_id              = module.networking.dev_proj_1_vpc_id
   ec2_jenkins_sg_name = "Allow port 8080 for jenkins"
+  environment         = var.environment
 }
 
 
@@ -25,6 +27,7 @@ module "jenkins" {
   sg_for_jenkins            = [module.security_group.sg_ec2_sg_ssh_http_id, module.security_group.sg_ec2_jenkins_port_8080]
   enable_public_ip_address  = true
   user_data_install_jenkins = templatefile("./jenkins-runner-script/jenkins-installer.sh", {})
+  environment               = var.environment
 }
 
 
@@ -59,14 +62,14 @@ module "alb" {
 
 module "hosted_zone" {
   source          = "./hosted-zone"
-  domain_name     = "jenkins.jhooq.org"
+  domain_name     = ""
   aws_lb_dns_name = module.alb.aws_lb_dns_name
   aws_lb_zone_id  = module.alb.aws_lb_zone_id
 }
 
 module "aws_ceritification_manager" {
   source         = "./certificate-manager"
-  domain_name    = "jenkins.jhooq.org"
+  domain_name    = ""
   hosted_zone_id = module.hosted_zone.hosted_zone_id
 }  */
 
