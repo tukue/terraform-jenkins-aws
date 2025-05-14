@@ -1,31 +1,24 @@
-variable "ami_id" {}
-variable "instance_type" {}
-variable "tag_name" {}
-variable "public_key" {}
-variable "subnet_id" {}
-variable "sg_for_jenkins" {}
-variable "enable_public_ip_address" {}
-variable "user_data_install_jenkins" {}
-
-output "ssh_connection_string_for_ec2" {
-  value = format("%s%s", "ssh -i /Users/tukue/.ssh/aws_ec2_terraform ubuntu@", aws_instance.jenkins_ec2_instance_ip.public_ip)
-}
-
-output "jenkins_ec2_instance_ip" {
-  value = aws_instance.jenkins_ec2_instance_ip.id
-}
-
-output "dev_proj_1_ec2_instance_public_ip" {
-  value = aws_instance.jenkins_ec2_instance_ip.public_ip
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Environment = var.environment
+    Project     = "Jenkins-AWS"
+    ManagedBy   = "Terraform"
+    Owner       = "DevOps-Team"
+  }
 }
 
 resource "aws_instance" "jenkins_ec2_instance_ip" {
   ami           = var.ami_id
   instance_type = var.instance_type
-  tags = {
-    Name        = var.tag_name
-    Environment = var.environment
-  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name = var.tag_name
+      Service = "Jenkins"
+      AutoStop = "true"  # Can be used with AWS Lambda to stop instance during non-work hours
+    }
+  )
   key_name                    = "aws_ec2_terraform"
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = var.sg_for_jenkins
@@ -42,4 +35,6 @@ resource "aws_instance" "jenkins_ec2_instance_ip" {
 resource "aws_key_pair" "jenkins_ec2_instance_public_key" {
   key_name   = "aws_ec2_terraform"
   public_key = var.public_key
+  
+  tags = local.common_tags
 }

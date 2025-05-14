@@ -1,6 +1,12 @@
-variable "domain_name" {}
-variable "aws_lb_dns_name" {}
-variable "aws_lb_zone_id" {}
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Environment = var.environment
+    Project     = "Jenkins-AWS"
+    ManagedBy   = "Terraform"
+    Owner       = "DevOps-Team"
+  }
+}
 
 data "aws_route53_zone" "dev_proj_1_jhooq_org" {
   name         = "jhooq.org"
@@ -17,8 +23,12 @@ resource "aws_route53_record" "lb_record" {
     zone_id                = var.aws_lb_zone_id
     evaluate_target_health = true
   }
-}
 
-output "hosted_zone_id" {
-  value = data.aws_route53_zone.dev_proj_1_jhooq_org.zone_id
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-dns-record"
+      Service = "Jenkins"
+    }
+  )
 }

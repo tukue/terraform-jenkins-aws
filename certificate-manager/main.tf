@@ -1,17 +1,24 @@
-variable "domain_name" {}
-variable "hosted_zone_id" {}
-
-output "dev_proj_1_acm_arn" {
-  value = aws_acm_certificate.dev_proj_1_acm_arn.arn
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Environment = var.environment
+    Project     = "Jenkins-AWS"
+    ManagedBy   = "Terraform"
+    Owner       = "DevOps-Team"
+  }
 }
 
 resource "aws_acm_certificate" "dev_proj_1_acm_arn" {
   domain_name       = var.domain_name
   validation_method = "DNS"
 
-  tags = {
-    Environment = "production"
-  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-certificate"
+      Service = "Jenkins"
+    }
+  )
 
   lifecycle {
     create_before_destroy = false
@@ -27,10 +34,9 @@ resource "aws_route53_record" "validation" {
     }
   }
 
-  zone_id = var.hosted_zone_id # replace with your Hosted Zone ID
+  zone_id = var.hosted_zone_id
   name    = each.value.name
   type    = each.value.type
   records = [each.value.record]
   ttl     = 60
 }
-

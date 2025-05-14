@@ -1,13 +1,11 @@
-variable "ec2_sg_name" {}
-variable "vpc_id" {}
-variable "ec2_jenkins_sg_name" {}
-
-output "sg_ec2_sg_ssh_http_id" {
-  value = aws_security_group.ec2_sg_ssh_http.id
-}
-
-output "sg_ec2_jenkins_port_8080" {
-  value = aws_security_group.ec2_jenkins_port_8080.id
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Environment = var.environment
+    Project     = "Jenkins-AWS"
+    ManagedBy   = "Terraform"
+    Owner       = "DevOps-Team"
+  }
 }
 
 resource "aws_security_group" "ec2_sg_ssh_http" {
@@ -15,10 +13,49 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
   description = "Enable the Port 22(SSH) & Port 80(http)"
   vpc_id      = var.vpc_id
 
-  tags = {
-    Name        = "Security Groups to allow SSH(22) and HTTP(80)"
-    Environment = var.environment
+  # ssh for terraform remote exec
+  ingress {
+    description = "Allow remote SSH from anywhere"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
   }
+
+  # enable http
+  ingress {
+    description = "Allow HTTP request from anywhere"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+  }
+
+  # enable https
+  ingress {
+    description = "Allow HTTPS request from anywhere"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+  }
+
+  #Outgoing request
+  egress {
+    description = "Allow outgoing request"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-sg-ssh-http"
+      Purpose = "Allow SSH, HTTP, and HTTPS traffic"
+    }
+  )
 }
 
 resource "aws_security_group" "ec2_jenkins_port_8080" {
@@ -35,9 +72,11 @@ resource "aws_security_group" "ec2_jenkins_port_8080" {
     protocol    = "tcp"
   }
 
-  tags = {
-    Name = "Security Groups to allow SSH(22) and HTTP(80)"
-    Environment = var.environment
-  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-sg-jenkins-8080"
+      Purpose = "Allow Jenkins traffic on port 8080"
+    }
+  )
 }
-

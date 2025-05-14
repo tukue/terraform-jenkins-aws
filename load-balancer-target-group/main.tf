@@ -1,11 +1,11 @@
-variable "lb_target_group_name" {}
-variable "lb_target_group_port" {}
-variable "lb_target_group_protocol" {}
-variable "vpc_id" {}
-variable "ec2_instance_id" {}
-
-output "dev_proj_1_lb_target_group_arn" {
-  value = aws_lb_target_group.dev_proj_1_lb_target_group.arn
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Environment = var.environment
+    Project     = "Jenkins-AWS"
+    ManagedBy   = "Terraform"
+    Owner       = "DevOps-Team"
+  }
 }
 
 resource "aws_lb_target_group" "dev_proj_1_lb_target_group" {
@@ -22,6 +22,14 @@ resource "aws_lb_target_group" "dev_proj_1_lb_target_group" {
     interval = 5
     matcher = "200"  # has to be HTTP 200 or fails
   }
+  
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-jenkins-target-group"
+      Service = "Jenkins"
+    }
+  )
 }
 
 resource "aws_lb_target_group_attachment" "dev_proj_1_lb_target_group_attachment" {

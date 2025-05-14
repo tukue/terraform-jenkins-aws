@@ -41,4 +41,5 @@ variable "ec2_ami_id" {
 variable "environment" {
   type        = string
   description = "The environment for the workspace (e.g., dev, QA, production)"
+  default     = "dev"
 }

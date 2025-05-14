@@ -1,21 +1,11 @@
-variable "domain_name" {
-  type        = string
-  description = "Domain name to register"
-}
-
-variable "admin_contact" {
-  type = object({
-    first_name         = string
-    last_name          = string
-    email             = string
-    phone_number      = string
-    address_line_1    = string
-    city              = string
-    state             = string
-    zip_code          = string
-    country_code      = string
-  })
-  description = "Administrative contact information for the domain"
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Environment = var.environment
+    Project     = "Jenkins-AWS"
+    ManagedBy   = "Terraform"
+    Owner       = "DevOps-Team"
+  }
 }
 
 # Register the domain
@@ -79,20 +69,11 @@ resource "aws_route53domains_registered_domain" "domain" {
 resource "aws_route53_zone" "primary" {
   name = var.domain_name
   
-  tags = {
-    Environment = "production"
-    Terraform   = "true"
-  }
-}
-
-output "domain_id" {
-  value = aws_route53domains_registered_domain.domain.id
-}
-
-output "hosted_zone_id" {
-  value = aws_route53_zone.primary.zone_id
-}
-
-output "name_servers" {
-  value = aws_route53_zone.primary.name_servers
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-hosted-zone"
+      Service = "DNS"
+    }
+  )
 }

@@ -16,7 +16,6 @@ module "security_group" {
   environment         = var.environment
 }
 
-
 module "jenkins" {
   source                    = "./jenkins"
   ami_id                    = var.ec2_ami_id
@@ -30,7 +29,6 @@ module "jenkins" {
   environment               = var.environment
 }
 
-
 module "lb_target_group" {
   source                   = "./load-balancer-target-group"
   lb_target_group_name     = "jenkins-lb-target-group"
@@ -38,6 +36,7 @@ module "lb_target_group" {
   lb_target_group_protocol = "HTTP"
   vpc_id                   = module.networking.dev_proj_1_vpc_id
   ec2_instance_id          = module.jenkins.jenkins_ec2_instance_ip
+  environment              = var.environment
 }
 
 /*
@@ -58,6 +57,7 @@ module "alb" {
   lb_https_listner_protocol = "HTTPS"
   dev_proj_1_acm_arn        = module.aws_ceritification_manager.dev_proj_1_acm_arn
   lb_target_group_attachment_port = 8080
+  environment               = var.environment
 } 
 
 module "hosted_zone" {
@@ -65,13 +65,12 @@ module "hosted_zone" {
   domain_name     = ""
   aws_lb_dns_name = module.alb.aws_lb_dns_name
   aws_lb_zone_id  = module.alb.aws_lb_zone_id
+  environment     = var.environment
 }
 
 module "aws_ceritification_manager" {
   source         = "./certificate-manager"
   domain_name    = ""
   hosted_zone_id = module.hosted_zone.hosted_zone_id
+  environment    = var.environment
 }  */
-
-
-
