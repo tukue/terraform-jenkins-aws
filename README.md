@@ -55,7 +55,7 @@ terraform init -backend-config="backend-config-prod.hcl"
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/terraform-jenkins-aws.git
+   git clone https://github.com/tukue/terraform-jenkins-aws.git
    cd terraform-jenkins-aws
    ```
 
@@ -139,3 +139,68 @@ After applying the configuration, Terraform will output the following:
 # Ignore backend configuration files
 backend-config-*.hcl
 ```
+
+---
+
+## Architecture Diagram
+
++-----------------------------+
+|         AWS Account         |
++-----------------------------+
+            |
+            v
++-----------------------------+
+|           VPC              |
+|  CIDR: 10.0.0.0/16         |
++-----------------------------+
+    |                   |
+    v                   v
++-----------+       +-----------+
+| Public    |       | Private   |
+| Subnets   |       | Subnets   |
+| (2)       |       | (2)       |
++-----------+       +-----------+
+    |                   |
+    v                   v
++-----------------------------+
+| Internet Gateway           |
++-----------------------------+
+            |
+            v
++-----------------------------+
+| Application Load Balancer  |
+| - HTTP (80)                |
+| - HTTPS (443)              |
++-----------------------------+
+            |
+            v
++-----------------------------+
+| Target Group               |
+| - Port: 8080               |
++-----------------------------+
+            |
+            v
++-----------------------------+
+| Jenkins EC2 Instance       |
+| - Public IP Enabled        |
+| - Security Groups:         |
+|   - SSH (22), HTTP (80),   |
+|     HTTPS (443), Jenkins   |
+|     (8080)                 |
++-----------------------------+
+
++-----------------------------+
+| Route 53 Hosted Zone        |
+| - DNS Records               |
++-----------------------------+
+
++-----------------------------+
+| ACM Certificate             |
+| - SSL for HTTPS             |
++-----------------------------+
+
++-----------------------------+
+| S3 Bucket                   |
+| - Stores Terraform State    |
+| - Versioning Enabled        |
++-----------------------------+
