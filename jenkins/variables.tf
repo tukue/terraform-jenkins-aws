@@ -42,3 +42,9 @@ variable "environment" {
   type        = string
   description = "The environment for the Jenkins EC2 instance (e.g., dev, QA, production)"
 }
+
+variable "run_ansible" {
+  description = "Whether to run Ansible configuration after provisioning"
+  type        = bool
+  default     = false
+}

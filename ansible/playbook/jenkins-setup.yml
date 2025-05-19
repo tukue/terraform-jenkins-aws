@@ -1,0 +1,8 @@
+---
+- name: Configure Jenkins Server
+  hosts: tag_Name_Jenkins*
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes

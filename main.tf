@@ -27,6 +27,7 @@ module "jenkins" {
   enable_public_ip_address  = true
   user_data_install_jenkins = templatefile("./jenkins-runner-script/jenkins-installer.sh", {})
   environment               = var.environment
+  run_ansible               = var.run_ansible
 }
 
 module "lb_target_group" {

@@ -38,3 +38,16 @@ resource "aws_key_pair" "jenkins_ec2_instance_public_key" {
   
   tags = local.common_tags
 }
+resource "null_resource" "ansible_provisioner" {
+  count = var.run_ansible ? 1 : 0
+  
+  depends_on = [aws_instance.jenkins_ec2_instance_ip]
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -i ../ansible/inventory/aws_ec2.yml ../ansible/playbooks/jenkins-setup.yml"
+    
+    environment = {
+      ANSIBLE_HOST_KEY_CHECKING = "False"
+    }
+  }
+}

@@ -43,3 +43,9 @@ variable "environment" {
   description = "The environment for the workspace (e.g., dev, QA, production)"
   default     = "dev"
 }
+
+variable "run_ansible" {
+  description = "Whether to run Ansible configuration after provisioning"
+  type        = bool
+  default     = false
+}

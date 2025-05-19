@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: terraform-jenkins-aws
+  namespace: argocd
+spec:
+  project: default
+
+  # Source configuration
+  source:
+    repoURL: https://github.com/tukue/terraform-jenkins-aws.git
+    targetRevision: HEAD
+    path: .
+
+  # Destination configuration
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
