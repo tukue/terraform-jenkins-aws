@@ -3,6 +3,55 @@
   hosts: tag_Name_Jenkins*
   become: true
   tasks:
+    # Update apt cache
     - name: Update apt cache
       apt:
         update_cache: yes
+
+    # Install Docker
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    # Add Jenkins user to Docker group
+    - name: Add Jenkins user to Docker group
+      user:
+        name: jenkins
+        groups: docker
+        append: true
+
+    # Install Git
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+
+    # Install Terraform
+    - name: Install Terraform
+      shell: |
+        curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+        apt-get update && apt-get install -y terraform
+      args:
+        warn: false
+
+    # Install AWS CLI
+    - name: Install AWS CLI
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+        rm -rf awscliv2.zip aws
+      args:
+        warn: false
+
+    # Install Monitoring Tools (Optional)
+    - name: Install Prometheus Node Exporter
+      shell: |
+        wget https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz
+        tar -xvf node_exporter-1.5.0.linux-amd64.tar.gz
+        mv node_exporter-1.5.0.linux-amd64/node_exporter /usr/local/bin/
+        rm -rf node_exporter-1.5.0.linux-amd64*
+      args:
+        warn: false
