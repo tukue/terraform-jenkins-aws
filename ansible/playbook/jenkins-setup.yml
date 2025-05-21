@@ -1,6 +1,6 @@
 ---
 - name: Configure Jenkins Server
-  hosts: tag_Name_Jenkins*
+  hosts: tag_Name__Jenkins_Ubuntu_Linux_EC2
   become: true
   tasks:
     # Update apt cache

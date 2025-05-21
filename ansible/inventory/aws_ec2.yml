@@ -2,7 +2,9 @@ plugin: aws_ec2
 regions:
   - eu-north-1
 filters:
-  tag:Name: Jenkins:Ubuntu Linux EC2
+  tag:Name: Jenkins:Ubuntu-Linux-EC2
 keyed_groups:
   - key: tags.Name
     prefix: tag_Name_
+compose:
+  ansible_host: public_ip_address

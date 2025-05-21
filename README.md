@@ -142,6 +142,66 @@ backend-config-*.hcl
 
 ---
 
+## Ansible Configuration
+
+This project uses Ansible to configure the Jenkins server after provisioning the infrastructure with Terraform. The Ansible playbook installs necessary tools like Docker, Git, and Jenkins on the EC2 instance.
+
+### Steps to Configure and Use Ansible
+
+1. **Install Ansible**:
+   Ensure that Ansible is installed on your local machine. If not, install it using the following command:
+   ```bash
+   sudo apt update
+   sudo apt install ansible -y
+   ```
+
+2. Install Required Python Libraries: Install the boto3 and botocore Python libraries, which are required for the AWS EC2 dynamic inventory plugin:
+
+
+pip install boto3 botocore  
+
+3. Configure the Dynamic Inventory: The dynamic inventory is configured in the file ansible/inventory/aws_ec2.yml. Below is the configuration:
+
+plugin: aws_ec2
+regions:
+  - aws-region
+filters:
+  tag:Name: ec2-instance-tag-name
+keyed_groups:
+  - key: tags.Name
+    prefix: tag_Name_
+compose:
+  ansible_host: public_ip_address  
+
+plugin: aws_ec2: Enables the AWS EC2 dynamic inventory plugin.
+regions: Specifies the AWS region to query (e.g., eu-north-1).
+filters: Filters EC2 instances based on the Name tag (e.g., Jenkins:Ubuntu-Linux-EC2).
+compose: Ensures Ansible uses the public IP address for SSH connections. 
+
+4. Update the Ansible Configuration: Ensure the ansible.cfg file is configured to use the dynamic inventory and the correct SSH key:
+[defaults]
+inventory = ./inventory/aws_ec2.yml
+host_key_checking = False
+remote_user = ubuntu
+private_key_file = ssh key
+
+[inventory]
+enable_plugins = aws_ec2 
+
+5. Test the Dynamic Inventory: Verify that the dynamic inventory is working and fetching the correct EC2 instances:
+
+ansible-inventory -i ansible/inventory/aws_ec2.yml --list 
+
+6. 
+ansible -i ansible/inventory/aws_ec2.yml tag_Name__ec2_tag_name -m ping --private-key ~/.ssh/ssh-private-key --user ubuntu
+
+7. Run the Ansible Playbook: Execute the Ansible playbook to configure Jenkins and other tools on the EC2 instance 
+
+ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/playbook/jenkins-setup.yml --private-key ~/.ssh/ssh-key --user ubuntu
+
+
+---
+
 ## Architecture Diagram
 
 +-----------------------------+
@@ -204,3 +264,4 @@ backend-config-*.hcl
 | - Stores Terraform State    |
 | - Versioning Enabled        |
 +-----------------------------+
+
