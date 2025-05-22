@@ -2,6 +2,8 @@
 
 This repository contains Terraform configurations to automate the deployment of a Jenkins server on AWS. It provisions infrastructure such as VPC, EC2 instances, S3 backend for state management, and Route 53 for domain configuration.
 
+👉 **GitHub Repository**: [https://github.com/tukue/terraform-jenkins-aws](https://github.com/tukue/terraform-jenkins-aws)
+
 ---
 
 ## Features
@@ -156,7 +158,6 @@ This project uses Ansible to configure the Jenkins server after provisioning the
    ```
 
 2. Install Required Python Libraries: Install the boto3 and botocore Python libraries, which are required for the AWS EC2 dynamic inventory plugin:
-
 
 pip install boto3 botocore  
 
