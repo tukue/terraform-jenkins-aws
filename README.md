@@ -260,9 +260,14 @@ ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/playbook/jenkins-setup
 | - SSL for HTTPS             |
 +-----------------------------+
 
-+-----------------------------+
++-----------------------------+     
 | S3 Bucket                   |
 | - Stores Terraform State    |
 | - Versioning Enabled        |
 +-----------------------------+
+https://github.com/user-attachments/assets/f481888c-decf-407a-b788-1dbdbcd7bc9f
+
+
+
+
 
