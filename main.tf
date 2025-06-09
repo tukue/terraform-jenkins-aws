@@ -33,11 +33,12 @@ module "jenkins" {
 module "lb_target_group" {
   source                   = "./load-balancer-target-group"
   lb_target_group_name     = "jenkins-lb-target-group"
-  lb_target_group_port     = 8080
-  lb_target_group_protocol = "HTTP"
+  lb_target_group_port     = 443
+  lb_target_group_protocol = "HTTPS"
   vpc_id                   = module.networking.dev_proj_1_vpc_id
   ec2_instance_id          = module.jenkins.jenkins_ec2_instance_ip
   environment              = var.environment
+  certificate_arn          = "dummy-arn"  # Placeholder value
 }
 
 /*

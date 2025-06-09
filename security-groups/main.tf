@@ -14,30 +14,39 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
   vpc_id      = var.vpc_id
 
   # ssh for terraform remote exec
-  ingress {
-    description = "Allow remote SSH from anywhere"
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
+  dynamic "ingress" {
+    for_each = length(var.allowed_ssh_cidr_blocks) > 0 ? [1] : []
+    content {
+      description = "Allow remote SSH from specified ranges"
+      cidr_blocks = var.allowed_ssh_cidr_blocks
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+    }
   }
 
   # enable http
-  ingress {
-    description = "Allow HTTP request from anywhere"
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
+  dynamic "ingress" {
+    for_each = length(var.allowed_http_cidr_blocks) > 0 ? [1] : []
+    content {
+      description = "Allow HTTP request from specified ranges"
+      cidr_blocks = var.allowed_http_cidr_blocks
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+    }
   }
 
   # enable https
-  ingress {
-    description = "Allow HTTPS request from anywhere"
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
+  dynamic "ingress" {
+    for_each = length(var.allowed_http_cidr_blocks) > 0 ? [1] : []
+    content {
+      description = "Allow HTTPS request from specified ranges"
+      cidr_blocks = var.allowed_http_cidr_blocks
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+    }
   }
 
   #Outgoing request
@@ -46,14 +55,14 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # This is generally acceptable for outbound traffic
   }
 
   tags = merge(
     local.common_tags,
     {
       Name = "${var.environment}-sg-ssh-http"
-      Purpose = "Allow SSH, HTTP, and HTTPS traffic"
+      Purpose = "Allow SSH, HTTP, and HTTPS traffic from specified ranges"
     }
   )
 }
@@ -63,20 +72,32 @@ resource "aws_security_group" "ec2_jenkins_port_8080" {
   description = "Enable the Port 8080 for jenkins"
   vpc_id      = var.vpc_id
 
-  # ssh for terraform remote exec
-  ingress {
-    description = "Allow 8080 port to access jenkins"
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
+  # jenkins access
+  dynamic "ingress" {
+    for_each = length(var.allowed_jenkins_cidr_blocks) > 0 ? [1] : []
+    content {
+      description = "Allow 8080 port to access jenkins from specified ranges"
+      cidr_blocks = var.allowed_jenkins_cidr_blocks
+      from_port   = 8080
+      to_port     = 8080
+      protocol    = "tcp"
+    }
+  }
+
+  # Add egress rule for Jenkins security group
+  egress {
+    description = "Allow outgoing request"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]  # This is generally acceptable for outbound traffic
   }
 
   tags = merge(
     local.common_tags,
     {
       Name = "${var.environment}-sg-jenkins-8080"
-      Purpose = "Allow Jenkins traffic on port 8080"
+      Purpose = "Allow Jenkins traffic on port 8080 from specified ranges"
     }
   )
 }
