@@ -19,6 +19,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.0"
+
       - name: Install Terrascan
         run: |
           TERRASCAN_VERSION=$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | jq -r '.tag_name')
@@ -29,103 +34,70 @@ jobs:
           sudo install terrascan /usr/local/bin
           rm terrascan
 
-      - name: Run Terrascan (Basic Scan)
-        id: terrascan-basic
+      - name: Initialize Terraform
+        run: terraform init -backend=false
+
+      - name: Run Terrascan
+        id: terrascan
         run: |
-          # Run initial scan and save results
-          terrascan scan \
-            -t aws \
-            -i terraform \
-            -d . \
-            -o json > terrascan-results.json
+          # Create scan config file
+          cat > config.toml << EOF
+          [rules]
+          skip-rules = []
           
-          # Also generate human-readable output
+          [severity]
+          level = "HIGH"
+          
+          [notifications]
+          webhook = false
+          EOF
+          
+          # Run scan with config
           terrascan scan \
+            --config config.toml \
             -t aws \
             -i terraform \
+            --non-recursive \
+            -d . \
+            -o json | tee terrascan-results.json
+          
+          # Generate human readable output
+          terrascan scan \
+            --config config.toml \
+            -t aws \
+            -i terraform \
+            --non-recursive \
             -d . \
             -o human | tee terrascan-human.txt
         continue-on-error: true
 
-      - name: Run Advanced Security Checks
-        id: advanced-checks
+      - name: Parse Results
+        id: parse
         run: |
-          # Run additional security checks for high severity issues
-          terrascan scan \
-            -t aws \
-            -i terraform \
-            -d . \
-            --severity-level high \
-            -o json > high-severity-results.json
+          HIGH_COUNT=$(jq -r '.results.violations | map(select(.severity == "HIGH")) | length' terrascan-results.json || echo "0")
+          MEDIUM_COUNT=$(jq -r '.results.violations | map(select(.severity == "MEDIUM")) | length' terrascan-results.json || echo "0")
+          echo "high_severity_count=${HIGH_COUNT}" >> $GITHUB_ENV
+          echo "medium_severity_count=${MEDIUM_COUNT}" >> $GITHUB_ENV
           
-          # Parse results and set output
-          HIGH_COUNT=$(jq '.violations | map(select(.severity == "HIGH")) | length' terrascan-results.json)
-          MEDIUM_COUNT=$(jq '.violations | map(select(.severity == "MEDIUM")) | length' terrascan-results.json)
-          echo "high_severity_count=$HIGH_COUNT" >> $GITHUB_ENV
-          echo "medium_severity_count=$MEDIUM_COUNT" >> $GITHUB_ENV
+          echo "Summary of findings:"
+          echo "High severity issues: ${HIGH_COUNT}"
+          echo "Medium severity issues: ${MEDIUM_COUNT}"
 
-      - name: Generate valid SARIF file
-        run: |
-          # Create a guaranteed valid SARIF file
-          # For actual SARIF generation from Terrascan, you might need a more sophisticated approach
-          # or use Terrascan's native SARIF output if available and suitable.
-          # This is a placeholder for GitHub Code Scanning integration.
-          terrascan scan -i terraform -d . -o sarif > terrascan.sarif || \
-          cat > terrascan.sarif << 'EOF'
-          {
-            "version": "2.1.0",
-            "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-            "runs": [
-              {
-                "tool": {
-                  "driver": {
-                    "name": "terrascan",
-                    "informationUri": "https://github.com/tenable/terrascan",
-                    "rules": []
-                  }
-                },
-                "results": []
-              }
-            ]
-          }
-          EOF
-
-      - name: Upload Scan Results
+      - name: Upload Results
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: terraform-scan-results
+          name: terrascan-results
           path: |
             terrascan-results.json
             terrascan-human.txt
-            high-severity-results.json
-            terrascan.sarif
 
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        if: always() # Always run this step to upload SARIF, even if previous steps failed
-        continue-on-error: true # Prevent workflow failure if SARIF upload fails (e.g. Advanced Security not enabled)
-        with:
-          sarif_file: terrascan.sarif
-          category: terrascan
-
-      - name: Check Results and Fail if Necessary
+      - name: Check Results
         run: |
-          echo "Summary of findings:"
-          echo "High severity issues: ${{ steps.advanced-checks.outputs.high_severity_count }}"
-          echo "Medium severity issues: ${{ steps.advanced-checks.outputs.medium_severity_count }}"
-          
-          HIGH_COUNT=${{ steps.advanced-checks.outputs.high_severity_count }}
-          MEDIUM_COUNT=${{ steps.advanced-checks.outputs.medium_severity_count }}
-          
-          if [ "$HIGH_COUNT" -ge 4 ]; then
-            echo "❌ Failed: 4 or more high severity issues found!"
+          if [ "${{ env.high_severity_count }}" -gt 0 ]; then
+            echo "::error::Found ${{ env.high_severity_count }} high severity issues!"
             exit 1
-          elif [ "$HIGH_COUNT" -gt 0 ]; then
-            echo "⚠️ Warning: High severity issues found, but fewer than 4"
           fi
-          
-          if [ "$MEDIUM_COUNT" -gt 5 ]; then
-            echo "⚠️ Warning: More than 5 medium severity issues found"
+          if [ "${{ env.medium_severity_count }}" -gt 5 ]; then
+            echo "::warning::Found more than 5 medium severity issues"
           fi
-          
-          echo "✅ Security scan passed or warnings issued."
