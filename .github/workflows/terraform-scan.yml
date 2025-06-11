@@ -34,14 +34,14 @@ jobs:
         run: |
           # Run initial scan and save results
           terrascan scan \
-            -t gcp \
+            -t aws \
             -i terraform \
             -d . \
             -o json > terrascan-results.json
           
           # Also generate human-readable output
           terrascan scan \
-            -t gcp \
+            -t aws \
             -i terraform \
             -d . \
             -o human | tee terrascan-human.txt
@@ -52,7 +52,7 @@ jobs:
         run: |
           # Run additional security checks for high severity issues
           terrascan scan \
-            -t gcp \
+            -t aws \
             -i terraform \
             -d . \
             --severity-level high \
@@ -61,9 +61,8 @@ jobs:
           # Parse results and set output
           HIGH_COUNT=$(jq '.violations | map(select(.severity == "HIGH")) | length' terrascan-results.json)
           MEDIUM_COUNT=$(jq '.violations | map(select(.severity == "MEDIUM")) | length' terrascan-results.json)
-          echo "::set-output name=high_severity_count::$HIGH_COUNT"
-          echo "::set-output name=medium_severity_count::$MEDIUM_COUNT"
-        continue-on-error: true
+          echo "high_severity_count=$HIGH_COUNT" >> $GITHUB_ENV
+          echo "medium_severity_count=$MEDIUM_COUNT" >> $GITHUB_ENV
 
       - name: Generate valid SARIF file
         run: |
