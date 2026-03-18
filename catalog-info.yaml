@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-jenkins-aws
+  description: Terraform configurations for Jenkins deployment on AWS
+  tags:
+    - terraform
+    - aws
+    - jenkins
+    - infrastructure
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
