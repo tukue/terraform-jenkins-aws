@@ -1,0 +1,57 @@
+app:
+  title: Jenkins Platform - Local Test
+  baseUrl: http://localhost:3000
+
+organization:
+  name: Jenkins Platform
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN:-}
+
+catalog:
+  providers:
+    # Local file provider for our catalog-info.yaml
+    file:
+      - target: ../catalog-info.yaml
+      - target: ../.backstage/system-and-components.yaml
+      - target: ../.backstage/groups-and-users.yaml
+
+scaffolder:
+  # Disable GitHub actions for local testing
+  github:
+    token: ${GITHUB_TOKEN:-}
+    visibility: public
+
+techdocs:
+  builder: local
+  generator:
+    runIn: local
+  publisher:
+    type: local
+
+auth:
+  environment: development
+  providers:
+    guest: {}
+
+proxy:
+  endpoints:
+    '/jenkins':
+      target: 'http://localhost:8080'
+      changeOrigin: true

@@ -1,0 +1,84 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-team
+  title: Platform Engineering Team
+  description: Team responsible for maintaining and evolving the Jenkins platform
+spec:
+  type: team
+  parent: organization
+  children: []
+  profile:
+    displayName: Platform Engineering
+    email: platform-team@organization.com
+    picture: https://gravatar.com/avatar/XXXXXXX?d=identicon
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: devops-team
+  title: DevOps Team
+  description: DevOps and infrastructure management team
+spec:
+  type: team
+  parent: organization
+  children: []
+  profile:
+    displayName: DevOps Team
+    email: devops@organization.com
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: security-team
+  title: Security Team
+  description: Security and compliance team
+spec:
+  type: team
+  parent: organization
+  children: []
+  profile:
+    displayName: Security Team
+    email: security@organization.com
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: organization
+  title: Organization
+  description: Organization root
+spec:
+  type: organization
+  children:
+    - platform-team
+    - devops-team
+    - security-team
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: platform-admin
+  title: Platform Administrator
+spec:
+  profile:
+    displayName: Platform Admin
+    email: admin@organization.com
+  memberOf:
+    - platform-team
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: devops-lead
+  title: DevOps Lead
+spec:
+  profile:
+    displayName: DevOps Lead
+    email: devops-lead@organization.com
+  memberOf:
+    - devops-team

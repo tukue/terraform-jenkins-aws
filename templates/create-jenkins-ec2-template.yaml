@@ -1,0 +1,163 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-jenkins-ec2
+  title: Create Jenkins EC2 Instance
+  description: Create a new Jenkins EC2 instance on AWS using Terraform
+  tags:
+    - infrastructure
+    - jenkins
+    - terraform
+    - aws
+  links:
+    - title: Documentation
+      url: https://your-backstage-instance/docs/platforms/jenkins
+
+spec:
+  owner: platform-team
+  type: infrastructure
+
+  parameters:
+    - title: Fill in deployment details
+      required:
+        - name
+        - environment
+        - instance_type
+        - owner
+      properties:
+        name:
+          title: Jenkins Instance Name
+          type: string
+          description: Name for your Jenkins instance (e.g., jenkins-prod-01)
+          pattern: '^[a-z0-9-]+$'
+        
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - qa
+            - prod
+          description: Target deployment environment
+        
+        instance_type:
+          title: Instance Type
+          type: string
+          enum:
+            - t3.micro
+            - t3.small
+            - t3.medium
+            - t3.large
+            - m5.large
+            - m5.xlarge
+          description: EC2 instance type (larger for production)
+          default: t3.medium
+        
+        owner:
+          title: Owner Email
+          type: string
+          description: Email of the team responsible for this instance
+          pattern: '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        
+        enable_monitoring:
+          title: Enable CloudWatch Monitoring
+          type: boolean
+          default: true
+          description: Enable detailed monitoring and alerting
+        
+        backup_retention:
+          title: Backup Retention (days)
+          type: number
+          default: 30
+          minimum: 7
+          maximum: 365
+          description: How long to retain automated backups
+
+    - title: Review configuration
+      properties:
+        message:
+          title: Deployment Notes
+          type: string
+          description: Any additional notes for the deployment
+          maxLength: 500
+
+  steps:
+    - id: fetch-base
+      name: Fetch base Terraform template
+      action: fetch:template
+      input:
+        url: https://github.com/tukue/terraform-jenkins-aws/tree/main/templates/jenkins-ec2
+        targetPath: ./jenkins-infrastructure
+
+    - id: template
+      name: Template terraform files
+      action: fetch:template
+      input:
+        url: ./jenkins-infrastructure
+        targetPath: ./jenkins-infrastructure
+        values:
+          name: ${{ parameters.name }}
+          environment: ${{ parameters.environment }}
+          instance_type: ${{ parameters.instance_type }}
+          owner: ${{ parameters.owner }}
+          enable_monitoring: ${{ parameters.enable_monitoring }}
+          backup_retention: ${{ parameters.backup_retention }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: Jenkins EC2 instance for ${{ parameters.environment }} environment
+        repoUrl: github.com/tukue/terraform-jenkins-aws-instances?repo=${{ parameters.name }}-${{ parameters.environment }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+    - id: create-pull-request
+      name: Create deployment PR
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com/tukue/terraform-jenkins-aws
+        title: 'feat: Add Jenkins instance ${{ parameters.name }} for ${{ parameters.environment }}'
+        description: |
+          # Deployment Request
+          
+          ## Instance Details
+          - **Name**: ${{ parameters.name }}
+          - **Environment**: ${{ parameters.environment }}
+          - **Instance Type**: ${{ parameters.instance_type }}
+          - **Owner**: ${{ parameters.owner }}
+          - **Monitoring**: Enabled
+          - **Backup Retention**: ${{ parameters.backup_retention }} days
+          
+          ## Notes
+          ${{ parameters.message }}
+          
+          Please review and approve this deployment.
+        targetPath: infrastructure/${{ parameters.name }}
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.repoContentsUrl }}
+      - title: Pull Request
+        url: ${{ steps.create-pull-request.output.pullRequestUrl }}
+      - title: Catalog
+        url: https://your-backstage-instance/catalog/default/component/${{ parameters.name }}
+    text:
+      - title: Next Steps
+        content: |
+          Your Jenkins EC2 instance deployment has been created!
+          
+          1. Review the pull request at: ${{ steps.create-pull-request.output.pullRequestUrl }}
+          2. Get approval from platform team
+          3. Merge the PR to deploy
+          4. Monitor the deployment in GitHub Actions
+          5. Access your instance at: https://jenkins-${{ parameters.name }}.your-domain.com

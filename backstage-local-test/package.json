@@ -1,0 +1,12 @@
+{
+  "name": "backstage-local-test",
+  "version": "1.0.0",
+  "description": "Local test for Backstage catalog configuration",
+  "main": "test-catalog.js",
+  "scripts": {
+    "test": "node test-catalog.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

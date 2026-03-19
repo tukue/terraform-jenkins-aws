@@ -1,0 +1,182 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: jenkins-platform
+  title: Jenkins Platform System
+  description: |
+    Complete platform for managing Jenkins CI/CD infrastructure on AWS.
+    Includes infrastructure provisioning, monitoring, and self-service capabilities.
+  tags:
+    - platform
+    - jenkins
+    - aws
+    - ci-cd
+spec:
+  owner: platform-team
+  domain: platform
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-core
+  title: Terraform Core Infrastructure
+  description: Core Terraform modules for AWS infrastructure
+  tags:
+    - terraform
+    - infrastructure
+    - iac
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-networking
+  title: Networking Module
+  description: VPC, subnets, and security groups for Jenkins platform
+  tags:
+    - networking
+    - vpc
+    - terraform
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
+  dependsOn:
+    - component:default/terraform-core
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-jenkins-module
+  title: Jenkins EC2 Module
+  description: Terraform module for provisioning Jenkins on EC2
+  tags:
+    - jenkins
+    - compute
+    - terraform
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
+  dependsOn:
+    - component:default/terraform-networking
+    - component:default/terraform-security-groups
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-security-groups
+  title: Security Groups Module
+  description: Security group configurations for Jenkins and supporting services
+  tags:
+    - security
+    - networking
+    - terraform
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
+  dependsOn:
+    - component:default/terraform-networking
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-load-balancer
+  title: Load Balancer Module
+  description: Application Load Balancer configuration for Jenkins
+  tags:
+    - load-balancer
+    - networking
+    - terraform
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
+  dependsOn:
+    - component:default/terraform-networking
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-certificates
+  title: SSL/TLS Certificates Module
+  description: AWS Certificate Manager configuration for HTTPS
+  tags:
+    - security
+    - ssl
+    - terraform
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-dns
+  title: DNS Configuration Module
+  description: Route 53 DNS and domain configuration
+  tags:
+    - dns
+    - route53
+    - terraform
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
+  dependsOn:
+    - component:default/terraform-certificates
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ansible-jenkins-setup
+  title: Ansible Jenkins Configuration
+  description: Ansible playbooks for Jenkins EC2 configuration
+  tags:
+    - ansible
+    - configuration-management
+    - jenkins
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
+  dependsOn:
+    - component:default/terraform-jenkins-module
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: terraform-state-backend
+  title: Terraform State Backend API
+  description: S3 backend for Terraform state management
+  tags:
+    - api
+    - terraform
+    - state-management
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-team
+  system: jenkins-platform
