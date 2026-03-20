@@ -3,6 +3,12 @@ variable "bucket_name" {
   description = "Remote state bucket name"
 }
 
+variable "aws_region" {
+  type        = string
+  description = "AWS region used by the provider"
+  default     = "eu-north-1"
+}
+
 variable "vpc_cidr" {
   type        = string
   description = "Public Subnet CIDR values"
@@ -48,4 +54,59 @@ variable "run_ansible" {
   description = "Whether to run Ansible configuration after provisioning"
   type        = bool
   default     = false
+}
+
+variable "enable_observability" {
+  description = "Enable the managed Prometheus and OpenTelemetry observability module"
+  type        = bool
+  default     = false
+}
+
+variable "observability_workspace_alias" {
+  description = "Workspace alias for the managed Prometheus observability module"
+  type        = string
+  default     = "jenkins-platform-observability"
+}
+
+variable "observability_jenkins_targets" {
+  description = "Static targets to scrape by OpenTelemetry Collector for Jenkins metrics"
+  type        = list(string)
+  default     = ["localhost:8080"]
+}
+
+variable "enable_grafana_service" {
+  description = "Enable the self-hosted Grafana service module on AWS"
+  type        = bool
+  default     = false
+}
+
+variable "grafana_instance_type" {
+  description = "EC2 instance type for the Grafana service"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "grafana_prometheus_url" {
+  description = "Prometheus URL used by the Grafana service"
+  type        = string
+  default     = "http://localhost:9090"
+}
+
+variable "grafana_admin_user" {
+  description = "Grafana admin username"
+  type        = string
+  default     = "admin"
+}
+
+variable "grafana_admin_password" {
+  description = "Grafana admin password"
+  type        = string
+  sensitive   = true
+  default     = "change-me"
+}
+
+variable "grafana_allowed_cidrs" {
+  description = "CIDR blocks allowed to access Grafana"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
 }
