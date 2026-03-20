@@ -25,6 +25,26 @@ For contribution expectations, see [CONTRIBUTING.md](/c:/Users/tukue/terraform-j
 
 ---
 
+## Why This Platform Is Needed (Business Cases)
+
+This Jenkins-on-AWS platform pattern is useful when organizations need consistency, speed, and governance across multiple delivery teams.
+
+- **Regulated delivery and auditability**: teams need traceable CI/CD controls and repeatable release workflows.
+- **Standardization across teams**: one platform enforces common pipeline, security, and infrastructure practices.
+- **Hybrid and legacy integration**: Jenkins can orchestrate mixed toolchains while AWS provides scalable runtime.
+- **Cost and capacity control**: centralized platform operations improve utilization, visibility, and governance.
+- **Faster team onboarding**: templates, runbooks, and golden paths reduce setup time and operational errors.
+
+### Business Outcomes
+
+- Lower lead time for change
+- Higher deployment reliability
+- Better security/compliance consistency
+- Reduced platform support overhead
+- Improved cloud cost efficiency
+
+---
+
 ## Features
 
 - **Jenkins Deployment**: Automates the setup of a Jenkins server on an EC2 instance.
