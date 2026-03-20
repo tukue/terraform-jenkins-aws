@@ -1,8 +1,27 @@
-# Terraform Jenkins AWS
+﻿# Terraform Jenkins AWS
 
 This repository contains Terraform configurations to automate the deployment of a Jenkins server on AWS. It provisions infrastructure such as VPC, EC2 instances, S3 backend for state management, and Route 53 for domain configuration.
 
-👉 **GitHub Repository**: [https://github.com/tukue/terraform-jenkins-aws](https://github.com/tukue/terraform-jenkins-aws)
+ðŸ‘‰ **GitHub Repository**: [https://github.com/tukue/terraform-jenkins-aws](https://github.com/tukue/terraform-jenkins-aws)
+
+## Project Positioning
+
+This repository is a **Platform Engineering showcase project**.
+
+It is intended to demonstrate:
+- Infrastructure as Code (Terraform modules and environment strategy)
+- Platform-as-a-product practices (Backstage, templates, docs, runbooks)
+- Automation and operations maturity (CI/CD quality checks, standards, governance)
+
+This is **not operated as a community open-source project** with public roadmap governance.
+
+For contribution expectations, see [CONTRIBUTING.md](/c:/Users/tukue/terraform-jenkins-aws/CONTRIBUTING.md).
+
+## Intended Audience
+
+- Junior to mid-level engineers building a Platform Engineer portfolio
+- Hiring managers and interviewers evaluating platform design and delivery
+- Teams looking for reference patterns for Backstage + Terraform enablement
 
 ---
 
@@ -266,6 +285,8 @@ ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/playbook/jenkins-setup
 | - Versioning Enabled        |
 +-----------------------------+
 https://github.com/user-attachments/assets/f481888c-decf-407a-b788-1dbdbcd7bc9f
+
+
 
 
 

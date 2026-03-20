@@ -1,0 +1,195 @@
+app:
+  title: Jenkins Platform Portal
+  baseUrl: http://localhost:3000
+  support:
+    url: https://github.com/tukue/terraform-jenkins-aws/issues
+    items:
+      - title: Issues
+        icon: github
+        links:
+          - url: https://github.com/tukue/terraform-jenkins-aws/issues
+            title: GitHub Issues
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: pg
+    connection:
+      host: ${DB_HOST:-localhost}
+      port: ${DB_PORT:-5432}
+      user: ${DB_USER:-backstage}
+      password: ${DB_PASSWORD:-}
+      database: ${DB_NAME:-backstage}
+  cache:
+    store: memory
+
+auth:
+  environment: development
+  providers:
+    github:
+      development:
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+        callbackUrl: http://localhost:3000/api/auth/github/handler/frame
+
+# Plugin Integrations Configuration
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+  
+  aws:
+    - region: ${AWS_REGION:-us-east-1}
+      roleArn: ${AWS_ROLE_ARN}
+      externalId: ${AWS_EXTERNAL_ID}
+
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    parseEntityPolicy:
+      defaultHostname: default
+      
+  providers:
+    resourceManager:
+      scheduleFractionComplete: 0.9
+    
+    # GitHub Organization Provider
+    githubOrg:
+      default:
+        orgs: ['tukue']
+        token: ${GITHUB_TOKEN}
+        schedule:
+          initialDelay: { minutes: 30 }
+          frequency: { minutes: 60 }
+    
+    # Local file provider
+    file:
+      - target: ../../catalog-info.yaml
+      - target: ../../.backstage/system-and-components.yaml
+      - target: ../../.backstage/groups-and-users.yaml
+
+# Terraform Plugin Configuration
+terraform:
+  # Configure providers for Terraform workspace discovery
+  providers:
+    - name: aws
+      host: registry.terraform.io
+      namespace: hashicorp
+    - name: kubernetes
+      host: registry.terraform.io
+      namespace: hashicorp
+
+# Kubernetes Plugin Configuration
+kubernetes:
+  # Define Kubernetes clusters for monitoring/discovery
+  clusters:
+    - name: default
+      url: ${KUBERNETES_API_URL:-https://kubernetes.default.svc}
+      authProvider: serviceAccount
+      skipTLSVerify: false
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      customResources:
+        - group: 'apps'
+          apiVersion: 'v1'
+          plural: 'deployments'
+        - group: 'core'
+          apiVersion: 'v1'
+          plural: 'services'
+
+# Jenkins Plugin Configuration
+jenkins:
+  instances:
+    - name: default
+      baseUrl: ${JENKINS_URL:-http://localhost:8080}
+      username: ${JENKINS_USERNAME}
+      apiToken: ${JENKINS_TOKEN}
+
+# AWS Plugins Configuration
+aws:
+  s3:
+    # S3 bucket discovery
+    buckets:
+      - name: backstage-artifacts
+        region: ${AWS_REGION:-us-east-1}
+  
+  ec2:
+    # EC2 instance discovery
+    regions:
+      - ${AWS_REGION:-us-east-1}
+  
+  rds:
+    # RDS instance discovery
+    regions:
+      - ${AWS_REGION:-us-east-1}
+
+# Scaffolder Configuration (for infrastructure provisioning)
+scaffolder:
+  # Terraform backend module
+  terraform:
+    backend:
+      address: http://localhost:7007
+  
+  # GitHub integration for scaffolder
+  github:
+    token: ${GITHUB_TOKEN}
+    visibility: public
+
+# TechDocs Configuration (for documentation hosting)
+techdocs:
+  builder: local
+  generator:
+    runIn: local
+  publisher:
+    type: local
+    local:
+      publishDirectory: /tmp/techdocs
+
+# Cost Analysis (AWS Cost Explorer Integration)
+costAnalysis:
+  enabled: true
+  aws:
+    costExplorerApiUrl: https://ce.${AWS_REGION:-us-east-1}.amazonaws.com
+    awsAccountId: ${AWS_ACCOUNT_ID}
+
+# GitHub Integration Configuration
+github:
+  token: ${GITHUB_TOKEN}
+  # Optional: GitHub Enterprise
+  # apps:
+  #   - appId: ${GITHUB_APP_ID}
+  #     privateKey: ${GITHUB_APP_PRIVATE_KEY}
+  #     webhookUrl: ${GITHUB_WEBHOOK_URL}
+  #     clientId: ${GITHUB_CLIENT_ID}
+  #     clientSecret: ${GITHUB_CLIENT_SECRET}
+
+# Plugin Settings
+plugins:
+  # Terraform plugin settings
+  terraform:
+    registry:
+      - type: public
+        hostname: registry.terraform.io
+      - type: private
+        hostname: ${TERRAFORM_REGISTRY_HOSTNAME:-}
+        token: ${TERRAFORM_REGISTRY_TOKEN:-}
+  
+  # GitHub plugin settings
+  github:
+    proxyUrl: /api/github
+  
+  # Kubernetes plugin settings
+  kubernetes:
+    serviceLocator:
+      multiTenant: true
+  
+  # Jenkins plugin settings
+  jenkins:
+    proxyUrl: /api/jenkins

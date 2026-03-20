@@ -15,6 +15,29 @@ terraform plan -var-file="backstage.tfvars"
 terraform apply -var-file="backstage.tfvars"
 ```
 
+## Local Docker Containerization
+
+Use Docker Compose from this directory to run Backstage and PostgreSQL locally:
+
+```bash
+# Create local environment values
+cp .env.example .env
+
+# Start stack
+docker compose up -d
+
+# Check containers
+docker compose ps
+```
+
+Backstage will be available at `http://localhost:3000`.
+
+To stop:
+
+```bash
+docker compose down
+```
+
 ## Files
 
 - **main.tf** - Root module orchestration

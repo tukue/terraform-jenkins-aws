@@ -50,7 +50,7 @@ version: '3.8'
 
 services:
   backstage:
-    image: ghcr.io/backstage/backstage:${backstage_version}
+    image: ghcr.io/backstage/community-all-in-one:${backstage_version}
     container_name: backstage
     restart: always
     ports:
@@ -67,7 +67,7 @@ services:
       NODE_ENV: production
       LOG_LEVEL: debug
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -122,7 +122,7 @@ http {
 
     sendfile on;
     tcp_nopush on;
-    tc p_nodelay on;
+    tcp_nodelay on;
     keepalive_timeout 65;
     types_hash_max_size 2048;
     server_tokens off;

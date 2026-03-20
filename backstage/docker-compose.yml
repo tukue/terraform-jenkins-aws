@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: backstage-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-backstage}
+      POSTGRES_USER: ${DB_USER:-backstage}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-backstage}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - backstage_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-backstage} -d ${DB_NAME:-backstage}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backstage:
+    image: ${BACKSTAGE_IMAGE:-ghcr.io/backstage/community-all-in-one:latest}
+    container_name: backstage
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_CONFIG_backend_database_connection_host: ${DB_HOST:-postgres}
+      APP_CONFIG_backend_database_connection_port: ${DB_PORT:-5432}
+      APP_CONFIG_backend_database_connection_user: ${DB_USER:-backstage}
+      APP_CONFIG_backend_database_connection_password: ${DB_PASSWORD:-backstage}
+      APP_CONFIG_backend_database_connection_database: ${DB_NAME:-backstage}
+      APP_CONFIG_app_baseUrl: ${APP_URL:-http://localhost:3000}
+      APP_CONFIG_backend_baseUrl: ${BACKEND_URL:-http://localhost:7007}
+      APP_CONFIG_backend_cors_origin: ${APP_URL:-http://localhost:3000}
+      APP_CONFIG_integrations_github_0_host: github.com
+      APP_CONFIG_integrations_github_0_token: ${GITHUB_TOKEN:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ROLE_ARN: ${AWS_ROLE_ARN:-}
+      AWS_EXTERNAL_ID: ${AWS_EXTERNAL_ID:-}
+      JENKINS_URL: ${JENKINS_URL:-}
+      JENKINS_USERNAME: ${JENKINS_USERNAME:-}
+      JENKINS_TOKEN: ${JENKINS_TOKEN:-}
+      NODE_ENV: ${NODE_ENV:-production}
+    ports:
+      - "${BACKSTAGE_PORT:-3000}:3000"
+      - "${BACKSTAGE_BACKEND_PORT:-7007}:7007"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+volumes:
+  backstage_postgres_data:

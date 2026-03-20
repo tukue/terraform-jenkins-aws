@@ -74,10 +74,16 @@ Transform the terraform-jenkins-aws repository into a mature platform project wi
 - **Priority**: P0 (Critical)
 - **Effort**: 6-8 hours
 
-### 2.2 Plugin Configuration
-- **Status**: TODO
-- **Description**: Configure and customize Backstage plugins
+### 2.2 Plugin Configuration & Docker Containerization
+- **Status**: IN PROGRESS
+- **Description**: Configure and customize Backstage plugins and package runtime in Docker
 - **Tasks**:
+  - [x] Create Docker Compose runtime for Backstage + PostgreSQL
+  - [x] Add `.env.example` for Dockerized local/EC2 startup
+  - [x] Align EC2 user-data image/runtime health checks with Docker setup
+  - [x] Implement reusable plugin installer script (`backstage/install-plugins.sh`)
+  - [x] Add plugin integration snippets (`backstage/plugin-code-snippets.md`)
+  - [x] Add WSL runbook for plugin installation (`backstage/PLUGIN-INSTALLATION-WSL.md`)
   - [ ] Install terraform plugin
   - [ ] Install github plugin
   - [ ] Install kubernetes plugin

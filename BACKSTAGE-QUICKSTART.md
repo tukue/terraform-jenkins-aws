@@ -29,6 +29,18 @@ npx @backstage/create-app@latest
 cd my-backstage-instance
 ```
 
+### 2.1 Run Dockerized Backstage (Repository Setup)
+
+If you want a fast local runtime from this repository, use the prebuilt container setup:
+
+```bash
+cd backstage
+cp .env.example .env
+docker compose up -d
+```
+
+Open `http://localhost:3000` after containers become healthy.
+
 ### 3. Add GitHub Integration
 
 In `app-config.yaml`:
