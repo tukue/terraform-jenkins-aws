@@ -43,7 +43,7 @@ resource "aws_db_instance" "backstage" {
   parameter_group_name = aws_db_parameter_group.backstage.name
   
   # Monitoring
-  enable_cloudwatch_logs_exports = ["postgresql"]
+  enabled_cloudwatch_logs_exports = ["postgresql"]
   monitoring_interval             = 60
   monitoring_role_arn             = aws_iam_role.backstage_db_monitoring.arn
   
