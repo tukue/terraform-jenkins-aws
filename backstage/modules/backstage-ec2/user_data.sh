@@ -76,7 +76,7 @@ services:
       driver: "awslogs"
       options:
         awslogs-group: "/aws/ec2/backstage"
-        awslogs-region: "us-east-1"
+        awslogs-region: "${aws_region}"
         awslogs-stream-prefix: "ecs"
 
   nginx:
@@ -95,7 +95,7 @@ services:
       driver: "awslogs"
       options:
         awslogs-group: "/aws/ec2/backstage"
-        awslogs-region: "us-east-1"
+        awslogs-region: "${aws_region}"
         awslogs-stream-prefix: "nginx"
 DOCKER
 

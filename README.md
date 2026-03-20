@@ -52,6 +52,8 @@ This Jenkins-on-AWS platform pattern is useful when organizations need consisten
 - **Networking**: Configures VPC, subnets, and security groups.
 - **Load Balancer**: Sets up an Application Load Balancer (ALB) for traffic routing.
 - **Domain Management**: Integrates with Route 53 for DNS and SSL certificate management.
+- **Observability Service**: Optional managed Prometheus workspace + OpenTelemetry collector config for easy platform-wide metrics integration.
+- **Grafana Service**: Optional self-hosted Grafana module for metrics visualization as a reusable platform service.
 
 ---
 
@@ -125,6 +127,11 @@ terraform init -backend-config="backend-config-prod.hcl"
 
 3. Use environment-specific `.tfvars` files:
    Each environment has its own `.tfvars` file to manage configurations. Use the `-var-file` flag to specify the appropriate file when running Terraform commands.
+
+   Add `aws_region` in your tfvars when you want to deploy outside the default region:
+   ```hcl
+   aws_region = "your-aws-region"
+   ```
 
    - For `dev`:
      ```bash

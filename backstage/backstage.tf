@@ -2,17 +2,17 @@
 module "backstage_postgres" {
   source = "./modules/backstage-postgres"
 
-  environment            = var.environment
-  allocated_storage      = var.db_allocated_storage
-  instance_class         = var.db_instance_class
-  backup_retention_days  = var.db_backup_retention
+  environment           = var.environment
+  allocated_storage     = var.db_allocated_storage
+  instance_class        = var.db_instance_class
+  backup_retention_days = var.db_backup_retention
   multi_az              = var.environment == "prod" ? true : false
 
   db_name  = "backstage"
   user     = "backstage_admin"
   password = var.db_password
 
-  subnet_ids        = module.vpc.private_subnets
+  subnet_ids         = module.vpc.private_subnets
   security_group_ids = [aws_security_group.backstage_db.id]
 
   publicly_accessible = false
@@ -25,13 +25,13 @@ module "backstage_postgres" {
 module "backstage_ec2" {
   source = "./modules/backstage-ec2"
 
-  environment          = var.environment
-  instance_type        = var.instance_type
-  root_volume_size     = var.root_volume_size
-  key_name            = var.key_name != "" ? var.key_name : null
+  environment      = var.environment
+  instance_type    = var.instance_type
+  root_volume_size = var.root_volume_size
+  key_name         = var.key_name != "" ? var.key_name : null
 
-  subnet_id           = module.vpc.public_subnets[0]
-  security_group_ids  = [aws_security_group.backstage.id]
+  subnet_id            = module.vpc.public_subnets[0]
+  security_group_ids   = [aws_security_group.backstage.id]
   iam_instance_profile = aws_iam_instance_profile.backstage.name
 
   # Database configuration
@@ -45,6 +45,7 @@ module "backstage_ec2" {
   github_client_id     = var.github_client_id
   github_client_secret = var.github_client_secret
   github_token         = var.github_token
+  aws_region           = var.aws_region
 
   backstage_version = var.backstage_version
 

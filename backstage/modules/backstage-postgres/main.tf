@@ -14,44 +14,44 @@ resource "aws_db_instance" "backstage" {
   identifier     = "${var.environment}-backstage-db"
   engine         = "postgres"
   engine_version = "14.7"
-  
-  allocated_storage    = var.allocated_storage
-  storage_type         = "gp3"
-  iops                 = 3000
-  storage_encrypted    = true
-  kms_key_id           = aws_kms_key.backstage_db.arn
-  
+
+  allocated_storage = var.allocated_storage
+  storage_type      = "gp3"
+  iops              = 3000
+  storage_encrypted = true
+  kms_key_id        = aws_kms_key.backstage_db.arn
+
   db_name  = var.db_name
   username = var.user
   password = var.password
-  
+
   instance_class = var.instance_class
-  
+
   db_subnet_group_name   = aws_db_subnet_group.backstage.name
   vpc_security_group_ids = var.security_group_ids
-  
+
   # Backup and maintenance
   backup_retention_period = var.backup_retention_days
   backup_window           = "03:00-04:00"
   maintenance_window      = "sun:04:00-sun:05:00"
-  
+
   # Multi-AZ and scaling
   multi_az            = var.multi_az
   publicly_accessible = var.publicly_accessible
-  
+
   # Parameter group
   parameter_group_name = aws_db_parameter_group.backstage.name
-  
+
   # Monitoring
   enabled_cloudwatch_logs_exports = ["postgresql"]
   monitoring_interval             = 60
   monitoring_role_arn             = aws_iam_role.backstage_db_monitoring.arn
-  
+
   # Snapshot and final snapshot
   copy_tags_to_snapshot     = true
   skip_final_snapshot       = var.skip_final_snapshot
   final_snapshot_identifier = "${var.environment}-backstage-db-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
-  
+
   # Deletion protection
   deletion_protection = var.environment == "production" ? true : false
 

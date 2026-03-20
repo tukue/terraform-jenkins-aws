@@ -19,7 +19,7 @@ module "security_group" {
 module "jenkins" {
   source                    = "./jenkins"
   ami_id                    = var.ec2_ami_id
-  instance_type             = "t3.small"  # Changed from t2.medium to t2.micro for free tier
+  instance_type             = "t3.small" # Changed from t2.medium to t2.micro for free tier
   tag_name                  = "Jenkins:Ubuntu Linux EC2"
   public_key                = var.public_key
   subnet_id                 = tolist(module.networking.dev_proj_1_public_subnets)[0]
@@ -38,7 +38,34 @@ module "lb_target_group" {
   vpc_id                   = module.networking.dev_proj_1_vpc_id
   ec2_instance_id          = module.jenkins.jenkins_ec2_instance_ip
   environment              = var.environment
-  certificate_arn          = "dummy-arn"  # Placeholder value
+  certificate_arn          = "dummy-arn" # Placeholder value
+}
+
+module "prometheus" {
+  count = var.enable_observability ? 1 : 0
+
+  source = "./prometheus"
+
+  environment            = var.environment
+  workspace_alias        = var.observability_workspace_alias
+  jenkins_static_targets = var.observability_jenkins_targets
+}
+
+module "grafana" {
+  count = var.enable_grafana_service ? 1 : 0
+
+  source = "./grafana"
+
+  environment    = var.environment
+  ami_id         = var.ec2_ami_id
+  instance_type  = var.grafana_instance_type
+  subnet_id      = tolist(module.networking.dev_proj_1_public_subnets)[0]
+  vpc_id         = module.networking.dev_proj_1_vpc_id
+  allowed_cidrs  = var.grafana_allowed_cidrs
+  prometheus_url = var.grafana_prometheus_url
+  admin_user     = var.grafana_admin_user
+  admin_password = var.grafana_admin_password
+  tags           = var.tags
 }
 
 /*

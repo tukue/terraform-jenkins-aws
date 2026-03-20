@@ -47,7 +47,7 @@ integrations:
       token: ${GITHUB_TOKEN}
   
   aws:
-    - region: ${AWS_REGION:-us-east-1}
+    - region: ${AWS_REGION}
       roleArn: ${AWS_ROLE_ARN}
       externalId: ${AWS_EXTERNAL_ID}
 
@@ -118,17 +118,17 @@ aws:
     # S3 bucket discovery
     buckets:
       - name: backstage-artifacts
-        region: ${AWS_REGION:-us-east-1}
+        region: ${AWS_REGION}
   
   ec2:
     # EC2 instance discovery
     regions:
-      - ${AWS_REGION:-us-east-1}
+      - ${AWS_REGION}
   
   rds:
     # RDS instance discovery
     regions:
-      - ${AWS_REGION:-us-east-1}
+      - ${AWS_REGION}
 
 # Scaffolder Configuration (for infrastructure provisioning)
 scaffolder:
@@ -156,7 +156,7 @@ techdocs:
 costAnalysis:
   enabled: true
   aws:
-    costExplorerApiUrl: https://ce.${AWS_REGION:-us-east-1}.amazonaws.com
+    costExplorerApiUrl: https://ce.${AWS_REGION}.amazonaws.com
     awsAccountId: ${AWS_ACCOUNT_ID}
 
 # GitHub Integration Configuration

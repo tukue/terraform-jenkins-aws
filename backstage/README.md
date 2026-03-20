@@ -32,6 +32,8 @@ docker compose ps
 
 Backstage will be available at `http://localhost:3000`.
 
+Grafana will be available at `http://localhost:3001` and Prometheus at `http://localhost:9090`.
+
 To stop:
 
 ```bash
@@ -64,7 +66,7 @@ Create `backstage.tfvars`:
 
 ```hcl
 environment       = "production"
-aws_region        = "us-east-1"
+aws_region        = "your-aws-region"
 
 # GitHub OAuth2
 github_client_id     = "your-client-id"

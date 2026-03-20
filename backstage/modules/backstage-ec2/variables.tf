@@ -3,6 +3,11 @@ variable "environment" {
   description = "Environment name"
 }
 
+variable "aws_region" {
+  type        = string
+  description = "AWS region for CloudWatch logs and regional services"
+}
+
 variable "instance_type" {
   type        = string
   default     = "t3.large"
