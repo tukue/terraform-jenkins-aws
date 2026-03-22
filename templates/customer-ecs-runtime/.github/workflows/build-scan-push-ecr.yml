@@ -1,0 +1,129 @@
+name: Build, Scan, and Push Image to ECR
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-scan-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      AWS_REGION: "${{ values.aws_region }}"
+      AWS_ACCOUNT_ID: "${{ values.aws_account_id }}"
+      AWS_ROLE_ARN: "${{ values.aws_role_arn }}"
+      SOURCE_REPO: "${{ values.source_repo }}"
+      DOCKERFILE_PATH: "${{ values.dockerfile_path }}"
+      BUILD_CONTEXT: "${{ values.build_context }}"
+      IMAGE_TAG: "${{ values.image_tag }}"
+      ECR_REPOSITORY: "${{ values.tenant_name }}-${{ values.environment }}-ecr"
+      ECS_CLUSTER: "${{ values.tenant_name }}-${{ values.environment }}-ecs"
+      ECS_SERVICE: "${{ values.tenant_name }}-${{ values.environment }}-service"
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ values.source_repo }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          path: source
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ values.aws_role_arn }}
+          aws-region: ${{ values.aws_region }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build image
+        run: |
+          EFFECTIVE_IMAGE_TAG="${IMAGE_TAG}"
+          if [ -z "${EFFECTIVE_IMAGE_TAG}" ] || [ "${EFFECTIVE_IMAGE_TAG}" = "latest" ]; then
+            EFFECTIVE_IMAGE_TAG="${GITHUB_SHA}"
+          fi
+
+          IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${EFFECTIVE_IMAGE_TAG}"
+          echo "EFFECTIVE_IMAGE_TAG=${EFFECTIVE_IMAGE_TAG}" >> "$GITHUB_ENV"
+          echo "IMAGE_URI=${IMAGE_URI}" >> "$GITHUB_ENV"
+          docker build \
+            -f "source/${DOCKERFILE_PATH}" \
+            -t "${IMAGE_URI}" \
+            "source/${BUILD_CONTEXT}"
+
+      - name: Scan image for HIGH and CRITICAL findings
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE_URI }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+
+      - name: Push image to ECR
+        run: |
+          docker push "${IMAGE_URI}"
+
+      - name: Register ECS task definition revision
+        run: |
+          CURRENT_TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${ECS_SERVICE}" \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
+          aws ecs describe-task-definition \
+            --task-definition "${CURRENT_TASK_DEF_ARN}" \
+            --query 'taskDefinition' \
+            --output json > task-definition.json
+
+          jq --arg IMAGE_URI "${IMAGE_URI}" '
+            del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy
+            )
+            | .containerDefinitions = (
+                .containerDefinitions
+                | map(if .name == "app" then .image = $IMAGE_URI else . end)
+              )
+          ' task-definition.json > task-definition-rendered.json
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://task-definition-rendered.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "NEW_TASK_DEF_ARN=${NEW_TASK_DEF_ARN}" >> "$GITHUB_ENV"
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --task-definition "${NEW_TASK_DEF_ARN}" \
+            --force-new-deployment
+
+          aws ecs wait services-stable \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${ECS_SERVICE}"
+
+      - name: Summary
+        run: |
+          echo "Image built, scanned, pushed, and deployed successfully."
+          echo "Repository: ${ECR_REPOSITORY}"
+          echo "Image: ${IMAGE_URI}"
+          echo "Task definition: ${NEW_TASK_DEF_ARN}"
+          echo "Service: ${ECS_SERVICE}"

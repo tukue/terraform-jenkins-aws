@@ -1,15 +1,18 @@
 locals {
-  tenant_label   = trimspace(var.tenant_name) != "" ? var.tenant_name : var.customer_name
-  name_prefix    = lower("${local.tenant_label}-${var.environment}")
-  cluster_name   = "${local.name_prefix}-ecs"
-  service_name   = "${local.name_prefix}-service"
-  alb_name       = substr("${local.name_prefix}-alb", 0, 32)
-  tg_name        = substr("${local.name_prefix}-tg", 0, 32)
-  log_group_name = "/ecs/${local.name_prefix}"
+  tenant_label        = trimspace(var.tenant_name) != "" ? var.tenant_name : var.customer_name
+  name_prefix         = lower("${local.tenant_label}-${var.environment}")
+  cluster_name        = "${local.name_prefix}-ecs"
+  service_name        = "${local.name_prefix}-service"
+  alb_name            = substr("${local.name_prefix}-alb", 0, 32)
+  tg_name             = substr("${local.name_prefix}-tg", 0, 32)
+  log_group_name      = "/ecs/${local.name_prefix}"
+  exec_log_group_name = "/ecs/exec/${local.name_prefix}"
+  alb_subnet_ids      = var.alb_internal ? local.resolved_private_subnet_ids : local.resolved_public_subnet_ids
 
   resolved_vpc_id             = var.vpc_id != "" ? var.vpc_id : data.aws_ssm_parameter.vpc_id[0].value
   resolved_public_subnet_ids  = length(var.public_subnet_ids) > 0 ? var.public_subnet_ids : split(",", data.aws_ssm_parameter.public_subnet_ids[0].value)
   resolved_private_subnet_ids = length(var.private_subnet_ids) > 0 ? var.private_subnet_ids : split(",", data.aws_ssm_parameter.private_subnet_ids[0].value)
+  ecr_repository_name         = trimspace(var.ecr_repository_name) != "" ? var.ecr_repository_name : "${local.name_prefix}-ecr"
 
   common_tags = merge(
     var.tags,
@@ -54,7 +57,7 @@ locals {
         logDriver = "awslogs"
         options = {
           awslogs-group         = aws_cloudwatch_log_group.customer.name
-          awslogs-region        = data.aws_region.current.name
+          awslogs-region        = var.aws_region
           awslogs-stream-prefix = "app"
         }
       }
@@ -77,8 +80,6 @@ data "aws_ssm_parameter" "private_subnet_ids" {
   name  = "/platform/${var.aws_region}/${var.network_profile}/private-subnet-ids"
 }
 
-data "aws_region" "current" {}
-
 data "aws_iam_policy_document" "ecs_task_assume_role" {
   statement {
     effect = "Allow"
@@ -100,6 +101,16 @@ resource "aws_ecs_cluster" "customer" {
     value = "enabled"
   }
 
+  configuration {
+    execute_command_configuration {
+      logging = "OVERRIDE"
+
+      log_configuration {
+        cloud_watch_log_group_name = aws_cloudwatch_log_group.exec.name
+      }
+    }
+  }
+
   tags = local.common_tags
 }
 
@@ -107,6 +118,51 @@ resource "aws_cloudwatch_log_group" "customer" {
   name              = local.log_group_name
   retention_in_days = 30
   tags              = local.common_tags
+}
+
+resource "aws_cloudwatch_log_group" "exec" {
+  name              = local.exec_log_group_name
+  retention_in_days = 30
+  tags              = local.common_tags
+}
+
+resource "aws_ecr_repository" "customer" {
+  count = var.create_ecr_repository ? 1 : 0
+
+  name                 = local.ecr_repository_name
+  image_tag_mutability = var.ecr_image_tag_mutability
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  tags = local.common_tags
+}
+
+resource "aws_ecr_lifecycle_policy" "customer" {
+  count      = var.create_ecr_repository ? 1 : 0
+  repository = aws_ecr_repository.customer[0].name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Expire old images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 20
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
 }
 
 resource "aws_iam_role" "task_execution" {
@@ -131,18 +187,26 @@ resource "aws_security_group" "alb" {
   description = "Security group for customer ALB"
   vpc_id      = local.resolved_vpc_id
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "ingress" {
+    for_each = var.alb_ingress_cidr_blocks
+
+    content {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
   }
 
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "ingress" {
+    for_each = var.alb_ingress_cidr_blocks
+
+    content {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
   }
 
   egress {
@@ -181,7 +245,7 @@ resource "aws_lb" "customer" {
   name               = local.alb_name
   internal           = var.alb_internal
   load_balancer_type = "application"
-  subnets            = local.resolved_public_subnet_ids
+  subnets            = local.alb_subnet_ids
   security_groups    = [aws_security_group.alb.id]
 
   tags = local.common_tags
@@ -328,8 +392,19 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.customer.arn
+    type = var.alb_certificate_arn != "" && var.redirect_http_to_https ? "redirect" : "forward"
+
+    dynamic "redirect" {
+      for_each = var.alb_certificate_arn != "" && var.redirect_http_to_https ? [1] : []
+
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+
+    target_group_arn = var.alb_certificate_arn != "" && var.redirect_http_to_https ? null : aws_lb_target_group.customer.arn
   }
 }
 
@@ -339,7 +414,7 @@ resource "aws_lb_listener" "https" {
   port              = 443
   protocol          = "HTTPS"
   certificate_arn   = var.alb_certificate_arn
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  ssl_policy        = var.alb_ssl_policy
 
   default_action {
     type             = "forward"
@@ -361,13 +436,23 @@ resource "aws_ecs_task_definition" "customer" {
 }
 
 resource "aws_ecs_service" "customer" {
-  name                   = local.service_name
-  cluster                = aws_ecs_cluster.customer.id
-  task_definition        = aws_ecs_task_definition.customer.arn
-  desired_count          = var.desired_count
-  launch_type            = "FARGATE"
-  enable_execute_command = var.enable_execute_command
-  platform_version       = "LATEST"
+  name                               = local.service_name
+  cluster                            = aws_ecs_cluster.customer.id
+  task_definition                    = aws_ecs_task_definition.customer.arn
+  desired_count                      = var.desired_count
+  launch_type                        = "FARGATE"
+  enable_execute_command             = var.enable_execute_command
+  platform_version                   = "LATEST"
+  enable_ecs_managed_tags            = true
+  propagate_tags                     = "SERVICE"
+  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
+  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+  deployment_maximum_percent         = var.deployment_maximum_percent
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
 
   network_configuration {
     subnets          = local.resolved_private_subnet_ids
@@ -382,11 +467,95 @@ resource "aws_ecs_service" "customer" {
   }
 
   depends_on = [
-    aws_lb_listener.http,
-    aws_wafv2_web_acl_association.customer
+    aws_lb_listener.http
   ]
 
+  lifecycle {
+    precondition {
+      condition     = !var.enable_autoscaling || var.autoscaling_max_capacity >= var.autoscaling_min_capacity
+      error_message = "autoscaling_max_capacity must be greater than or equal to autoscaling_min_capacity."
+    }
+
+    precondition {
+      condition     = !var.enable_autoscaling || (var.desired_count >= var.autoscaling_min_capacity && var.desired_count <= var.autoscaling_max_capacity)
+      error_message = "desired_count must stay within the autoscaling min/max range when autoscaling is enabled."
+    }
+  }
+
   tags = local.common_tags
+}
+
+resource "aws_appautoscaling_target" "customer" {
+  count = var.enable_autoscaling ? 1 : 0
+
+  max_capacity       = var.autoscaling_max_capacity
+  min_capacity       = var.autoscaling_min_capacity
+  resource_id        = "service/${aws_ecs_cluster.customer.name}/${aws_ecs_service.customer.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+
+  depends_on = [aws_ecs_service.customer]
+}
+
+resource "aws_appautoscaling_policy" "cpu" {
+  count = var.enable_autoscaling ? 1 : 0
+
+  name               = "${local.name_prefix}-cpu-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.customer[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.customer[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.customer[0].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+
+    target_value       = var.autoscaling_cpu_target
+    scale_in_cooldown  = var.autoscaling_scale_in_cooldown
+    scale_out_cooldown = var.autoscaling_scale_out_cooldown
+  }
+}
+
+resource "aws_appautoscaling_policy" "memory" {
+  count = var.enable_autoscaling ? 1 : 0
+
+  name               = "${local.name_prefix}-memory-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.customer[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.customer[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.customer[0].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+
+    target_value       = var.autoscaling_memory_target
+    scale_in_cooldown  = var.autoscaling_scale_in_cooldown
+    scale_out_cooldown = var.autoscaling_scale_out_cooldown
+  }
+}
+
+resource "aws_appautoscaling_policy" "alb_requests" {
+  count = var.enable_autoscaling ? 1 : 0
+
+  name               = "${local.name_prefix}-request-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.customer[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.customer[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.customer[0].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ALBRequestCountPerTarget"
+      resource_label         = "${aws_lb.customer.arn_suffix}/${aws_lb_target_group.customer.arn_suffix}"
+    }
+
+    target_value       = var.autoscaling_request_target
+    scale_in_cooldown  = var.autoscaling_scale_in_cooldown
+    scale_out_cooldown = var.autoscaling_scale_out_cooldown
+  }
 }
 
 resource "aws_route53_record" "customer" {

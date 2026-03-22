@@ -66,6 +66,29 @@ variable "container_image" {
   description = "Container image for the customer service"
 }
 
+variable "create_ecr_repository" {
+  type        = bool
+  default     = true
+  description = "Create an ECR repository for the customer runtime image"
+}
+
+variable "ecr_repository_name" {
+  type        = string
+  default     = ""
+  description = "Optional ECR repository name override"
+}
+
+variable "ecr_image_tag_mutability" {
+  type        = string
+  default     = "IMMUTABLE"
+  description = "Whether image tags in ECR can be overwritten"
+
+  validation {
+    condition     = contains(["IMMUTABLE", "MUTABLE"], var.ecr_image_tag_mutability)
+    error_message = "ecr_image_tag_mutability must be IMMUTABLE or MUTABLE."
+  }
+}
+
 variable "container_port" {
   type        = number
   default     = 8080
@@ -88,6 +111,79 @@ variable "desired_count" {
   type        = number
   default     = 2
   description = "Desired number of running tasks"
+
+  validation {
+    condition     = var.desired_count > 0
+    error_message = "desired_count must be greater than 0."
+  }
+}
+
+variable "enable_autoscaling" {
+  type        = bool
+  default     = true
+  description = "Enable ECS service autoscaling"
+}
+
+variable "autoscaling_min_capacity" {
+  type        = number
+  default     = 2
+  description = "Minimum ECS task count when autoscaling is enabled"
+
+  validation {
+    condition     = var.autoscaling_min_capacity > 0
+    error_message = "autoscaling_min_capacity must be greater than 0."
+  }
+}
+
+variable "autoscaling_max_capacity" {
+  type        = number
+  default     = 10
+  description = "Maximum ECS task count when autoscaling is enabled"
+}
+
+variable "autoscaling_cpu_target" {
+  type        = number
+  default     = 70
+  description = "Target average CPU utilization percentage"
+
+  validation {
+    condition     = var.autoscaling_cpu_target > 0 && var.autoscaling_cpu_target <= 100
+    error_message = "autoscaling_cpu_target must be between 1 and 100."
+  }
+}
+
+variable "autoscaling_memory_target" {
+  type        = number
+  default     = 75
+  description = "Target average memory utilization percentage"
+
+  validation {
+    condition     = var.autoscaling_memory_target > 0 && var.autoscaling_memory_target <= 100
+    error_message = "autoscaling_memory_target must be between 1 and 100."
+  }
+}
+
+variable "autoscaling_request_target" {
+  type        = number
+  default     = 1000
+  description = "Target ALB request count per target"
+
+  validation {
+    condition     = var.autoscaling_request_target > 0
+    error_message = "autoscaling_request_target must be greater than 0."
+  }
+}
+
+variable "autoscaling_scale_in_cooldown" {
+  type        = number
+  default     = 120
+  description = "Cooldown in seconds before scaling in again"
+}
+
+variable "autoscaling_scale_out_cooldown" {
+  type        = number
+  default     = 60
+  description = "Cooldown in seconds before scaling out again"
 }
 
 variable "health_check_path" {
@@ -100,6 +196,24 @@ variable "alb_certificate_arn" {
   type        = string
   default     = ""
   description = "Optional ACM certificate ARN for HTTPS"
+}
+
+variable "redirect_http_to_https" {
+  type        = bool
+  default     = true
+  description = "Redirect HTTP traffic to HTTPS when a certificate is configured"
+}
+
+variable "alb_ssl_policy" {
+  type        = string
+  default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  description = "TLS security policy for the HTTPS listener"
+}
+
+variable "alb_ingress_cidr_blocks" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  description = "CIDR blocks allowed to reach the ALB listeners"
 }
 
 variable "hosted_zone_id" {
@@ -148,6 +262,24 @@ variable "alb_internal" {
   type        = bool
   default     = false
   description = "Whether the load balancer is internal"
+}
+
+variable "health_check_grace_period_seconds" {
+  type        = number
+  default     = 60
+  description = "Grace period before ECS health checks affect task replacement"
+}
+
+variable "deployment_minimum_healthy_percent" {
+  type        = number
+  default     = 50
+  description = "Lower bound of healthy tasks during deployments"
+}
+
+variable "deployment_maximum_percent" {
+  type        = number
+  default     = 200
+  description = "Upper bound of running tasks during deployments"
 }
 
 variable "enable_waf" {

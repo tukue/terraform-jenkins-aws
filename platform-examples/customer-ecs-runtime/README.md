@@ -8,6 +8,9 @@ This example shows how to provision a customer-specific ECS runtime using the `c
 - A starting point for Backstage self-service provisioning
 - A reference implementation for ECS-based onboarding
 - A landing-zone aware runtime that can resolve network defaults from AWS SSM
+- Built-in autoscaling, HTTPS redirect support, and WAF defaults for new customer environments
+- A dedicated ECR repository for scanned application images
+- A generated GitHub Actions workflow that scans before pushing to ECR
 
 ## Folder layout
 

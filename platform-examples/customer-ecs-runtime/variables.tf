@@ -52,6 +52,42 @@ variable "desired_count" {
   description = "Desired task count"
 }
 
+variable "enable_autoscaling" {
+  type        = bool
+  default     = true
+  description = "Enable ECS service autoscaling"
+}
+
+variable "autoscaling_min_capacity" {
+  type        = number
+  default     = 2
+  description = "Minimum ECS task count"
+}
+
+variable "autoscaling_max_capacity" {
+  type        = number
+  default     = 6
+  description = "Maximum ECS task count"
+}
+
+variable "autoscaling_cpu_target" {
+  type        = number
+  default     = 70
+  description = "Target CPU utilization percentage"
+}
+
+variable "autoscaling_memory_target" {
+  type        = number
+  default     = 75
+  description = "Target memory utilization percentage"
+}
+
+variable "autoscaling_request_target" {
+  type        = number
+  default     = 1000
+  description = "Target ALB request count per target"
+}
+
 variable "cpu" {
   type        = number
   default     = 512
@@ -68,6 +104,18 @@ variable "alb_certificate_arn" {
   type        = string
   default     = ""
   description = "Optional ACM certificate ARN"
+}
+
+variable "redirect_http_to_https" {
+  type        = bool
+  default     = true
+  description = "Redirect HTTP traffic to HTTPS when a certificate is configured"
+}
+
+variable "alb_ingress_cidr_blocks" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  description = "CIDR blocks allowed to reach the ALB"
 }
 
 variable "hosted_zone_id" {

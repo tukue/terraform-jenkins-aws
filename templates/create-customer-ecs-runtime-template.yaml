@@ -117,6 +117,49 @@ spec:
           minimum: 1
           maximum: 20
 
+        enable_autoscaling:
+          title: Enable Autoscaling
+          type: boolean
+          default: true
+          description: Enable ECS service target tracking autoscaling
+
+        autoscaling_min_capacity:
+          title: Autoscaling Min Capacity
+          type: number
+          default: 2
+          minimum: 1
+          maximum: 20
+
+        autoscaling_max_capacity:
+          title: Autoscaling Max Capacity
+          type: number
+          default: 6
+          minimum: 1
+          maximum: 50
+
+        autoscaling_cpu_target:
+          title: CPU Target
+          type: number
+          default: 70
+          minimum: 1
+          maximum: 100
+          description: Scale based on average CPU utilization percentage
+
+        autoscaling_memory_target:
+          title: Memory Target
+          type: number
+          default: 75
+          minimum: 1
+          maximum: 100
+          description: Scale based on average memory utilization percentage
+
+        autoscaling_request_target:
+          title: Request Target
+          type: number
+          default: 1000
+          minimum: 1
+          description: Scale based on ALB requests per target
+
         cpu:
           title: CPU Units
           type: number
@@ -138,6 +181,22 @@ spec:
           type: string
           default: ""
           description: Optional certificate for HTTPS
+
+        redirect_http_to_https:
+          title: Redirect HTTP To HTTPS
+          type: boolean
+          default: true
+          description: Redirect HTTP to HTTPS when a certificate ARN is provided
+
+        alb_ingress_cidr_blocks:
+          title: ALB Ingress CIDRs
+          type: array
+          description: CIDR blocks allowed to reach the load balancer
+          default:
+            - 0.0.0.0/0
+          items:
+            type: string
+            pattern: '^\d{1,3}(\.\d{1,3}){3}/\d{1,2}$'
 
         hosted_zone_id:
           title: Hosted Zone ID
@@ -164,6 +223,41 @@ spec:
           minimum: 100
           description: Requests per 5-minute window per IP
 
+    - title: Image delivery
+      required:
+        - source_repo
+        - aws_role_arn
+      properties:
+        source_repo:
+          title: Source Repository
+          type: string
+          description: GitHub repository that contains the application source code, in owner/repo format
+          pattern: '^[^/]+/[^/]+$'
+
+        aws_role_arn:
+          title: AWS Deploy Role ARN
+          type: string
+          description: IAM role assumed by GitHub Actions to push images to ECR
+          pattern: '^arn:aws:iam::[0-9]{12}:role/.+$'
+
+        dockerfile_path:
+          title: Dockerfile Path
+          type: string
+          default: Dockerfile
+          description: Path to the Dockerfile in the source repository
+
+        build_context:
+          title: Build Context
+          type: string
+          default: .
+          description: Directory to use as the Docker build context
+
+        image_tag:
+          title: Image Tag
+          type: string
+          default: latest
+          description: Image tag to push after the scan passes
+
     - title: Review and notes
       properties:
         message:
@@ -179,7 +273,6 @@ spec:
       input:
         url: ./customer-ecs-runtime
         targetPath: ./
-        templateFileExtension: true
         values:
           customer_name: ${{ parameters.customer_name }}
           tenant_name: ${{ parameters.tenant_name }}
@@ -188,9 +281,17 @@ spec:
           container_image: ${{ parameters.container_image }}
           container_port: ${{ parameters.container_port }}
           desired_count: ${{ parameters.desired_count }}
+          enable_autoscaling: ${{ parameters.enable_autoscaling }}
+          autoscaling_min_capacity: ${{ parameters.autoscaling_min_capacity }}
+          autoscaling_max_capacity: ${{ parameters.autoscaling_max_capacity }}
+          autoscaling_cpu_target: ${{ parameters.autoscaling_cpu_target }}
+          autoscaling_memory_target: ${{ parameters.autoscaling_memory_target }}
+          autoscaling_request_target: ${{ parameters.autoscaling_request_target }}
           cpu: ${{ parameters.cpu }}
           memory: ${{ parameters.memory }}
           alb_certificate_arn: ${{ parameters.alb_certificate_arn }}
+          redirect_http_to_https: ${{ parameters.redirect_http_to_https }}
+          alb_ingress_cidr_blocks: ${{ parameters.alb_ingress_cidr_blocks }}
           hosted_zone_id: ${{ parameters.hosted_zone_id }}
           dns_name: ${{ parameters.dns_name }}
           enable_waf: ${{ parameters.enable_waf }}
@@ -198,6 +299,11 @@ spec:
           aws_region: ${{ parameters.aws_region }}
           aws_account_id: ${{ parameters.aws_account_id }}
           aws_profile: ${{ parameters.aws_profile }}
+          source_repo: ${{ parameters.source_repo }}
+          aws_role_arn: ${{ parameters.aws_role_arn }}
+          dockerfile_path: ${{ parameters.dockerfile_path }}
+          build_context: ${{ parameters.build_context }}
+          image_tag: ${{ parameters.image_tag }}
 
     - id: publish
       name: Publish to GitHub
@@ -236,4 +342,5 @@ spec:
           4. Merge the provisioning changes.
           5. Deploy the application image to the new ECS service.
           6. Verify security checks, image scans, and WAF coverage before go-live.
-          7. Review the generated DEVSECOPS.md in the customer runtime repository.
+          7. Run the generated build-scan-push workflow to scan the image, push it to ECR, and deploy only when no HIGH or CRITICAL vulnerabilities are found.
+          8. Review the generated DEVSECOPS.md in the customer runtime repository.

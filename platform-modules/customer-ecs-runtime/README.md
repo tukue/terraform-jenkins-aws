@@ -11,7 +11,10 @@ This module provisions a customer-specific ECS runtime on AWS.
 - Target group and listeners
 - Security groups
 - CloudWatch logs
+- ECS Exec audit logs
+- ECR repository for customer images
 - AWS WAF web ACL with managed application security rules
+- ECS service autoscaling on CPU, memory, and ALB request load
 - Optional Route 53 alias record
 - Region and account metadata for multi-region provisioning
 
@@ -50,6 +53,10 @@ module "customer_runtime" {
 - The default `network_profile` is `standard`
 - VPC and subnet identifiers are resolved from the landing zone by default
 - Public access is handled through the ALB
+- ALB ingress can be restricted to approved CIDR ranges
+- HTTP can redirect to HTTPS automatically when an ACM certificate is provided
 - The task security group only allows traffic from the ALB security group
-- The module can be extended with autoscaling, WAF, or private-only endpoints later
+- ECS deployment circuit breaker rolls back failed releases automatically
+- Autoscaling is enabled by default so new customer runtimes can scale without extra setup
 - WAF is enabled by default and protects the ALB using AWS managed rule groups plus rate limiting
+- ECR is created by default so the customer has a dedicated registry for scanned images, and tags are immutable by default
