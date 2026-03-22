@@ -10,6 +10,8 @@ metadata:
     - aws
     - customer
     - infrastructure
+    - devsecops
+    - security
   links:
     - title: ECS Runtime Documentation
       url: https://your-backstage-instance/docs/platforms/customer-ecs-runtime
@@ -221,6 +223,8 @@ spec:
         url: ${{ steps.publish.output.remoteUrl }}
       - title: Catalog Entry
         url: https://your-backstage-instance/catalog/default/component/${{ parameters.customer_name }}-ecs-runtime
+      - title: Security Notes
+        url: https://your-backstage-instance/docs/platforms/customer-ecs-runtime#devsecops-principles
     text:
       - title: Next Steps
         content: |
@@ -231,3 +235,5 @@ spec:
           3. Approve the infrastructure change.
           4. Merge the provisioning changes.
           5. Deploy the application image to the new ECS service.
+          6. Verify security checks, image scans, and WAF coverage before go-live.
+          7. Review the generated DEVSECOPS.md in the customer runtime repository.

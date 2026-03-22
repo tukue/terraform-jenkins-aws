@@ -1,321 +1,85 @@
-﻿# Terraform Jenkins AWS
+# Terraform Jenkins AWS
 
-This repository contains Terraform configurations to automate the deployment of a Jenkins server on AWS. It provisions infrastructure such as VPC, EC2 instances, S3 backend for state management, and Route 53 for domain configuration.
+This repository is a platform engineering showcase with two product tracks:
 
-ðŸ‘‰ **GitHub Repository**: [https://github.com/tukue/terraform-jenkins-aws](https://github.com/tukue/terraform-jenkins-aws)
+- Jenkins platform on AWS for standardized CI/CD and legacy delivery workflows
+- ECS customer runtime platform for SaaS onboarding and containerized application delivery
 
-## Project Positioning
+Both tracks use Terraform, Backstage, reusable modules, and operational standards.
 
-This repository is a **Platform Engineering showcase project**.
+## Platform Story
 
-It is intended to demonstrate:
-- Infrastructure as Code (Terraform modules and environment strategy)
-- Platform-as-a-product practices (Backstage, templates, docs, runbooks)
-- Automation and operations maturity (CI/CD quality checks, standards, governance)
+The repo demonstrates how to build a platform as a product, not just as infrastructure:
 
-This is **not operated as a community open-source project** with public roadmap governance.
+- self-service templates
+- reusable Terraform modules
+- clear ownership and guardrails
+- docs and runbooks
+- observability and supportability
 
-For contribution expectations, see [CONTRIBUTING.md](/c:/Users/tukue/terraform-jenkins-aws/CONTRIBUTING.md).
+## Track 1: Jenkins Platform
+
+Use this track when a team needs a standardized Jenkins runtime on AWS.
+
+Key capabilities:
+
+- Jenkins on EC2
+- S3 state backend
+- VPC, networking, and security groups
+- ALB and Route 53 integration
+- ACM certificate support
+- Ansible-based post-provisioning
+
+## Track 2: ECS Customer Runtime Platform
+
+Use this track when a SaaS application needs customer-specific ECS runtimes.
+
+Key capabilities:
+
+- Backstage self-service provisioning
+- customer-selected AWS account and region
+- landing-zone aware network resolution
+- ECS Fargate service and ALB
+- AWS WAF protection
+- container image deployment hooks
+
+## Repository Layout
+
+- `jenkins/` - Jenkins runtime components
+- `networking/` - VPC and network foundations
+- `security-groups/` - shared network access controls
+- `load-balancer/` and `load-balancer-target-group/` - ALB resources
+- `domain-registration/` and `hosted-zone/` - Route 53 and DNS
+- `certificate-manager/` - ACM certificate resources
+- `s3.tf` - Terraform state backend resources
+- `backstage/` - Backstage deployment and local compose setup
+- `platform-modules/` - reusable platform modules
+- `platform-examples/` - example stacks
+- `templates/` - Backstage scaffolder templates
+- `docs/` - platform design and implementation docs
 
 ## Intended Audience
 
-- Junior to mid-level engineers building a Platform Engineer portfolio
-- Hiring managers and interviewers evaluating platform design and delivery
-- Teams looking for reference patterns for Backstage + Terraform enablement
+- junior to mid-level engineers building a platform portfolio
+- hiring managers and interviewers evaluating platform design
+- teams looking for Backstage + Terraform reference patterns
 
----
+## Getting Started
 
-## Why This Platform Is Needed (Business Cases)
+1. Review the Jenkins track or the ECS track.
+2. Open the matching docs in `docs/`.
+3. Run the relevant Terraform stack or Backstage template.
+4. Adapt the platform module for your own environment.
 
-This Jenkins-on-AWS platform pattern is useful when organizations need consistency, speed, and governance across multiple delivery teams.
+## Documentation Entry Points
 
-- **Regulated delivery and auditability**: teams need traceable CI/CD controls and repeatable release workflows.
-- **Standardization across teams**: one platform enforces common pipeline, security, and infrastructure practices.
-- **Hybrid and legacy integration**: Jenkins can orchestrate mixed toolchains while AWS provides scalable runtime.
-- **Cost and capacity control**: centralized platform operations improve utilization, visibility, and governance.
-- **Faster team onboarding**: templates, runbooks, and golden paths reduce setup time and operational errors.
+- [SaaS E-Commerce ECS Platform Design](docs/multi-tenant-customer-runtime-design.md)
+- [Multi-Tenant ECS Provisioning Implementation](docs/multi-tenant-ecs-provisioning-implementation.md)
+- [Backstage Deployment Guide](backstage/README.md)
+- [Platform Templates](templates/README.md)
 
-### Business Outcomes
+## Contribution Notes
 
-- Lower lead time for change
-- Higher deployment reliability
-- Better security/compliance consistency
-- Reduced platform support overhead
-- Improved cloud cost efficiency
+This is a showcase repository, so the main goal is clarity, reusability, and product thinking.
 
----
-
-## Features
-
-- **Jenkins Deployment**: Automates the setup of a Jenkins server on an EC2 instance.
-- **S3 Backend**: Stores Terraform state files securely in an S3 bucket.
-- **Networking**: Configures VPC, subnets, and security groups.
-- **Load Balancer**: Sets up an Application Load Balancer (ALB) for traffic routing.
-- **Domain Management**: Integrates with Route 53 for DNS and SSL certificate management.
-- **Observability Service**: Optional managed Prometheus workspace + OpenTelemetry collector config for easy platform-wide metrics integration.
-- **Grafana Service**: Optional self-hosted Grafana module for metrics visualization as a reusable platform service.
-
----
-
-## Prerequisites
-
-- AWS account with necessary permissions.
-- Terraform installed on your local machine.
-- SSH key pair for accessing the EC2 instance.
-
----
-
-## Backend Configuration
-
-This project uses an S3 bucket as the backend to store Terraform state files securely. Each environment (`dev`, `QA`, `production`) has its own backend configuration file.
-
-### Backend Configuration Files
-- `backend-config-dev.hcl`: Backend configuration for the `dev` environment.
-- `backend-config-qa.hcl`: Backend configuration for the `QA` environment.
-- `backend-config-prod.hcl`: Backend configuration for the `production` environment.
-
-### Initializing the Backend
-To initialize the backend for a specific environment, use the `-backend-config` flag with the `terraform init` command.
-
-#### For `dev` Environment:
-```bash
-terraform init -backend-config="backend-config-dev.hcl"
-```
-
-#### For `QA` Environment:
-```bash
-terraform init -backend-config="backend-config-qa.hcl"
-```
-
-#### For `Production` Environment:
-```bash
-terraform init -backend-config="backend-config-prod.hcl"
-```
-
----
-
-## Usage
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/tukue/terraform-jenkins-aws.git
-   cd terraform-jenkins-aws
-   ```
-
-2. Create and switch to a workspace:
-   Terraform workspaces allow you to manage multiple environments (e.g., `dev`, `QA`, `production`) using the same configuration.
-
-   - Create a workspace for `dev`:
-     ```bash
-     terraform workspace new dev
-     ```
-
-   - Create a workspace for `QA`:
-     ```bash
-     terraform workspace new QA
-     ```
-
-   - Create a workspace for `production`:
-     ```bash
-     terraform workspace new production
-     ```
-
-   - Switch between workspaces:
-     ```bash
-     terraform workspace select <workspace-name>
-     ```
-
-3. Use environment-specific `.tfvars` files:
-   Each environment has its own `.tfvars` file to manage configurations. Use the `-var-file` flag to specify the appropriate file when running Terraform commands.
-
-   Add `aws_region` in your tfvars when you want to deploy outside the default region:
-   ```hcl
-   aws_region = "your-aws-region"
-   ```
-
-   - For `dev`:
-     ```bash
-     terraform plan -var-file="terraform.tfvars"
-     terraform apply -var-file="terraform.tfvars"
-     ```
-
-   - For `QA`:
-     ```bash
-     terraform plan -var-file="terraform.qa.tfvars"
-     terraform apply -var-file="terraform.qa.tfvars"
-     ```
-
-   - For `production`:
-     ```bash
-     terraform plan -var-file="terraform.prod.tfvars"
-     terraform apply -var-file="terraform.prod.tfvars"
-     ```
-
-4. Plan the infrastructure:
-   ```bash
-   terraform plan -var-file="terraform.<env>.tfvars"
-   ```
-
-5. Apply the configuration:
-   ```bash
-   terraform apply -var-file="terraform.<env>.tfvars"
-   ```
-
-   Replace `<env>` with `tfvars`, `qa.tfvars`, or `prod.tfvars` based on the environment.
-
----
-
-## Outputs
-
-After applying the configuration, Terraform will output the following:
-
-- Jenkins EC2 instance public IP.
-- Load balancer DNS name.
-- Hosted zone ID.
-- ACM certificate ARN.
-
----
-
-## Notes
-
-- Ensure that `.tfvars` files are added to `.gitignore` to avoid committing sensitive data.
-- Use the `terraform.tfvars` file for `dev`, `terraform.qa.tfvars` for `QA`, and `terraform.prod.tfvars` for `production` environments.
-- Add `backend-config-*.hcl` files to `.gitignore` to avoid committing backend configuration files.
-
-### Example `.gitignore` Entry:
-```plaintext
-# Ignore backend configuration files
-backend-config-*.hcl
-```
-
----
-
-## Ansible Configuration
-
-This project uses Ansible to configure the Jenkins server after provisioning the infrastructure with Terraform. The Ansible playbook installs necessary tools like Docker, Git, and Jenkins on the EC2 instance.
-
-### Steps to Configure and Use Ansible
-
-1. **Install Ansible**:
-   Ensure that Ansible is installed on your local machine. If not, install it using the following command:
-   ```bash
-   sudo apt update
-   sudo apt install ansible -y
-   ```
-
-2. Install Required Python Libraries: Install the boto3 and botocore Python libraries, which are required for the AWS EC2 dynamic inventory plugin:
-
-pip install boto3 botocore  
-
-3. Configure the Dynamic Inventory: The dynamic inventory is configured in the file ansible/inventory/aws_ec2.yml. Below is the configuration:
-
-plugin: aws_ec2
-regions:
-  - aws-region
-filters:
-  tag:Name: ec2-instance-tag-name
-keyed_groups:
-  - key: tags.Name
-    prefix: tag_Name_
-compose:
-  ansible_host: public_ip_address  
-
-plugin: aws_ec2: Enables the AWS EC2 dynamic inventory plugin.
-regions: Specifies the AWS region to query (e.g., eu-north-1).
-filters: Filters EC2 instances based on the Name tag (e.g., Jenkins:Ubuntu-Linux-EC2).
-compose: Ensures Ansible uses the public IP address for SSH connections. 
-
-4. Update the Ansible Configuration: Ensure the ansible.cfg file is configured to use the dynamic inventory and the correct SSH key:
-[defaults]
-inventory = ./inventory/aws_ec2.yml
-host_key_checking = False
-remote_user = ubuntu
-private_key_file = ssh key
-
-[inventory]
-enable_plugins = aws_ec2 
-
-5. Test the Dynamic Inventory: Verify that the dynamic inventory is working and fetching the correct EC2 instances:
-
-ansible-inventory -i ansible/inventory/aws_ec2.yml --list 
-
-6. 
-ansible -i ansible/inventory/aws_ec2.yml tag_Name__ec2_tag_name -m ping --private-key ~/.ssh/ssh-private-key --user ubuntu
-
-7. Run the Ansible Playbook: Execute the Ansible playbook to configure Jenkins and other tools on the EC2 instance 
-
-ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/playbook/jenkins-setup.yml --private-key ~/.ssh/ssh-key --user ubuntu
-
-
----
-
-## Architecture Diagram
-
-+-----------------------------+
-|         AWS Account         |
-+-----------------------------+
-            |
-            v
-+-----------------------------+
-|           VPC              |
-|  CIDR: 10.0.0.0/16         |
-+-----------------------------+
-    |                   |
-    v                   v
-+-----------+       +-----------+
-| Public    |       | Private   |
-| Subnets   |       | Subnets   |
-| (2)       |       | (2)       |
-+-----------+       +-----------+
-    |                   |
-    v                   v
-+-----------------------------+
-| Internet Gateway           |
-+-----------------------------+
-            |
-            v
-+-----------------------------+
-| Application Load Balancer  |
-| - HTTP (80)                |
-| - HTTPS (443)              |
-+-----------------------------+
-            |
-            v
-+-----------------------------+
-| Target Group               |
-| - Port: 8080               |
-+-----------------------------+
-            |
-            v
-+-----------------------------+
-| Jenkins EC2 Instance       |
-| - Public IP Enabled        |
-| - Security Groups:         |
-|   - SSH (22), HTTP (80),   |
-|     HTTPS (443), Jenkins   |
-|     (8080)                 |
-+-----------------------------+
-
-+-----------------------------+
-| Route 53 Hosted Zone        |
-| - DNS Records               |
-+-----------------------------+
-
-+-----------------------------+
-| ACM Certificate             |
-| - SSL for HTTPS             |
-+-----------------------------+
-
-+-----------------------------+     
-| S3 Bucket                   |
-| - Stores Terraform State    |
-| - Versioning Enabled        |
-+-----------------------------+
-https://github.com/user-attachments/assets/f481888c-decf-407a-b788-1dbdbcd7bc9f
-
-
-
-
-
-
-
+For contribution expectations, see [CONTRIBUTING.md](CONTRIBUTING.md).

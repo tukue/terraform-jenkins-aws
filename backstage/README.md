@@ -1,32 +1,19 @@
-# Main Terraform Configuration for Backstage Deployment
+# Backstage Platform Portal
 
-This directory contains the root Terraform configuration for deploying Backstage infrastructure.
+This directory contains the Backstage deployment and local development setup for the platform portal.
 
-## Usage
+Backstage is the front door for both platform tracks:
 
-```bash
-# Initialize Terraform
-terraform init
+- Jenkins platform provisioning and discovery
+- ECS customer runtime self-service provisioning
 
-# Review what will be created
-terraform plan -var-file="backstage.tfvars"
-
-# Deploy Backstage
-terraform apply -var-file="backstage.tfvars"
-```
-
-## Local Docker Containerization
+## Local Development
 
 Use Docker Compose from this directory to run Backstage and PostgreSQL locally:
 
 ```bash
-# Create local environment values
 cp .env.example .env
-
-# Start stack
 docker compose up -d
-
-# Check containers
 docker compose ps
 ```
 
@@ -34,65 +21,18 @@ Backstage will be available at `http://localhost:3000`.
 
 Grafana will be available at `http://localhost:3001` and Prometheus at `http://localhost:9090`.
 
-The Backstage Create page will include the customer ECS runtime template, where users enter the AWS account and AWS region for provisioning.
+The Backstage Create page includes the customer ECS runtime template, where users enter AWS account and AWS region for provisioning.
 
-To stop:
+## Contents
 
-```bash
-docker compose down
-```
+- `docker-compose.yml` - local Backstage stack
+- `app-config-plugins.yaml` - catalog, scaffolder, and plugin configuration
+- `main.tf` - Backstage infrastructure root module
+- `backstage.tf` - EC2 and database deployment
+- `modules/` - reusable Backstage infrastructure modules
 
-## Files
+## What To Look At
 
-- **main.tf** - Root module orchestration
-- **variables.tf** - Input variables
-- **outputs.tf** - Output values
-- **vpc.tf** - VPC and networking
-- **security.tf** - Security groups and IAM roles
-- **backstage.tf** - Backstage EC2 and RDS deployment
-
-## Modules Used
-
-- `./modules/backstage-postgres/` - PostgreSQL RDS instance
-- `./modules/backstage-ec2/` - Backstage EC2 instance
-
-## Prerequisites
-
-1. AWS account with credentials configured
-2. GitHub OAuth2 credentials (see [GITHUB-INTEGRATION-SETUP.md](../.backstage/GITHUB-INTEGRATION-SETUP.md))
-3. VPC and networking resources
-
-## Configuration
-
-Create `backstage.tfvars`:
-
-```hcl
-environment       = "production"
-aws_region        = "your-aws-region"
-
-# GitHub OAuth2
-github_client_id     = "your-client-id"
-github_client_secret = "your-client-secret"
-github_token         = "your-github-token"
-
-# Database
-db_password = "your-secure-password"
-
-# EC2
-instance_type = "t3.large"
-key_name      = "your-ssh-key"
-```
-
-## Output
-
-After deployment, Terraform will output:
-- Backstage Portal URL
-- RDS database endpoint
-- EC2 instance details
-
-## Related Documentation
-
-- [Backstage Quick Start](../../BACKSTAGE-QUICKSTART.md)
-- [GitHub Integration Setup](../../.backstage/GITHUB-INTEGRATION-SETUP.md)
-- [System and Components](../../.backstage/system-and-components.yaml)
-- [Catalog Configuration](../../catalog-info.yaml)
+- Use the catalog for platform components and runtime discovery.
+- Use the Create page for self-service ECS runtime provisioning.
+- Use the Jenkins-related docs and modules for the CI/CD platform track.

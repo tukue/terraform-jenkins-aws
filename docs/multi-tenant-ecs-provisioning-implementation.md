@@ -270,6 +270,54 @@ Optional:
 - Separate production and non-production environments
 - Tag everything with customer and environment metadata
 
+## DevSecOps Principles
+
+The ECS provisioning workflow should embed security and compliance throughout the delivery path:
+
+- use policy as code for infrastructure and template guardrails
+- scan container images before they are promoted to ECS
+- validate Terraform plans and module inputs in CI before apply
+- keep secrets out of source control, templates, and generated repos
+- require minimal IAM permissions for Backstage, deployment pipelines, and tasks
+- enable WAF, logging, and alerting by default for every public runtime
+- make ownership explicit through Backstage catalog entities and tags
+- keep an auditable trail of who requested, approved, and provisioned each runtime
+- document security operations, false-positive handling, and incident response
+- design for secure defaults first, then allow controlled overrides for advanced cases
+
+## Security Gate Flow
+
+```mermaid
+flowchart LR
+  A["Template Request"] --> B["Validate Inputs"]
+  B --> C["Generate Runtime Repo"]
+  C --> D["Terraform Plan"]
+  D --> E["Policy Checks"]
+  E --> F["Image Scan"]
+  F --> G["Approval"]
+  G --> H["Apply"]
+  H --> I["Register in Backstage"]
+```
+
+The provisioning pipeline should stop when:
+
+- the requested account or region is invalid
+- Terraform plan validation fails
+- policy-as-code checks fail
+- image scanning identifies critical findings
+- security ownership or audit metadata is missing
+
+## Security Checklist
+
+The generated runtime repository should include a short checklist confirming:
+
+- image scan completed
+- secrets stored in AWS Secrets Manager or Parameter Store
+- WAF enabled for public traffic
+- least-privilege IAM reviewed
+- runtime tags and catalog entry created
+- monitoring and alerting configured
+
 ---
 
 ## Cost Model
