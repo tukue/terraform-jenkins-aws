@@ -30,13 +30,34 @@ Create a new Jenkins EC2 instance with customizable options.
 5. Click Deploy
 6. Template creates PR, you review and merge
 
-### 2. Create VPC (Coming Soon)
+### 2. Create Customer ECS Runtime
+**File**: `create-customer-ecs-runtime-template.yaml`
+
+Provision a customer-specific ECS runtime for a microservice application.
+
+**What it does**:
+- Provisions an ECS cluster and service
+- Creates an application load balancer
+- Configures security groups and logs
+- Optionally wires DNS and TLS
+
+**Required inputs**:
+- Customer name
+- Environment (dev/qa/prod)
+- AWS account ID
+- AWS region
+- Container image
+- Owner email
+
+The template form is the Backstage frontend for provisioning. The customer enters the AWS account and AWS region there, and the platform resolves the network defaults from the landing zone.
+
+### 3. Create VPC (Coming Soon)
 Create a new VPC with public/private subnets.
 
-### 3. Create RDS Database (Coming Soon)
+### 4. Create RDS Database (Coming Soon)
 Provision a managed RDS database with backups and multi-AZ.
 
-### 4. Create S3 Bucket (Coming Soon)
+### 5. Create S3 Bucket (Coming Soon)
 Create an S3 bucket with encryption and versioning.
 
 ## Template Structure

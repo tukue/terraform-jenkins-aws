@@ -1,0 +1,233 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-customer-ecs-runtime
+  title: Create Customer ECS Runtime
+  description: Provision a customer-specific ECS runtime on AWS
+  tags:
+    - ecs
+    - aws
+    - customer
+    - infrastructure
+  links:
+    - title: ECS Runtime Documentation
+      url: https://your-backstage-instance/docs/platforms/customer-ecs-runtime
+
+spec:
+  owner: platform-team
+  type: infrastructure
+
+  parameters:
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Target Repository
+          type: string
+          description: Repository that will store the generated customer runtime
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+              additionalScopes:
+                github:
+                  - workflow
+
+    - title: Customer details
+      required:
+        - customer_name
+        - tenant_name
+        - environment
+        - aws_region
+        - aws_account_id
+        - owner
+      properties:
+        customer_name:
+          title: Customer Name
+          type: string
+          description: Customer or tenant identifier
+          pattern: '^[a-z0-9-]{3,32}$'
+
+        tenant_name:
+          title: Tenant Name
+          type: string
+          description: Customer-facing storefront or brand name
+          pattern: '^[a-z0-9-]{3,48}$'
+
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - qa
+            - prod
+          description: Target deployment environment
+
+        owner:
+          title: Owner Email
+          type: string
+          description: Team or person responsible for the runtime
+          pattern: '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+
+        aws_region:
+          title: AWS Region
+          type: string
+          default: eu-north-1
+          enum:
+            - us-east-1
+            - us-east-2
+            - us-west-2
+            - eu-north-1
+            - eu-west-1
+            - me-south-1
+            - ap-southeast-1
+            - ap-southeast-2
+            - sa-east-1
+          description: Select the AWS region where the customer runtime should run for latency and residency needs
+
+        aws_account_id:
+          title: AWS Account ID
+          type: string
+          description: Target AWS account ID for the runtime
+          pattern: '^[0-9]{12}$'
+
+        aws_profile:
+          title: AWS Profile
+          type: string
+          default: ""
+          description: Optional AWS CLI profile for the target account
+
+        container_port:
+          title: Container Port
+          type: number
+          default: 8080
+          minimum: 1
+          maximum: 65535
+
+        desired_count:
+          title: Desired Count
+          type: number
+          default: 2
+          minimum: 1
+          maximum: 20
+
+        cpu:
+          title: CPU Units
+          type: number
+          default: 512
+
+        memory:
+          title: Memory MiB
+          type: number
+          default: 1024
+
+        container_image:
+          title: Container Image
+          type: string
+          default: ghcr.io/tukue/saas-ecommerce-demo:latest
+          description: Container image for the SaaS e-commerce application
+
+        alb_certificate_arn:
+          title: ACM Certificate ARN
+          type: string
+          default: ""
+          description: Optional certificate for HTTPS
+
+        hosted_zone_id:
+          title: Hosted Zone ID
+          type: string
+          default: ""
+          description: Optional Route 53 zone for DNS
+
+        dns_name:
+          title: DNS Name
+          type: string
+          default: ""
+          description: Optional customer hostname
+
+        enable_waf:
+          title: Enable WAF
+          type: boolean
+          default: true
+          description: Attach AWS WAF to the customer ALB
+
+        waf_rate_limit:
+          title: WAF Rate Limit
+          type: number
+          default: 2000
+          minimum: 100
+          description: Requests per 5-minute window per IP
+
+    - title: Review and notes
+      properties:
+        message:
+          title: Deployment Notes
+          type: string
+          description: Optional notes for platform reviewers
+          maxLength: 500
+
+  steps:
+    - id: fetch-base
+      name: Fetch ECS runtime template
+      action: fetch:template
+      input:
+        url: ./customer-ecs-runtime
+        targetPath: ./
+        templateFileExtension: true
+        values:
+          customer_name: ${{ parameters.customer_name }}
+          tenant_name: ${{ parameters.tenant_name }}
+          environment: ${{ parameters.environment }}
+          owner: ${{ parameters.owner }}
+          container_image: ${{ parameters.container_image }}
+          container_port: ${{ parameters.container_port }}
+          desired_count: ${{ parameters.desired_count }}
+          cpu: ${{ parameters.cpu }}
+          memory: ${{ parameters.memory }}
+          alb_certificate_arn: ${{ parameters.alb_certificate_arn }}
+          hosted_zone_id: ${{ parameters.hosted_zone_id }}
+          dns_name: ${{ parameters.dns_name }}
+          enable_waf: ${{ parameters.enable_waf }}
+          waf_rate_limit: ${{ parameters.waf_rate_limit }}
+          aws_region: ${{ parameters.aws_region }}
+          aws_account_id: ${{ parameters.aws_account_id }}
+          aws_profile: ${{ parameters.aws_profile }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+        defaultBranch: main
+        description: |
+          Customer ECS runtime for ${{ parameters.customer_name }} in ${{ parameters.environment }}.
+          ${{ parameters.message }}
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Catalog Entry
+        url: https://your-backstage-instance/catalog/default/component/${{ parameters.customer_name }}-ecs-runtime
+    text:
+      - title: Next Steps
+        content: |
+          Your customer ECS runtime repository has been created.
+
+          1. Review the generated repository.
+          2. Confirm the selected AWS account and AWS region.
+          3. Approve the infrastructure change.
+          4. Merge the provisioning changes.
+          5. Deploy the application image to the new ECS service.

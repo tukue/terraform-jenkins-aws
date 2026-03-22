@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.customer_name }}-ecs-runtime
+  description: ECS runtime for tenant ${{ values.tenant_name }} in ${{ values.aws_region }}
+  tags:
+    - ecs
+    - aws
+    - saas-ecommerce
+    - tenant-runtime
+    - ${{ values.aws_region }}
+    - platform
+spec:
+  type: service
+  lifecycle: production
+  owner: platform-team
+  system: customer-platform

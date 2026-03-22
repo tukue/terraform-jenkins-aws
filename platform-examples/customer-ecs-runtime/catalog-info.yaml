@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: customer-ecs-runtime-example
+  description: Example ECS runtime for a customer tenant
+  tags:
+    - ecs
+    - aws
+    - customer-runtime
+spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team
+  system: customer-platform

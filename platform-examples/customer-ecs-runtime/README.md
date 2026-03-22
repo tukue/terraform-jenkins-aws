@@ -1,0 +1,39 @@
+# Customer ECS Runtime Example
+
+This example shows how to provision a customer-specific ECS runtime using the `customer-ecs-runtime` platform module.
+
+## What this example is for
+
+- A dedicated runtime for a customer tenant
+- A starting point for Backstage self-service provisioning
+- A reference implementation for ECS-based onboarding
+- A landing-zone aware runtime that can resolve network defaults from AWS SSM
+
+## Folder layout
+
+- `provider.tf` - AWS provider configuration
+- `main.tf` - Calls the shared customer ECS runtime module
+- `outputs.tf` - Useful runtime outputs
+- `catalog-info.yaml` - Backstage catalog entry for the generated runtime
+- `terraform.tfvars.example` - Example values including region and account
+
+## How to use
+
+1. Copy this example into a customer-specific folder.
+2. Replace the placeholder values with the customer details.
+3. Run `terraform init`, `terraform plan`, and `terraform apply`.
+
+## Recommended inputs
+
+- AWS region
+- AWS account ID
+- Tenant name
+- Container image
+- Optional DNS name
+- Optional ACM certificate ARN
+
+The example assumes the regional landing zone already provides:
+
+- VPC ID
+- Public subnet IDs
+- Private subnet IDs

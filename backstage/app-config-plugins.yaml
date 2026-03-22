@@ -75,6 +75,8 @@ catalog:
       - target: ../../catalog-info.yaml
       - target: ../../.backstage/system-and-components.yaml
       - target: ../../.backstage/groups-and-users.yaml
+      - target: ../../templates/create-jenkins-ec2-template.yaml
+      - target: ../../templates/create-customer-ecs-runtime-template.yaml
 
 # Terraform Plugin Configuration
 terraform:

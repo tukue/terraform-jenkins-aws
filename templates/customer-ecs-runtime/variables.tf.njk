@@ -1,0 +1,95 @@
+variable "aws_region" {
+  type        = string
+  default     = "${{ values.aws_region }}"
+  description = "AWS region"
+}
+
+variable "aws_profile" {
+  type        = string
+  default     = ${{ values.aws_profile | dump }}
+  description = "Optional AWS CLI profile for the target account"
+}
+
+variable "aws_account_id" {
+  type        = string
+  default     = "${{ values.aws_account_id }}"
+  description = "AWS account ID"
+}
+
+variable "customer_name" {
+  type        = string
+  default     = "${{ values.customer_name }}"
+  description = "Customer or tenant name"
+}
+
+variable "tenant_name" {
+  type        = string
+  default     = "${{ values.tenant_name }}"
+  description = "Customer-facing storefront or brand name"
+}
+
+variable "environment" {
+  type        = string
+  default     = "${{ values.environment }}"
+  description = "Environment name"
+}
+
+variable "container_image" {
+  type        = string
+  default     = "${{ values.container_image }}"
+  description = "Container image"
+}
+
+variable "container_port" {
+  type        = number
+  default     = ${{ values.container_port }}
+  description = "Container port"
+}
+
+variable "desired_count" {
+  type        = number
+  default     = ${{ values.desired_count }}
+  description = "Desired task count"
+}
+
+variable "cpu" {
+  type        = number
+  default     = ${{ values.cpu }}
+  description = "Task CPU units"
+}
+
+variable "memory" {
+  type        = number
+  default     = ${{ values.memory }}
+  description = "Task memory in MiB"
+}
+
+variable "alb_certificate_arn" {
+  type        = string
+  default     = "${{ values.alb_certificate_arn }}"
+  description = "Optional ACM certificate ARN"
+}
+
+variable "hosted_zone_id" {
+  type        = string
+  default     = "${{ values.hosted_zone_id }}"
+  description = "Optional Route 53 hosted zone ID"
+}
+
+variable "dns_name" {
+  type        = string
+  default     = "${{ values.dns_name }}"
+  description = "Optional DNS name"
+}
+
+variable "enable_waf" {
+  type        = bool
+  default     = ${{ values.enable_waf }}
+  description = "Attach AWS WAF to the customer ALB"
+}
+
+variable "waf_rate_limit" {
+  type        = number
+  default     = ${{ values.waf_rate_limit }}
+  description = "WAF rate limit per 5-minute period"
+}

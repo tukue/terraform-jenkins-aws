@@ -1,62 +1,75 @@
-# Multi-Tenant Customer Runtime Design
+# SaaS E-Commerce ECS Platform Design
 
 ## Purpose
 
-This document describes a business scenario where a microservice-based application runs on AWS and each customer receives a dedicated runtime environment provisioned through a self-service platform.
+This document describes how to evolve the platform into a self-service AWS ECS runtime for a SaaS e-commerce application.
 
-The platform should be able to provision either:
+The goal is to make it easy to provision scalable container infrastructure in the AWS account and region closest to the customer, while keeping the platform secure, observable, and simple to operate.
 
-- Amazon EKS for customers that need Kubernetes
-- Amazon ECS for customers that want a simpler container platform
+The intended customer-facing inputs are deliberately small:
 
-The goal is to make customer onboarding smooth, repeatable, secure, and visible through Backstage.
+- AWS account
+- AWS region
+
+Everything else should be handled by platform defaults, templates, and shared infrastructure patterns.
 
 ---
 
 ## Business Scenario
 
-The company operates a SaaS platform built from microservices on AWS.
+The application is a multi-tenant SaaS e-commerce platform hosted on AWS.
 
-Some customers require:
+It serves storefronts, product APIs, checkout flows, order processing, and customer portals. Different customers or brands may need separate runtime placement for:
 
-- Strong isolation from other customers
-- Dedicated scaling and capacity
-- Custom network or security controls
-- Auditability for compliance
-- Independent upgrades or release timing
+- latency-sensitive storefront traffic
+- regional data residency
+- burst scaling during campaigns and sales
+- operational isolation
+- different release timing or support boundaries
 
-Instead of engineering manually creating environments for each customer, the platform provides a standardized onboarding workflow.
-
-Each new customer environment is created from a template and registered in the platform catalog.
+ECS is the preferred runtime because it provides a strong balance of scale, operational simplicity, and integration with AWS-native load balancing, security, and observability.
 
 ---
 
 ## Product Goals
 
-- Provision customer environments consistently
-- Support both EKS and ECS runtime models
-- Reduce manual platform work
-- Keep customer-specific environments observable and supportable
-- Make provisioning traceable through the platform catalog
-- Allow the platform to evolve without redesigning onboarding every time
+- Provision ECS-based runtime environments quickly
+- Keep the customer-facing setup minimal
+- Let the customer choose the AWS account and region
+- Scale easily for e-commerce traffic spikes
+- Attach security controls by default
+- Expose the runtime in Backstage
+- Make each environment observable and supportable
 
 ---
 
 ## Non-Goals
 
-- Building a fully custom per-customer control plane
-- Supporting every possible runtime model
-- Hand-managing customer infrastructure
-- Requiring platform engineers to create each environment manually
+- Building a custom orchestration platform
+- Requiring customers to understand the full AWS stack
+- Forcing Kubernetes on every workload
+- Handcrafting environments outside the platform workflow
 
 ---
 
-## Key Users
+## Recommended Runtime Model
 
-- Customer success teams who request new environments
-- Platform engineers who maintain templates and guardrails
-- Application teams who deploy microservices
-- Operations teams who monitor and support the environments
+### Default model: ECS per customer or brand environment
+
+Use ECS when the business wants:
+
+- faster onboarding
+- predictable scaling
+- simpler runtime operations than Kubernetes
+- strong AWS integration
+
+### Optional model: shared ECS cluster with isolated services
+
+Use this for smaller customers or lower-cost environments.
+
+### Premium model: dedicated account and region
+
+Use this for high-isolation or regulated customers that need strong separation.
 
 ---
 
@@ -64,246 +77,318 @@ Each new customer environment is created from a template and registered in the p
 
 ```mermaid
 flowchart LR
-  A["Customer Request"] --> B["Backstage Service Catalog"]
-  B --> C["Provisioning Template"]
-  C --> D{"Runtime Choice"}
-  D -->|EKS| E["EKS Customer Environment"]
-  D -->|ECS| F["ECS Customer Environment"]
-  E --> G["DNS / TLS / Observability"]
-  F --> G["DNS / TLS / Observability"]
-  G --> H["Deployed Microservices"]
-  H --> I["Customer Access"]
-  E --> J["Logging / Metrics / Alerts"]
-  F --> J["Logging / Metrics / Alerts"]
+  A["Customer Request"] --> B["Backstage Template"]
+  B --> C["Select AWS Account"]
+  B --> D["Select AWS Region"]
+  C --> E["Terraform / IaC Pipeline"]
+  D --> E["Terraform / IaC Pipeline"]
+  E --> F["ECS Service"]
+  F --> G["Application Load Balancer"]
+  G --> H["AWS WAF"]
+  F --> I["CloudWatch Logs / Metrics"]
+  F --> J["Autoscaling"]
+  G --> K["Route 53 / TLS"]
+  F --> L["Container Registry"]
 ```
 
 ---
 
 ## Provisioning Flow
 
-1. A customer onboarding request is created.
-2. The operator selects the runtime type: EKS or ECS.
-3. The platform template collects customer-specific inputs.
-4. Terraform provisions the AWS resources.
-5. Backstage registers the new environment in the catalog.
-6. CI/CD deploys the microservices.
-7. Monitoring, logs, and alerts are attached automatically.
-8. The customer receives access to their dedicated runtime.
+1. A platform user requests an environment for the SaaS e-commerce app.
+2. The user selects the AWS account and AWS region.
+3. The platform fills in the rest from approved defaults.
+4. Backstage creates or links the customer runtime repository.
+5. Terraform provisions the ECS runtime, networking, load balancing, WAF, DNS, and observability.
+6. The application pipeline builds and pushes the container image.
+7. ECS deploys the service.
+8. The runtime is registered in Backstage.
+9. Dashboards, logs, and runbooks are attached automatically.
 
 ---
 
-## Runtime Options
+## Minimal Customer Inputs
 
-### Option 1: Dedicated EKS per customer
+The customer-facing configuration should stay small:
 
-Use this when the customer needs Kubernetes features or stronger platform flexibility.
+- `aws_account_id`
+- `aws_region`
 
-#### Strengths
-
-- Strong isolation model
-- Kubernetes ecosystem support
-- Good fit for complex microservice platforms
-- Easier to support portable workloads
-- Flexible ingress, policy, and workload controls
-
-#### Tradeoffs
-
-- Higher operational complexity
-- More cluster management overhead
-- More expensive for small customers
-
-### Option 2: Dedicated ECS per customer
-
-Use this when the customer wants a simpler container runtime and does not need Kubernetes.
-
-#### Strengths
-
-- Lower operational overhead
-- Faster to provision
-- Simpler to manage
-- Good fit for standardized workloads
-
-#### Tradeoffs
-
-- Less flexibility than Kubernetes
-- Smaller ecosystem for platform extensions
-- Harder to support Kubernetes-specific customer needs later
+Optional advanced inputs may exist for platform admins, but they should not be required for the standard path.
 
 ---
 
-## Decision Table
+## Why ECS Fits E-Commerce
 
-| Need | EKS | ECS |
-|------|-----|-----|
-| Strong Kubernetes support | Best | Not ideal |
-| Simpler operations | Medium | Best |
-| Fast provisioning | Medium | Best |
-| Advanced platform extensibility | Best | Medium |
-| Lower ops cost | Medium | Best |
-| Standardized microservices | Best | Best |
-| Enterprise customization | Best | Medium |
+ECS is a strong fit for SaaS e-commerce workloads because:
 
-### Recommendation
-
-- Use **EKS** for customers that need advanced controls, custom policies, or Kubernetes compatibility
-- Use **ECS** for customers that want a lighter-weight runtime with faster onboarding
-- Expose both through the same platform workflow so the business can choose the right runtime per customer
+- storefront and API traffic scale horizontally
+- application containers are typically stateless
+- ALB handles traffic distribution well
+- WAF helps protect login, cart, and checkout flows
+- autoscaling can respond to promotions and seasonal demand
+- the operational model is simpler than a Kubernetes-first platform
 
 ---
 
-## Customer Isolation Model
+## Core Platform Components
 
-The platform should support clear isolation boundaries.
+### Shared services
 
-### Recommended isolation levels
-
-- Dedicated AWS account per customer for high-isolation or regulated customers
-- Dedicated VPC per customer for medium isolation
-- Shared account with separate namespaces or services only for low-risk use cases
-
-### Isolation controls
-
-- Separate IAM roles
-- Separate network policies
-- Separate DNS zones or subdomains
-- Separate secrets and configuration
-- Separate logs and dashboards
-- Separate cost tracking
-
----
-
-## Platform Components
-
-### Shared platform services
-
-- Backstage catalog
+- Backstage catalog and templates
 - Terraform execution pipeline
-- Identity and access management
-- DNS and certificate automation
-- Observability stack
-- Shared templates and runbooks
+- AWS IAM and access control
+- Route 53 and certificates
+- CloudWatch logs, metrics, and alarms
+- WAF and security guardrails
+- Container registry integration
 
-### Customer-specific services
+### Runtime services
 
-- Runtime environment
-- Load balancers or ingress
-- Namespaces or services
-- Customer-specific database or cache if required
-- Customer-specific secrets and configuration
+- ECS cluster or service
+- Task definitions
+- Application Load Balancer
+- Target groups and listeners
+- Autoscaling policies
+- Optional Redis/cache
+- Optional database
+
+### Application services
+
+- storefront API
+- checkout service
+- order service
+- catalog/search service
+- customer portal
 
 ---
 
 ## Backstage Experience
 
-Backstage should be the front door for customer environment provisioning.
+Backstage should act as the front door for environment creation and runtime discovery.
+
+### What users see
+
+- a template to provision the runtime
+- the selected AWS account and AWS region
+- the runtime status
+- operational dashboards
+- logs and alerts
+- runbooks for incidents and scaling
 
 ### Catalog entities
 
-- `System`: `customer-platform`
-- `Component`: `customer-onboarding`
-- `Component`: `eks-runtime`
+- `System`: `saas-ecommerce-platform`
 - `Component`: `ecs-runtime`
-- `Resource`: `customer-environment`
-- `Resource`: `customer-dns`
-- `Resource`: `customer-observability`
+- `Component`: `customer-onboarding`
+- `Resource`: `checkout-service`
+- `Resource`: `storefront-service`
+- `Resource`: `platform-observability`
 
-### What the user sees
+---
 
-- Customer environment catalog entries
-- Template to provision a new customer runtime
-- Links to runbooks and architecture docs
-- Ownership and support details
-- Health and telemetry links
+## ECS Runtime Design
+
+Each runtime should include:
+
+- ECS cluster or shared ECS namespace pattern
+- task definitions for the app services
+- ALB for public traffic
+- WAF in front of the ALB
+- CloudWatch logging
+- autoscaling rules
+- DNS and TLS
+- security groups and least-privilege IAM
+
+The platform should assume the app is containerized and ready to deploy via image tag.
+
+---
+
+## Scaling Strategy
+
+The platform must support growth in traffic and customer count.
+
+### Application scaling
+
+- scale ECS tasks on CPU
+- scale ECS tasks on memory
+- scale ECS tasks on request count
+- use stateless services where possible
+
+### Traffic handling
+
+- use ALB for request routing
+- use WAF for application-layer protection
+- use caching where appropriate
+- use regional placement to reduce latency
+
+### Operational scaling
+
+- keep the runtime template standardized
+- version the platform modules
+- avoid one-off infrastructure paths
+- support repeatable deployment across regions and accounts
+
+---
+
+## Security Model
+
+- Use IAM task roles instead of shared credentials
+- Store secrets in AWS Secrets Manager or Parameter Store
+- Put WAF in front of public endpoints
+- Use TLS for all public traffic
+- Restrict security groups to least privilege
+- Separate environments by account when needed
+- Tag everything for ownership and cost tracking
+
+---
+
+## Observability Model
+
+Each runtime should be visible from day one:
+
+- CloudWatch logs for applications and platform services
+- CloudWatch metrics for ECS, ALB, and scaling
+- alarms for service health and deployment failures
+- dashboards for support and operations
+- optional traces for request-level debugging
+
+---
+
+## Cost Model
+
+The platform should support chargeback or showback.
+
+Recommended tags:
+
+- `Customer`
+- `Environment`
+- `Service`
+- `Owner`
+- `AWSRegion`
+- `AWSAccount`
+- `ManagedBy`
+
+This allows the business to understand:
+
+- which customers cost the most
+- which regions are most expensive
+- where traffic spikes are happening
+- which services need right-sizing
 
 ---
 
 ## Terraform Module Strategy
 
-The platform should use reusable modules so each customer environment can be composed from the same building blocks.
+The platform should use reusable modules so the e-commerce runtime can be repeated safely.
 
-### Common modules
+### Foundation modules
 
 - network
 - security groups
 - IAM roles
 - DNS
-- certificate management
-- observability
-- runtime provisioning
+- certificates
+- WAF
+- logging
 
-### EKS-specific modules
-
-- cluster
-- node groups
-- IRSA
-- ingress controller
-- external DNS
-- cert-manager
-
-### ECS-specific modules
+### Runtime modules
 
 - ECS cluster
-- task definitions
-- service definitions
-- load balancer integration
-- service discovery
+- ECS service
+- task definition
+- load balancer
+- target group
+- autoscaling
+
+### Optional modules
+
+- database
+- cache
+- preview environments
+- blue/green deployment support
 
 ---
 
 ## Operational Model
 
-### Provisioning
+### Platform team owns
 
-- Everything must be created from code
-- Templates should enforce naming and tagging standards
-- Production customer environments should require approval
+- templates
+- Terraform modules
+- scaling rules
+- security defaults
+- Backstage catalog entries
 
-### Monitoring
+### Application team owns
 
-- Every customer environment should have logs and metrics
-- Every environment should have a support contact and owner
-- Every deployment should be traceable
+- container images
+- service behavior
+- deployment readiness
+- feature flags and runtime config
 
-### Lifecycle
+### Support team owns
 
-- Create
-- Update
-- Scale
-- Reconfigure
-- Decommission
+- incident response
+- customer communication
+- runbooks
+- service health checks
+
+---
+
+## Implementation Phases
+
+### Phase 1: Basic ECS runtime
+
+- provision ECS service, ALB, and WAF
+- require only account and region from the user
+- attach logging and dashboards
+
+### Phase 2: E-commerce deployment flow
+
+- add ECR image publishing
+- add deployment automation
+- add autoscaling policies
+- add WAF tuning guidance
+
+### Phase 3: Multi-region support
+
+- allow per-region customer placement
+- support regional defaults and tagged cost reporting
+- make Backstage the discovery layer for all regions
+
+### Phase 4: Premium platform features
+
+- blue/green deployments
+- per-customer isolation modes
+- cache/database templates
+- multi-account governance
 
 ---
 
 ## Risks
 
-- Customer-per-environment designs can become expensive
-- Too much customization can reduce platform consistency
-- EKS can be operationally heavy if overused
-- ECS can be limiting if customers later need Kubernetes
-- Poor catalog hygiene can make the platform hard to trust
+- too much customization can make the platform hard to maintain
+- a shared cluster can become noisy without good guardrails
+- poor region selection can increase latency
+- missing deployment automation can leave ECS as “infrastructure only”
 
-The main mitigation is to keep a small set of supported patterns and clear guardrails.
+The best mitigation is a small set of opinionated, well-documented paths.
 
 ---
 
 ## Success Criteria
 
-The platform is working if it can show:
+The platform is successful if:
 
-- Faster customer onboarding
-- Fewer manual platform tickets
-- Clear ownership for every customer runtime
-- Reliable provisioning through templates
-- Good observability and support readiness
-- A runtime choice that matches business needs
+- a user can provision an ECS runtime with only account and region decisions
+- the runtime deploys cleanly in the chosen AWS region
+- the app can scale for promotions and traffic spikes
+- the runtime is visible in Backstage
+- support can find logs, metrics, and runbooks quickly
 
 ---
 
 ## Recommendation
 
-Use Backstage and Terraform to offer a standard customer onboarding product with two runtime options:
-
-- **EKS** for customers who need Kubernetes and advanced flexibility
-- **ECS** for customers who want faster, simpler provisioning
-
-This gives the business a clean multi-tenant platform strategy that can grow over time without reworking the entire system.
+Use ECS as the standard runtime for the SaaS e-commerce platform, make AWS account and AWS region the only customer-facing placement inputs, and let the platform handle the rest through defaults, modules, and Backstage templates.

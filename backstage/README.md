@@ -34,6 +34,8 @@ Backstage will be available at `http://localhost:3000`.
 
 Grafana will be available at `http://localhost:3001` and Prometheus at `http://localhost:9090`.
 
+The Backstage Create page will include the customer ECS runtime template, where users enter the AWS account and AWS region for provisioning.
+
 To stop:
 
 ```bash
