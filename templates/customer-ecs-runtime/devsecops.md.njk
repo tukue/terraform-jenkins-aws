@@ -1,0 +1,23 @@
+# DevSecOps Checklist
+
+Customer: ${{ values.customer_name }}
+Tenant: ${{ values.tenant_name }}
+AWS Account: ${{ values.aws_account_id }}
+AWS Region: ${{ values.aws_region }}
+
+## DevSecOps Checklist
+
+- [ ] Container image scanned before deployment
+- [ ] Secrets stored in AWS Secrets Manager or Parameter Store
+- [ ] WAF enabled for public traffic
+- [ ] IAM reviewed for least privilege
+- [ ] Runtime tags include owner, account, region, and customer
+- [ ] CloudWatch logs and metrics enabled
+- [ ] Dashboards and alerts available to support teams
+- [ ] Runbooks prepared for deployment, rollback, and incident handling
+
+## Notes
+
+Deployment notes:
+
+${{ values.message | default("No additional notes provided.") }}

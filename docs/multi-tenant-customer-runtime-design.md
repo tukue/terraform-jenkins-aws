@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document describes how to evolve the platform into a self-service AWS ECS runtime for a SaaS e-commerce application.
+This document describes the ECS customer runtime track within the broader platform, and how to evolve it into a self-service AWS ECS runtime for a SaaS e-commerce application.
 
 The goal is to make it easy to provision scalable container infrastructure in the AWS account and region closest to the customer, while keeping the platform secure, observable, and simple to operate.
 
@@ -66,10 +66,6 @@ Use ECS when the business wants:
 ### Optional model: shared ECS cluster with isolated services
 
 Use this for smaller customers or lower-cost environments.
-
-### Premium model: dedicated account and region
-
-Use this for high-isolation or regulated customers that need strong separation.
 
 ---
 
@@ -240,6 +236,55 @@ The platform must support growth in traffic and customer count.
 - Restrict security groups to least privilege
 - Separate environments by account when needed
 - Tag everything for ownership and cost tracking
+
+## DevSecOps Principles
+
+The ECS provisioning platform should follow these DevSecOps principles:
+
+- security is built into the default path, not added later
+- every infrastructure change is reviewed, versioned, and reproducible
+- Terraform modules and templates should enforce safe defaults
+- container images should be scanned before deployment
+- secrets should never be embedded in templates or state
+- least privilege should apply to IAM, networking, and Backstage permissions
+- WAF, logs, metrics, and alerts should be enabled by default
+- policy violations should fail fast in CI or the provisioning pipeline
+- customer environments should be traceable through tags, catalog entries, and audit logs
+- remediation should be documented with runbooks and ownership
+
+## Security Gate Flow
+
+```mermaid
+flowchart LR
+  A["Customer Request"] --> B["Backstage Template"]
+  B --> C["Terraform Validate"]
+  C --> D["Policy and Plan Checks"]
+  D --> E["Container Image Scan"]
+  E --> F["WAF and Guardrail Verification"]
+  F --> G["Approval"]
+  G --> H["Deploy to ECS"]
+  H --> I["Backstage Catalog Update"]
+  I --> J["Operational Monitoring"]
+```
+
+The platform should fail fast when:
+
+- required inputs are missing
+- policy checks fail
+- image scans report high-risk findings
+- WAF or guardrail configuration is incomplete
+- ownership or audit metadata is missing
+
+## Security Checklist
+
+Every customer runtime should ship with a checklist in the generated repository that confirms:
+
+- image scanning completed before deployment
+- secrets reviewed and stored in managed AWS services
+- WAF enabled for public workloads
+- runtime tags include owner, customer, region, and account
+- alerts and dashboards are available
+- runbooks exist for deploy, rollback, and incident handling
 
 ---
 
