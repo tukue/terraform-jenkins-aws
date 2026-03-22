@@ -1,11 +1,11 @@
 # Map instance size names to AWS instance types
 locals {
   instance_type_map = {
-    micro   = "t3.micro"
-    small   = "t3.small"
-    medium  = "t3.medium"
-    large   = "t3.large"
-    xlarge  = "t3.xlarge"
+    micro  = "t3.micro"
+    small  = "t3.small"
+    medium = "t3.medium"
+    large  = "t3.large"
+    xlarge = "t3.xlarge"
   }
 
   instance_type = local.instance_type_map[var.instance_size]
@@ -30,7 +30,7 @@ data "aws_availability_zones" "available" {
 # Delegate to main Jenkins infrastructure
 # This module wraps the existing root module with platform-friendly defaults
 module "jenkins_infrastructure" {
-  source = "../../"  # Reference the root module
+  source = "../../" # Reference the root module
 
   # Basic settings
   environment = var.environment
@@ -45,10 +45,10 @@ module "jenkins_infrastructure" {
   eu_availability_zone = local.azs
 
   # EC2 Configuration
-  ec2_ami_id       = data.aws_ami.latest_ubuntu.id
-  instance_type    = local.instance_type
-  public_key       = var.public_key
-  run_ansible      = var.ansible_enabled
+  ec2_ami_id    = data.aws_ami.latest_ubuntu.id
+  instance_type = local.instance_type
+  public_key    = var.public_key
+  run_ansible   = var.ansible_enabled
 
   # Tagging
   tags = local.common_tags
@@ -57,7 +57,7 @@ module "jenkins_infrastructure" {
 # Get latest Ubuntu AMI
 data "aws_ami" "latest_ubuntu" {
   most_recent = true
-  owners      = ["099720109477"]  # Canonical
+  owners      = ["099720109477"] # Canonical
 
   filter {
     name   = "name"

@@ -15,7 +15,7 @@ resource "aws_acm_certificate" "dev_proj_1_acm_arn" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-certificate"
+      Name    = "${var.environment}-certificate"
       Service = "Jenkins"
     }
   )

@@ -55,13 +55,13 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]  # This is generally acceptable for outbound traffic
+    cidr_blocks = ["0.0.0.0/0"] # This is generally acceptable for outbound traffic
   }
 
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-sg-ssh-http"
+      Name    = "${var.environment}-sg-ssh-http"
       Purpose = "Allow SSH, HTTP, and HTTPS traffic from specified ranges"
     }
   )
@@ -90,13 +90,13 @@ resource "aws_security_group" "ec2_jenkins_port_8080" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]  # This is generally acceptable for outbound traffic
+    cidr_blocks = ["0.0.0.0/0"] # This is generally acceptable for outbound traffic
   }
 
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-sg-jenkins-8080"
+      Name    = "${var.environment}-sg-jenkins-8080"
       Purpose = "Allow Jenkins traffic on port 8080 from specified ranges"
     }
   )

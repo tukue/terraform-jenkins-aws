@@ -74,10 +74,10 @@ output "backstage_dns_name" {
 # Connection information
 output "connection_info" {
   value = {
-    backstage_url  = module.backstage_ec2.backstage_url
-    ssh_command    = module.backstage_ec2.ssh_command
-    rds_endpoint   = module.backstage_postgres.db_endpoint
-    rds_username   = module.backstage_postgres.db_username
+    backstage_url = module.backstage_ec2.backstage_url
+    ssh_command   = module.backstage_ec2.ssh_command
+    rds_endpoint  = module.backstage_postgres.db_endpoint
+    rds_username  = module.backstage_postgres.db_username
   }
   description = "Complete connection information"
   sensitive   = false

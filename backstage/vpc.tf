@@ -1,6 +1,6 @@
 # VPC and Networking
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
   version = "5.0.0"
 
   name = "${var.environment}-backstage-vpc"
@@ -10,8 +10,8 @@ module "vpc" {
   private_subnets = [cidrsubnet(var.vpc_cidr, 4, 1), cidrsubnet(var.vpc_cidr, 4, 2)]
   public_subnets  = [cidrsubnet(var.vpc_cidr, 4, 11), cidrsubnet(var.vpc_cidr, 4, 12)]
 
-  enable_nat_gateway = var.enable_nat
-  enable_vpn_gateway = false
+  enable_nat_gateway   = var.enable_nat
+  enable_vpn_gateway   = false
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -86,7 +86,7 @@ resource "aws_security_group" "backstage" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Restrict in production
+    cidr_blocks = ["0.0.0.0/0"] # Restrict in production
   }
 
   egress {

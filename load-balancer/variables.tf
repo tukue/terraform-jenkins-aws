@@ -16,5 +16,5 @@ variable "lb_target_group_attachment_port" {}
 variable "environment" {
   description = "Environment for the resources (e.g., dev, qa, prod)"
   type        = string
-  default     = "dev"  # Default to dev if not specified
+  default     = "dev" # Default to dev if not specified
 }

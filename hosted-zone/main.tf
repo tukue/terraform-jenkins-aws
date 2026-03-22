@@ -9,7 +9,7 @@ locals {
 }
 
 data "aws_route53_zone" "dev_proj_1_new_domain" {
-  name         = "newdomain.com"  # Replace with your new domain name
+  name         = "newdomain.com" # Replace with your new domain name
   private_zone = false
 }
 
@@ -27,7 +27,7 @@ resource "aws_route53_record" "lb_record" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-dns-record"
+      Name    = "${var.environment}-dns-record"
       Service = "Jenkins"
     }
   )

@@ -11,12 +11,12 @@ locals {
 # Create CloudWatch Log Group for VPC Flow Logs
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/flow-logs/${var.environment}"
-  retention_in_days = 30  # Adjust retention period as needed
+  retention_in_days = 30 # Adjust retention period as needed
 
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-vpc-flow-logs"
+      Name    = "${var.environment}-vpc-flow-logs"
       Purpose = "VPC Flow Logs Storage"
     }
   )
@@ -42,7 +42,7 @@ resource "aws_iam_role" "vpc_flow_logs_role" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-vpc-flow-logs-role"
+      Name    = "${var.environment}-vpc-flow-logs-role"
       Purpose = "VPC Flow Logs IAM Role"
     }
   )
@@ -64,7 +64,7 @@ resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
           "logs:DescribeLogGroups",
           "logs:DescribeLogStreams"
         ]
-        Effect = "Allow"
+        Effect   = "Allow"
         Resource = "${aws_cloudwatch_log_group.vpc_flow_logs.arn}:*"
       }
     ]
@@ -95,7 +95,7 @@ resource "aws_flow_log" "vpc_flow_logs" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-vpc-flow-logs"
+      Name    = "${var.environment}-vpc-flow-logs"
       Purpose = "Network Traffic Monitoring"
     }
   )
@@ -218,7 +218,7 @@ resource "aws_network_acl" "main" {
     protocol   = "tcp"
     rule_no    = 300
     action     = "allow"
-    cidr_block = var.allowed_ssh_cidr  # This should be restricted in variables
+    cidr_block = var.allowed_ssh_cidr # This should be restricted in variables
     from_port  = 22
     to_port    = 22
   }

@@ -1,6 +1,6 @@
 # Platform Examples
 
-This directory contains example configurations for deploying Jenkins infrastructure using the platform modules.
+This directory contains example configurations for deploying platform infrastructure using the shared modules.
 
 ## Quick Start
 
@@ -45,6 +45,13 @@ This directory contains example configurations for deploying Jenkins infrastruct
 - **Monitoring**: Full CloudWatch monitoring
 - **Use Case**: Production Jenkins servers
 
+### customer-ecs-runtime/
+- **Purpose**: Customer-specific ECS runtime example
+- **Runtime**: ECS Fargate
+- **Network**: Customer VPC with public ALB and private tasks
+- **Monitoring**: CloudWatch logs and ECS container insights
+- **Use Case**: Multi-tenant SaaS onboarding and customer-dedicated runtimes
+
 ## Customization Guide
 
 ### Required: SSH Public Key
@@ -87,5 +94,6 @@ tags = {
 ## See Also
 
 - [Platform Module Documentation](../platform-modules/jenkins-infrastructure/README.md)
+- [Customer ECS Runtime Module](../platform-modules/customer-ecs-runtime/README.md)
 - [Best Practices](../../docs/best-practices.md)
 - [Deployment Guide](../../DEPLOYMENT-GUIDE.md)

@@ -20,7 +20,7 @@ resource "aws_lb" "dev_proj_1_lb" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-jenkins-lb"
+      Name    = "${var.environment}-jenkins-lb"
       Service = "Jenkins"
     }
   )

@@ -31,7 +31,7 @@ variable "environment" {
 variable "allowed_ssh_cidr" {
   description = "CIDR block allowed for SSH access"
   type        = string
-  default     = "0.0.0.0/0"  # This should be overridden with a specific IP range
+  default     = "0.0.0.0/0" # This should be overridden with a specific IP range
 }
 
 variable "flow_logs_retention_days" {
