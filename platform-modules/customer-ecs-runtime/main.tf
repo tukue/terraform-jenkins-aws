@@ -13,6 +13,44 @@ locals {
   resolved_public_subnet_ids  = length(var.public_subnet_ids) > 0 ? var.public_subnet_ids : split(",", data.aws_ssm_parameter.public_subnet_ids[0].value)
   resolved_private_subnet_ids = length(var.private_subnet_ids) > 0 ? var.private_subnet_ids : split(",", data.aws_ssm_parameter.private_subnet_ids[0].value)
   ecr_repository_name         = trimspace(var.ecr_repository_name) != "" ? var.ecr_repository_name : "${local.name_prefix}-ecr"
+  autoscaling_defaults = {
+    dev = {
+      min_capacity      = 1
+      max_capacity      = 2
+      cpu_target        = 75
+      memory_target     = 80
+      request_target    = 500
+      scale_in_cooldown = 180
+      scale_out_cooldown = 60
+    }
+    qa = {
+      min_capacity      = 2
+      max_capacity      = 4
+      cpu_target        = 70
+      memory_target     = 75
+      request_target    = 750
+      scale_in_cooldown = 180
+      scale_out_cooldown = 60
+    }
+    prod = {
+      min_capacity      = 2
+      max_capacity      = 10
+      cpu_target        = 60
+      memory_target     = 70
+      request_target    = 1000
+      scale_in_cooldown = 300
+      scale_out_cooldown = 120
+    }
+  }
+  effective_autoscaling = {
+    min_capacity      = coalesce(var.autoscaling_min_capacity, local.autoscaling_defaults[var.environment].min_capacity)
+    max_capacity      = coalesce(var.autoscaling_max_capacity, local.autoscaling_defaults[var.environment].max_capacity)
+    cpu_target        = coalesce(var.autoscaling_cpu_target, local.autoscaling_defaults[var.environment].cpu_target)
+    memory_target     = coalesce(var.autoscaling_memory_target, local.autoscaling_defaults[var.environment].memory_target)
+    request_target    = coalesce(var.autoscaling_request_target, local.autoscaling_defaults[var.environment].request_target)
+    scale_in_cooldown = coalesce(var.autoscaling_scale_in_cooldown, local.autoscaling_defaults[var.environment].scale_in_cooldown)
+    scale_out_cooldown = coalesce(var.autoscaling_scale_out_cooldown, local.autoscaling_defaults[var.environment].scale_out_cooldown)
+  }
 
   common_tags = merge(
     var.tags,
@@ -80,6 +118,10 @@ data "aws_ssm_parameter" "private_subnet_ids" {
   name  = "/platform/${var.aws_region}/${var.network_profile}/private-subnet-ids"
 }
 
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
 data "aws_iam_policy_document" "ecs_task_assume_role" {
   statement {
     effect = "Allow"
@@ -108,6 +150,18 @@ resource "aws_ecs_cluster" "customer" {
       log_configuration {
         cloud_watch_log_group_name = aws_cloudwatch_log_group.exec.name
       }
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = data.aws_region.current.name == var.aws_region
+      error_message = "The AWS provider region must match aws_region so the ECS runtime and autoscaling are created in the intended customer region."
+    }
+
+    precondition {
+      condition     = var.aws_account_id == "" || data.aws_caller_identity.current.account_id == var.aws_account_id
+      error_message = "The active AWS credentials do not match aws_account_id. Use credentials for the intended customer account before applying."
     }
   }
 
@@ -472,12 +526,12 @@ resource "aws_ecs_service" "customer" {
 
   lifecycle {
     precondition {
-      condition     = !var.enable_autoscaling || var.autoscaling_max_capacity >= var.autoscaling_min_capacity
+      condition     = !var.enable_autoscaling || local.effective_autoscaling.max_capacity >= local.effective_autoscaling.min_capacity
       error_message = "autoscaling_max_capacity must be greater than or equal to autoscaling_min_capacity."
     }
 
     precondition {
-      condition     = !var.enable_autoscaling || (var.desired_count >= var.autoscaling_min_capacity && var.desired_count <= var.autoscaling_max_capacity)
+      condition     = !var.enable_autoscaling || (var.desired_count >= local.effective_autoscaling.min_capacity && var.desired_count <= local.effective_autoscaling.max_capacity)
       error_message = "desired_count must stay within the autoscaling min/max range when autoscaling is enabled."
     }
   }
@@ -488,8 +542,8 @@ resource "aws_ecs_service" "customer" {
 resource "aws_appautoscaling_target" "customer" {
   count = var.enable_autoscaling ? 1 : 0
 
-  max_capacity       = var.autoscaling_max_capacity
-  min_capacity       = var.autoscaling_min_capacity
+  max_capacity       = local.effective_autoscaling.max_capacity
+  min_capacity       = local.effective_autoscaling.min_capacity
   resource_id        = "service/${aws_ecs_cluster.customer.name}/${aws_ecs_service.customer.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
@@ -511,9 +565,9 @@ resource "aws_appautoscaling_policy" "cpu" {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
 
-    target_value       = var.autoscaling_cpu_target
-    scale_in_cooldown  = var.autoscaling_scale_in_cooldown
-    scale_out_cooldown = var.autoscaling_scale_out_cooldown
+    target_value       = local.effective_autoscaling.cpu_target
+    scale_in_cooldown  = local.effective_autoscaling.scale_in_cooldown
+    scale_out_cooldown = local.effective_autoscaling.scale_out_cooldown
   }
 }
 
@@ -531,9 +585,9 @@ resource "aws_appautoscaling_policy" "memory" {
       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
     }
 
-    target_value       = var.autoscaling_memory_target
-    scale_in_cooldown  = var.autoscaling_scale_in_cooldown
-    scale_out_cooldown = var.autoscaling_scale_out_cooldown
+    target_value       = local.effective_autoscaling.memory_target
+    scale_in_cooldown  = local.effective_autoscaling.scale_in_cooldown
+    scale_out_cooldown = local.effective_autoscaling.scale_out_cooldown
   }
 }
 
@@ -552,9 +606,9 @@ resource "aws_appautoscaling_policy" "alb_requests" {
       resource_label         = "${aws_lb.customer.arn_suffix}/${aws_lb_target_group.customer.arn_suffix}"
     }
 
-    target_value       = var.autoscaling_request_target
-    scale_in_cooldown  = var.autoscaling_scale_in_cooldown
-    scale_out_cooldown = var.autoscaling_scale_out_cooldown
+    target_value       = local.effective_autoscaling.request_target
+    scale_in_cooldown  = local.effective_autoscaling.scale_in_cooldown
+    scale_out_cooldown = local.effective_autoscaling.scale_out_cooldown
   }
 }
 

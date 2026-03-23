@@ -2,6 +2,21 @@ variable "aws_region" {
   type        = string
   default     = "${{ values.aws_region }}"
   description = "AWS region"
+
+  validation {
+    condition = contains([
+      "us-east-1",
+      "us-east-2",
+      "us-west-2",
+      "eu-north-1",
+      "eu-west-1",
+      "me-south-1",
+      "ap-southeast-1",
+      "ap-southeast-2",
+      "sa-east-1"
+    ], var.aws_region)
+    error_message = "aws_region must be one of the approved platform regions."
+  }
 }
 
 variable "aws_profile" {
@@ -14,6 +29,11 @@ variable "aws_account_id" {
   type        = string
   default     = "${{ values.aws_account_id }}"
   description = "AWS account ID"
+
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.aws_account_id))
+    error_message = "aws_account_id must be a 12-digit AWS account ID."
+  }
 }
 
 variable "customer_name" {
@@ -55,37 +75,37 @@ variable "desired_count" {
 variable "enable_autoscaling" {
   type        = bool
   default     = ${{ values.enable_autoscaling }}
-  description = "Enable ECS service autoscaling"
+  description = "Enable ECS service autoscaling in the selected AWS account and region"
 }
 
 variable "autoscaling_min_capacity" {
   type        = number
-  default     = ${{ values.autoscaling_min_capacity }}
-  description = "Minimum ECS task count"
+  default     = ${{ values.autoscaling_min_capacity | default(null) | dump }}
+  description = "Optional override for the minimum ECS task count"
 }
 
 variable "autoscaling_max_capacity" {
   type        = number
-  default     = ${{ values.autoscaling_max_capacity }}
-  description = "Maximum ECS task count"
+  default     = ${{ values.autoscaling_max_capacity | default(null) | dump }}
+  description = "Optional override for the maximum ECS task count"
 }
 
 variable "autoscaling_cpu_target" {
   type        = number
-  default     = ${{ values.autoscaling_cpu_target }}
-  description = "Target CPU utilization percentage"
+  default     = ${{ values.autoscaling_cpu_target | default(null) | dump }}
+  description = "Optional override for the target CPU utilization percentage"
 }
 
 variable "autoscaling_memory_target" {
   type        = number
-  default     = ${{ values.autoscaling_memory_target }}
-  description = "Target memory utilization percentage"
+  default     = ${{ values.autoscaling_memory_target | default(null) | dump }}
+  description = "Optional override for the target memory utilization percentage"
 }
 
 variable "autoscaling_request_target" {
   type        = number
-  default     = ${{ values.autoscaling_request_target }}
-  description = "Target ALB request count per target"
+  default     = ${{ values.autoscaling_request_target | default(null) | dump }}
+  description = "Optional override for the target ALB request count per target"
 }
 
 variable "cpu" {

@@ -126,64 +126,64 @@ variable "enable_autoscaling" {
 
 variable "autoscaling_min_capacity" {
   type        = number
-  default     = 2
-  description = "Minimum ECS task count when autoscaling is enabled"
+  default     = null
+  description = "Optional override for the minimum ECS task count when autoscaling is enabled"
 
   validation {
-    condition     = var.autoscaling_min_capacity > 0
-    error_message = "autoscaling_min_capacity must be greater than 0."
+    condition     = var.autoscaling_min_capacity == null || var.autoscaling_min_capacity > 0
+    error_message = "autoscaling_min_capacity must be greater than 0 when provided."
   }
 }
 
 variable "autoscaling_max_capacity" {
   type        = number
-  default     = 10
-  description = "Maximum ECS task count when autoscaling is enabled"
+  default     = null
+  description = "Optional override for the maximum ECS task count when autoscaling is enabled"
 }
 
 variable "autoscaling_cpu_target" {
   type        = number
-  default     = 70
-  description = "Target average CPU utilization percentage"
+  default     = null
+  description = "Optional override for the target average CPU utilization percentage"
 
   validation {
-    condition     = var.autoscaling_cpu_target > 0 && var.autoscaling_cpu_target <= 100
-    error_message = "autoscaling_cpu_target must be between 1 and 100."
+    condition     = var.autoscaling_cpu_target == null || (var.autoscaling_cpu_target > 0 && var.autoscaling_cpu_target <= 100)
+    error_message = "autoscaling_cpu_target must be between 1 and 100 when provided."
   }
 }
 
 variable "autoscaling_memory_target" {
   type        = number
-  default     = 75
-  description = "Target average memory utilization percentage"
+  default     = null
+  description = "Optional override for the target average memory utilization percentage"
 
   validation {
-    condition     = var.autoscaling_memory_target > 0 && var.autoscaling_memory_target <= 100
-    error_message = "autoscaling_memory_target must be between 1 and 100."
+    condition     = var.autoscaling_memory_target == null || (var.autoscaling_memory_target > 0 && var.autoscaling_memory_target <= 100)
+    error_message = "autoscaling_memory_target must be between 1 and 100 when provided."
   }
 }
 
 variable "autoscaling_request_target" {
   type        = number
-  default     = 1000
-  description = "Target ALB request count per target"
+  default     = null
+  description = "Optional override for the target ALB request count per target"
 
   validation {
-    condition     = var.autoscaling_request_target > 0
-    error_message = "autoscaling_request_target must be greater than 0."
+    condition     = var.autoscaling_request_target == null || var.autoscaling_request_target > 0
+    error_message = "autoscaling_request_target must be greater than 0 when provided."
   }
 }
 
 variable "autoscaling_scale_in_cooldown" {
   type        = number
-  default     = 120
-  description = "Cooldown in seconds before scaling in again"
+  default     = null
+  description = "Optional override for the cooldown in seconds before scaling in again"
 }
 
 variable "autoscaling_scale_out_cooldown" {
   type        = number
-  default     = 60
-  description = "Cooldown in seconds before scaling out again"
+  default     = null
+  description = "Optional override for the cooldown in seconds before scaling out again"
 }
 
 variable "health_check_path" {

@@ -2,6 +2,21 @@ variable "aws_region" {
   type        = string
   default     = "eu-north-1"
   description = "AWS region"
+
+  validation {
+    condition = contains([
+      "us-east-1",
+      "us-east-2",
+      "us-west-2",
+      "eu-north-1",
+      "eu-west-1",
+      "me-south-1",
+      "ap-southeast-1",
+      "ap-southeast-2",
+      "sa-east-1"
+    ], var.aws_region)
+    error_message = "aws_region must be one of the approved platform regions."
+  }
 }
 
 variable "aws_profile" {
@@ -12,8 +27,13 @@ variable "aws_profile" {
 
 variable "aws_account_id" {
   type        = string
-  default     = ""
+  default     = "123456789012"
   description = "AWS account ID"
+
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.aws_account_id))
+    error_message = "aws_account_id must be a 12-digit AWS account ID."
+  }
 }
 
 variable "customer_name" {
@@ -55,37 +75,37 @@ variable "desired_count" {
 variable "enable_autoscaling" {
   type        = bool
   default     = true
-  description = "Enable ECS service autoscaling"
+  description = "Enable ECS service autoscaling in the selected AWS account and region"
 }
 
 variable "autoscaling_min_capacity" {
   type        = number
-  default     = 2
-  description = "Minimum ECS task count"
+  default     = null
+  description = "Optional override for the minimum ECS task count"
 }
 
 variable "autoscaling_max_capacity" {
   type        = number
-  default     = 6
-  description = "Maximum ECS task count"
+  default     = null
+  description = "Optional override for the maximum ECS task count"
 }
 
 variable "autoscaling_cpu_target" {
   type        = number
-  default     = 70
-  description = "Target CPU utilization percentage"
+  default     = null
+  description = "Optional override for the target CPU utilization percentage"
 }
 
 variable "autoscaling_memory_target" {
   type        = number
-  default     = 75
-  description = "Target memory utilization percentage"
+  default     = null
+  description = "Optional override for the target memory utilization percentage"
 }
 
 variable "autoscaling_request_target" {
   type        = number
-  default     = 1000
-  description = "Target ALB request count per target"
+  default     = null
+  description = "Optional override for the target ALB request count per target"
 }
 
 variable "cpu" {

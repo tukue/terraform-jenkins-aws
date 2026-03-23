@@ -3,6 +3,4 @@ aws_account_id = "123456789012"
 tenant_name = "acme-store"
 enable_waf = true
 enable_autoscaling = true
-autoscaling_min_capacity = 2
-autoscaling_max_capacity = 6
 alb_ingress_cidr_blocks = ["203.0.113.0/24"]

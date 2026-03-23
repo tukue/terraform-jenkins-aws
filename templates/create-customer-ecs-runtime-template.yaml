@@ -89,12 +89,12 @@ spec:
             - ap-southeast-1
             - ap-southeast-2
             - sa-east-1
-          description: Select the AWS region where the customer runtime should run for latency and residency needs
+          description: Select the AWS region that will own the ECS service and its autoscaling resources
 
         aws_account_id:
           title: AWS Account ID
           type: string
-          description: Target AWS account ID for the runtime
+          description: Target AWS account ID that will own the ECS runtime and autoscaling resources
           pattern: '^[0-9]{12}$'
 
         aws_profile:
@@ -121,44 +121,41 @@ spec:
           title: Enable Autoscaling
           type: boolean
           default: true
-          description: Enable ECS service target tracking autoscaling
+          description: Enable ECS service target tracking autoscaling in the selected AWS account and region
 
         autoscaling_min_capacity:
           title: Autoscaling Min Capacity
           type: number
-          default: 2
           minimum: 1
           maximum: 20
+          description: Optional override. If left empty, the platform default for the selected environment is used.
 
         autoscaling_max_capacity:
           title: Autoscaling Max Capacity
           type: number
-          default: 6
           minimum: 1
           maximum: 50
+          description: Optional override. If left empty, the platform default for the selected environment is used.
 
         autoscaling_cpu_target:
           title: CPU Target
           type: number
-          default: 70
           minimum: 1
           maximum: 100
-          description: Scale based on average CPU utilization percentage
+          description: Optional override. If left empty, the platform default for the selected environment is used.
 
         autoscaling_memory_target:
           title: Memory Target
           type: number
-          default: 75
           minimum: 1
           maximum: 100
-          description: Scale based on average memory utilization percentage
+          description: Optional override. If left empty, the platform default for the selected environment is used.
 
         autoscaling_request_target:
           title: Request Target
           type: number
-          default: 1000
           minimum: 1
-          description: Scale based on ALB requests per target
+          description: Optional override. If left empty, the platform default for the selected environment is used.
 
         cpu:
           title: CPU Units
@@ -337,7 +334,7 @@ spec:
           Your customer ECS runtime repository has been created.
 
           1. Review the generated repository.
-          2. Confirm the selected AWS account and AWS region.
+          2. Confirm the selected AWS account and AWS region because Terraform will enforce them during provisioning.
           3. Approve the infrastructure change.
           4. Merge the provisioning changes.
           5. Deploy the application image to the new ECS service.

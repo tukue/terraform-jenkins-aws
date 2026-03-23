@@ -10,6 +10,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = "${{ values.aws_region }}"
-  profile = ${{ values.aws_profile | dump }}
+  region              = "${{ values.aws_region }}"
+  profile             = ${{ values.aws_profile | dump }}
+  allowed_account_ids = ["${{ values.aws_account_id }}"]
 }

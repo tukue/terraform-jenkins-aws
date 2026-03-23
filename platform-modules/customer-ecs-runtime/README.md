@@ -52,6 +52,7 @@ module "customer_runtime" {
 - This module assumes Fargate
 - The default `network_profile` is `standard`
 - VPC and subnet identifiers are resolved from the landing zone by default
+- The AWS provider should target the same `aws_account_id` and `aws_region` passed to the module so ECS autoscaling is provisioned in the intended customer environment
 - Public access is handled through the ALB
 - ALB ingress can be restricted to approved CIDR ranges
 - HTTP can redirect to HTTPS automatically when an ACM certificate is provided

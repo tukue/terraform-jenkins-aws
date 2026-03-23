@@ -40,3 +40,11 @@ The example assumes the regional landing zone already provides:
 - VPC ID
 - Public subnet IDs
 - Private subnet IDs
+
+Autoscaling defaults are standardized by environment in the shared module:
+
+- `dev`: smaller range for lower-cost testing
+- `qa`: moderate range for validation traffic
+- `prod`: more headroom and more conservative scale-in behavior
+
+Set the autoscaling variables only when you need to override those defaults.
