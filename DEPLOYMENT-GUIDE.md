@@ -210,59 +210,15 @@ max_size          = 5
 
 ## Automated Deployment (CI/CD)
 
-Set up GitHub Actions for automated deployments:
+Use the checked-in GitHub Actions workflow at [`.github/workflows/jenkins-platform-delivery.yml`](./.github/workflows/jenkins-platform-delivery.yml) to:
 
-### .github/workflows/deploy.yml
-```yaml
-name: Deploy Infrastructure
+- validate Terraform formatting and configuration
+- plan `dev`, `qa`, and `prod` deployments
+- apply the selected environment through a manual workflow dispatch
+- keep environment-specific state in `backend-config-dev.hcl`, `backend-config-qa.hcl`, and `backend-config-prod.hcl`
 
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'terraform/**'
-      - '.github/workflows/deploy.yml'
-
-jobs:
-  plan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-      
-      - name: Terraform Init
-        run: terraform init
-      
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-      
-      - name: Upload Plan
-        uses: actions/upload-artifact@v2
-        with:
-          name: tfplan
-          path: tfplan
-
-  deploy:
-    needs: plan
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    steps:
-      - uses: actions/checkout@v2
-      
-      - name: Download Plan
-        uses: actions/download-artifact@v2
-        with:
-          name: tfplan
-      
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-      
-      - name: Terraform Apply
-        run: terraform apply tfplan
-```
+The workflow expects an `AWS_ROLE_ARN` secret in GitHub and uses GitHub environments to gate applies.
+The S3 backend bucket and DynamoDB lock table must already be bootstrapped before the first environment run.
 
 ## Rollback Procedures
 

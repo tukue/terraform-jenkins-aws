@@ -1,6 +1,5 @@
 variable "aws_region" {
   type        = string
-  default     = "eu-north-1"
   description = "AWS region"
 
   validation {
@@ -27,7 +26,6 @@ variable "aws_profile" {
 
 variable "aws_account_id" {
   type        = string
-  default     = "123456789012"
   description = "AWS account ID"
 
   validation {
@@ -56,7 +54,7 @@ variable "environment" {
 
 variable "container_image" {
   type        = string
-  default     = "ghcr.io/tukue/saas-ecommerce-demo:latest"
+  default     = "ghcr.io/your-org/saas-ecommerce-demo:latest"
   description = "Container image"
 }
 

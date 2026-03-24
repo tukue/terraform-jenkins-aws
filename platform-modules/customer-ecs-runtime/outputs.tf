@@ -77,3 +77,13 @@ output "resolved_private_subnet_ids" {
   value       = local.resolved_private_subnet_ids
   description = "Resolved private subnet IDs used by ECS tasks"
 }
+
+output "ecr_repository_name" {
+  value       = try(aws_ecr_repository.customer[0].name, local.ecr_repository_name)
+  description = "ECR repository name for the customer runtime image"
+}
+
+output "ecr_repository_url" {
+  value       = try(aws_ecr_repository.customer[0].repository_url, null)
+  description = "ECR repository URL for the customer runtime image"
+}

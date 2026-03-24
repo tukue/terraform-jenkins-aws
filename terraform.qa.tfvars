@@ -1,0 +1,19 @@
+bucket_name            = "jenkins-tfstate-platform"
+aws_region             = "eu-north-1"
+aws_account_id         = "222222222222"
+environment            = "qa"
+instance_type          = "t3.small"
+vpc_cidr               = "10.20.0.0/16"
+vpc_name               = "jenkins-qa-vpc"
+cidr_public_subnet     = ["10.20.1.0/24", "10.20.2.0/24"]
+cidr_private_subnet    = ["10.20.11.0/24", "10.20.12.0/24"]
+eu_availability_zone   = ["eu-north-1a", "eu-north-1b"]
+public_key             = "ssh-rsa REPLACE_ME_QA"
+run_ansible            = false
+enable_observability   = true
+enable_grafana_service = false
+tags = {
+  Owner      = "platform-team"
+  CostCenter = "engineering-qa"
+  Purpose    = "jenkins-validation"
+}

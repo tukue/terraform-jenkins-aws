@@ -4,13 +4,18 @@ This directory contains runnable examples for the platform tracks in this reposi
 
 ## Examples
 
-### Jenkins Environment Examples
+### Jenkins Platform Delivery Examples
 
-- `dev-environment.tfvars`
-- `qa-environment.tfvars`
-- `prod-environment.tfvars`
+The Jenkins platform now uses the root-level environment files:
 
-These are useful when you want to deploy the Jenkins platform with repeatable settings.
+- `terraform.dev.tfvars`
+- `terraform.qa.tfvars`
+- `terraform.prod.tfvars`
+- `backend-config-dev.hcl`
+- `backend-config-qa.hcl`
+- `backend-config-prod.hcl`
+
+These are used by the multi-environment delivery workflow and by local Terraform runs.
 
 ### Customer ECS Runtime
 

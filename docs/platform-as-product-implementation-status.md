@@ -9,12 +9,12 @@ This document tracks the current platform features in a simple table so the repo
 | Backstage developer portal | Partial | Backstage config, catalog, and template registration exist, but the setup is still local/demo-oriented |
 | ECS Fargate runtime provisioning | Implemented | Shared Terraform module provisions ECS cluster, service, task definition, ALB, WAF, Route53, and ECR |
 | Self-service ECS scaffolding | Implemented | Backstage scaffolder creates customer ECS runtime repos |
-| Multi-environment support | Partial | `dev`, `qa`, and `prod` exist, but promotion flow is not implemented |
+| Multi-environment support | Implemented | `dev`, `qa`, and `prod` now have dedicated tfvars, backend configs, and promotion-aware delivery workflows for both Jenkins and ECS runtime delivery |
 | Multi-account support | Partial | AWS account and region are captured and validated, but full enterprise account orchestration is not implemented |
 | Standardized autoscaling | Implemented | Environment-based autoscaling defaults are implemented |
 | CPU and memory configuration | Implemented | Service sizing is exposed in the Backstage template and Terraform module |
 | Networking configuration | Partial | ALB, subnets, internal/external exposure, and DNS exist, but richer network policy patterns are not implemented |
-| CI/CD integration | Partial | Generated GitHub Actions workflow builds, scans, pushes, and deploys, but promotion and approval flow are not implemented |
+| CI/CD integration | Partial | Generated GitHub Actions workflows now plan and apply Jenkins and ECS by environment, and baseline validation now includes `terraform fmt -check`, `terraform validate`, and TFLint before security scanning |
 | Jenkins integration | Partial | Backstage Jenkins plugin config exists, but ECS service delivery is mainly modeled through GitHub Actions |
 | Security guardrails | Partial | WAF, ECR scanning, tagging, and account/region checks exist, but IAM depth and policy enforcement are incomplete |
 | IAM least privilege | Partial | Separate execution and task roles exist, but task-role permissions are not fully implemented |
@@ -38,7 +38,15 @@ Use this repository as:
 
 - an ECS-focused platform-as-a-product foundation
 - a Backstage-driven self-service platform prototype
+- a Jenkins platform with environment-specific delivery and promotion flow
+- a customer ECS runtime platform with multi-environment provisioning and image delivery
 - a credible Internal Developer Platform showcase with real Terraform, ECS, and CI/CD implementation
+
+Why this is core:
+
+- for a platform-engineering portfolio, CI is part of the product
+- the delivery baseline should prove formatting, validation, and policy checks before security scanning
+- the platform surface is stronger when the workflow is visible, repeatable, and enforced
 
 Avoid presenting it as:
 
@@ -50,9 +58,9 @@ Avoid presenting it as:
 
 | Priority | Feature | Target Outcome |
 |---|---|---|
-| High | Multi-environment promotion flow | Safe promotion from `dev` to `qa` to `prod` |
 | High | IAM hardening | Complete least-privilege task role and secret access model |
 | High | CI/CD governance | Add PR validation, approvals, and stronger deployment controls |
+| High | Policy-as-code baseline | Expand TFLint and related guardrails for Terraform delivery |
 | High | Observability pack | Add alarms, dashboards, and tracing defaults |
 | Medium | Policy enforcement | Add stronger Terraform and deployment guardrails |
 | Medium | Cost controls | Add dashboards, alerts, and non-prod cost protections |

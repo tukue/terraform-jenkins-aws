@@ -78,7 +78,6 @@ spec:
         aws_region:
           title: AWS Region
           type: string
-          default: eu-north-1
           enum:
             - us-east-1
             - us-east-2
@@ -89,12 +88,12 @@ spec:
             - ap-southeast-1
             - ap-southeast-2
             - sa-east-1
-          description: Select the AWS region that will own the ECS service and its autoscaling resources
+          description: AWS region selected by the developer during Backstage scaffolding
 
         aws_account_id:
           title: AWS Account ID
           type: string
-          description: Target AWS account ID that will own the ECS runtime and autoscaling resources
+          description: AWS account ID entered by the developer during Backstage scaffolding
           pattern: '^[0-9]{12}$'
 
         aws_profile:
@@ -170,7 +169,7 @@ spec:
         container_image:
           title: Container Image
           type: string
-          default: ghcr.io/tukue/saas-ecommerce-demo:latest
+          default: ghcr.io/your-org/saas-ecommerce-demo:latest
           description: Container image for the SaaS e-commerce application
 
         alb_certificate_arn:
@@ -334,10 +333,11 @@ spec:
           Your customer ECS runtime repository has been created.
 
           1. Review the generated repository.
-          2. Confirm the selected AWS account and AWS region because Terraform will enforce them during provisioning.
-          3. Approve the infrastructure change.
-          4. Merge the provisioning changes.
-          5. Deploy the application image to the new ECS service.
-          6. Verify security checks, image scans, and WAF coverage before go-live.
-          7. Run the generated build-scan-push workflow to scan the image, push it to ECR, and deploy only when no HIGH or CRITICAL vulnerabilities are found.
-          8. Review the generated DEVSECOPS.md in the customer runtime repository.
+          2. Confirm the AWS account and AWS region chosen in Backstage because Terraform will enforce them during provisioning.
+          3. Review the generated `backend-config-dev.hcl`, `backend-config-qa.hcl`, and `backend-config-prod.hcl` files.
+          4. Review the generated `terraform.dev.tfvars`, `terraform.qa.tfvars`, and `terraform.prod.tfvars` files.
+          5. Approve the infrastructure change for the selected environment.
+          6. Run the generated ECS runtime delivery workflow to execute `terraform fmt -check`, `terraform validate`, and TFLint before plan and apply.
+          7. Deploy the application image to the selected ECS service using the image delivery workflow.
+          8. Verify security checks, image scans, and WAF coverage before go-live.
+          9. Review the generated DEVSECOPS.md in the customer runtime repository.

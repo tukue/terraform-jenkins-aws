@@ -95,8 +95,8 @@ flowchart LR
 2. The user selects the AWS account and AWS region.
 3. The platform fills in the rest from approved defaults.
 4. Backstage creates or links the customer runtime repository.
-5. Terraform provisions the ECS runtime, networking, load balancing, WAF, DNS, and observability.
-6. The application pipeline builds and pushes the container image.
+5. Terraform provisions the ECS runtime, ECR repository, networking, load balancing, WAF, DNS, and observability.
+6. The application pipeline builds the container image, scans it for HIGH and CRITICAL vulnerabilities, and pushes it to ECR only if the scan passes.
 7. ECS deploys the service.
 8. The runtime is registered in Backstage.
 9. Dashboards, logs, and runbooks are attached automatically.
@@ -143,6 +143,7 @@ ECS is a strong fit for SaaS e-commerce workloads because:
 
 - ECS cluster or service
 - Task definitions
+- ECR repository for application images
 - Application Load Balancer
 - Target groups and listeners
 - Autoscaling policies
@@ -192,7 +193,7 @@ Each runtime should include:
 - ALB for public traffic
 - WAF in front of the ALB
 - CloudWatch logging
-- autoscaling rules
+- autoscaling rules for CPU, memory, and request-driven traffic
 - DNS and TLS
 - security groups and least-privilege IAM
 

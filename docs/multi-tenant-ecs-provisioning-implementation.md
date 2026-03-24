@@ -94,10 +94,11 @@ flowchart LR
 3. Backstage asks the customer for only the AWS account and AWS region.
 4. The customer selects the region closest to their users or matching their residency constraints.
 5. A repository is created for the new customer runtime.
-6. Terraform provisions the network, ECS cluster, IAM, logging, and load balancing in that account and region.
-7. CI/CD deploys the customer microservices.
-8. The environment is registered in Backstage.
-9. Monitoring and support links are attached automatically.
+6. Terraform provisions the network, ECS cluster, ECR repository, IAM, logging, and load balancing in that account and region.
+7. CI/CD builds the application image, scans it for HIGH and CRITICAL vulnerabilities, and pushes it to ECR only if the scan passes.
+8. CI/CD deploys the customer microservices from the approved image.
+9. The environment is registered in Backstage.
+10. Monitoring and support links are attached automatically.
 
 ### Minimal customer inputs
 
@@ -122,7 +123,7 @@ Each customer environment should include:
 - Security groups
 - DNS entry or subdomain
 - CloudWatch logging
-- Optional autoscaling rules
+- Autoscaling rules for CPU, memory, and ALB request load
 
 If the customer needs a database or cache, those should be provisioned as separate resources and linked to the runtime.
 
@@ -192,6 +193,7 @@ The ECS implementation should be split into reusable modules.
 - ECS cluster
 - ECS service
 - Task definition
+- ECR repository
 - Load balancer target group
 - Autoscaling
 - Logging configuration
@@ -236,6 +238,7 @@ The platform should support a standard deployment pipeline:
 - Image pushed to a registry
 - Terraform or deployment automation updates the ECS service
 - Service is verified by health checks
+- Autoscaling policies are attached automatically
 
 For customer environments, every deployment should be tied to the customer identifier so the runtime is traceable.
 

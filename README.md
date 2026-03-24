@@ -29,6 +29,8 @@ Key capabilities:
 - ALB and Route 53 integration
 - ACM certificate support
 - Ansible-based post-provisioning
+- Environment-specific tfvars and backend configs for dev, qa, and prod delivery
+- GitHub Actions delivery workflow with environment-gated apply steps
 
 ## Track 2: ECS Customer Runtime Platform
 
@@ -39,8 +41,10 @@ Key capabilities:
 - Backstage self-service provisioning
 - customer-selected AWS account and region
 - landing-zone aware network resolution
+- ECR repository with scan-before-push workflow
 - ECS Fargate service and ALB
-- AWS WAF protection
+- AWS WAF protection and managed security defaults
+- built-in ECS autoscaling
 - container image deployment hooks
 
 ## Repository Layout

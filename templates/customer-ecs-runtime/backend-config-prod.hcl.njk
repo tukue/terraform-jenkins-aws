@@ -1,0 +1,5 @@
+bucket         = "customer-ecs-runtime-tfstate"
+key            = "customer/${{ values.customer_name }}/prod/terraform.tfstate"
+region         = "${{ values.aws_region }}"
+encrypt        = true
+dynamodb_table = "customer-ecs-runtime-locks"

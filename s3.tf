@@ -19,7 +19,7 @@ resource "aws_kms_alias" "terraform_encryption_key" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "jenkins-tfstate-dev-2024" # Hardcoded value temporarily for testing
+  bucket = var.bucket_name
 
   lifecycle {
     prevent_destroy = true

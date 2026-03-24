@@ -1,6 +1,5 @@
 variable "aws_region" {
   type        = string
-  default     = "${{ values.aws_region }}"
   description = "AWS region"
 
   validation {
@@ -27,7 +26,6 @@ variable "aws_profile" {
 
 variable "aws_account_id" {
   type        = string
-  default     = "${{ values.aws_account_id }}"
   description = "AWS account ID"
 
   validation {

@@ -15,40 +15,40 @@ locals {
   ecr_repository_name         = trimspace(var.ecr_repository_name) != "" ? var.ecr_repository_name : "${local.name_prefix}-ecr"
   autoscaling_defaults = {
     dev = {
-      min_capacity      = 1
-      max_capacity      = 2
-      cpu_target        = 75
-      memory_target     = 80
-      request_target    = 500
-      scale_in_cooldown = 180
+      min_capacity       = 1
+      max_capacity       = 2
+      cpu_target         = 75
+      memory_target      = 80
+      request_target     = 500
+      scale_in_cooldown  = 180
       scale_out_cooldown = 60
     }
     qa = {
-      min_capacity      = 2
-      max_capacity      = 4
-      cpu_target        = 70
-      memory_target     = 75
-      request_target    = 750
-      scale_in_cooldown = 180
+      min_capacity       = 2
+      max_capacity       = 4
+      cpu_target         = 70
+      memory_target      = 75
+      request_target     = 750
+      scale_in_cooldown  = 180
       scale_out_cooldown = 60
     }
     prod = {
-      min_capacity      = 2
-      max_capacity      = 10
-      cpu_target        = 60
-      memory_target     = 70
-      request_target    = 1000
-      scale_in_cooldown = 300
+      min_capacity       = 2
+      max_capacity       = 10
+      cpu_target         = 60
+      memory_target      = 70
+      request_target     = 1000
+      scale_in_cooldown  = 300
       scale_out_cooldown = 120
     }
   }
   effective_autoscaling = {
-    min_capacity      = coalesce(var.autoscaling_min_capacity, local.autoscaling_defaults[var.environment].min_capacity)
-    max_capacity      = coalesce(var.autoscaling_max_capacity, local.autoscaling_defaults[var.environment].max_capacity)
-    cpu_target        = coalesce(var.autoscaling_cpu_target, local.autoscaling_defaults[var.environment].cpu_target)
-    memory_target     = coalesce(var.autoscaling_memory_target, local.autoscaling_defaults[var.environment].memory_target)
-    request_target    = coalesce(var.autoscaling_request_target, local.autoscaling_defaults[var.environment].request_target)
-    scale_in_cooldown = coalesce(var.autoscaling_scale_in_cooldown, local.autoscaling_defaults[var.environment].scale_in_cooldown)
+    min_capacity       = coalesce(var.autoscaling_min_capacity, local.autoscaling_defaults[var.environment].min_capacity)
+    max_capacity       = coalesce(var.autoscaling_max_capacity, local.autoscaling_defaults[var.environment].max_capacity)
+    cpu_target         = coalesce(var.autoscaling_cpu_target, local.autoscaling_defaults[var.environment].cpu_target)
+    memory_target      = coalesce(var.autoscaling_memory_target, local.autoscaling_defaults[var.environment].memory_target)
+    request_target     = coalesce(var.autoscaling_request_target, local.autoscaling_defaults[var.environment].request_target)
+    scale_in_cooldown  = coalesce(var.autoscaling_scale_in_cooldown, local.autoscaling_defaults[var.environment].scale_in_cooldown)
     scale_out_cooldown = coalesce(var.autoscaling_scale_out_cooldown, local.autoscaling_defaults[var.environment].scale_out_cooldown)
   }
 

@@ -1,15 +1,31 @@
 name: Build, Scan, and Push Image to ECR
 
+permissions:
+  contents: read
+  id-token: write
+
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      image_tag:
+        description: Image tag to deploy
+        required: false
+        type: string
+        default: latest
 
 jobs:
   build-scan-push:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      id-token: write
+    environment:
+      name: ${{ inputs.environment }}
 
     env:
       AWS_REGION: "${{ values.aws_region }}"
@@ -18,10 +34,10 @@ jobs:
       SOURCE_REPO: "${{ values.source_repo }}"
       DOCKERFILE_PATH: "${{ values.dockerfile_path }}"
       BUILD_CONTEXT: "${{ values.build_context }}"
-      IMAGE_TAG: "${{ values.image_tag }}"
-      ECR_REPOSITORY: "${{ values.tenant_name }}-${{ values.environment }}-ecr"
-      ECS_CLUSTER: "${{ values.tenant_name }}-${{ values.environment }}-ecs"
-      ECS_SERVICE: "${{ values.tenant_name }}-${{ values.environment }}-service"
+      IMAGE_TAG: "${{ inputs.image_tag }}"
+      ECR_REPOSITORY: "${{ values.tenant_name }}-${{ inputs.environment }}-ecr"
+      ECS_CLUSTER: "${{ values.tenant_name }}-${{ inputs.environment }}-ecs"
+      ECS_SERVICE: "${{ values.tenant_name }}-${{ inputs.environment }}-service"
 
     steps:
       - name: Checkout source repository
@@ -123,6 +139,7 @@ jobs:
       - name: Summary
         run: |
           echo "Image built, scanned, pushed, and deployed successfully."
+          echo "Environment: ${{ inputs.environment }}"
           echo "Repository: ${ECR_REPOSITORY}"
           echo "Image: ${IMAGE_URI}"
           echo "Task definition: ${NEW_TASK_DEF_ARN}"

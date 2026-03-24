@@ -9,6 +9,7 @@ AWS Region: ${{ values.aws_region }}
 
 - [ ] Container image scanned for HIGH and CRITICAL findings before ECR push
 - [ ] Approved image pushed to ECR and deployed to ECS only after the scan passes
+- [ ] Runtime provisioning workflow validated in `dev`, `qa`, and `prod`
 - [ ] Secrets stored in AWS Secrets Manager or Parameter Store
 - [ ] WAF enabled for public traffic
 - [ ] IAM reviewed for least privilege

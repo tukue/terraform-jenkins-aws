@@ -1,3 +1,22 @@
+data "aws_ami" "latest_ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"]
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+locals {
+  effective_ec2_ami_id = trimspace(var.ec2_ami_id) != "" ? var.ec2_ami_id : data.aws_ami.latest_ubuntu.id
+}
+
 module "networking" {
   source               = "./networking"
   vpc_cidr             = var.vpc_cidr
@@ -18,8 +37,8 @@ module "security_group" {
 
 module "jenkins" {
   source                    = "./jenkins"
-  ami_id                    = var.ec2_ami_id
-  instance_type             = "t3.small" # Changed from t2.medium to t2.micro for free tier
+  ami_id                    = local.effective_ec2_ami_id
+  instance_type             = var.instance_type
   tag_name                  = "Jenkins:Ubuntu Linux EC2"
   public_key                = var.public_key
   subnet_id                 = tolist(module.networking.dev_proj_1_public_subnets)[0]
@@ -57,7 +76,7 @@ module "grafana" {
   source = "./grafana"
 
   environment    = var.environment
-  ami_id         = var.ec2_ami_id
+  ami_id         = local.effective_ec2_ami_id
   instance_type  = var.grafana_instance_type
   subnet_id      = tolist(module.networking.dev_proj_1_public_subnets)[0]
   vpc_id         = module.networking.dev_proj_1_vpc_id

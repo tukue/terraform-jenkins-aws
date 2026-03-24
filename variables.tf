@@ -3,6 +3,23 @@ variable "bucket_name" {
   description = "Remote state bucket name"
 }
 
+variable "aws_profile" {
+  type        = string
+  description = "Optional AWS CLI profile for local development"
+  default     = ""
+}
+
+variable "aws_account_id" {
+  type        = string
+  description = "AWS account ID for the target environment"
+  default     = ""
+
+  validation {
+    condition     = var.aws_account_id == "" || can(regex("^[0-9]{12}$", var.aws_account_id))
+    error_message = "aws_account_id must be a 12-digit AWS account ID when provided."
+  }
+}
+
 variable "aws_region" {
   type        = string
   description = "AWS region used by the provider"
@@ -41,13 +58,25 @@ variable "public_key" {
 
 variable "ec2_ami_id" {
   type        = string
-  description = "DevOps Project 1 AMI Id for EC2 instance"
+  description = "Optional AMI ID for the Jenkins EC2 instance; defaults to the latest Ubuntu LTS image"
+  default     = ""
 }
 
 variable "environment" {
   type        = string
   description = "The environment for the workspace (e.g., dev, QA, production)"
   default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "qa", "prod"], var.environment)
+    error_message = "Environment must be dev, qa, or prod."
+  }
+}
+
+variable "instance_type" {
+  type        = string
+  description = "EC2 instance type for the Jenkins server"
+  default     = "t3.small"
 }
 
 variable "run_ansible" {
@@ -109,4 +138,10 @@ variable "grafana_allowed_cidrs" {
   description = "CIDR blocks allowed to access Grafana"
   type        = list(string)
   default     = ["0.0.0.0/0"]
+}
+
+variable "tags" {
+  description = "Additional tags applied by modules that support them"
+  type        = map(string)
+  default     = {}
 }

@@ -11,6 +11,8 @@ terraform {
 
 provider "aws" {
   region              = "${{ values.aws_region }}"
-  profile             = ${{ values.aws_profile | dump }}
   allowed_account_ids = ["${{ values.aws_account_id }}"]
+  {% if values.aws_profile %}
+  profile = "${{ values.aws_profile }}"
+  {% endif %}
 }

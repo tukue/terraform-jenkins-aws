@@ -7,6 +7,7 @@ metadata:
     - ecs
     - aws
     - customer-runtime
+    - multi-environment
 spec:
   type: service
   lifecycle: experimental

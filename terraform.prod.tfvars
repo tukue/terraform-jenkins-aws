@@ -1,0 +1,19 @@
+bucket_name            = "jenkins-tfstate-platform"
+aws_region             = "eu-north-1"
+aws_account_id         = "333333333333"
+environment            = "prod"
+instance_type          = "t3.medium"
+vpc_cidr               = "10.30.0.0/16"
+vpc_name               = "jenkins-prod-vpc"
+cidr_public_subnet     = ["10.30.1.0/24", "10.30.2.0/24"]
+cidr_private_subnet    = ["10.30.11.0/24", "10.30.12.0/24"]
+eu_availability_zone   = ["eu-north-1a", "eu-north-1b"]
+public_key             = "ssh-rsa REPLACE_ME_PROD"
+run_ansible            = false
+enable_observability   = true
+enable_grafana_service = false
+tags = {
+  Owner      = "platform-team"
+  CostCenter = "engineering-prod"
+  Purpose    = "jenkins-production"
+}

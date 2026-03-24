@@ -10,7 +10,10 @@ This example shows how to provision a customer-specific ECS runtime using the `c
 - A landing-zone aware runtime that can resolve network defaults from AWS SSM
 - Built-in autoscaling, HTTPS redirect support, and WAF defaults for new customer environments
 - A dedicated ECR repository for scanned application images
-- A generated GitHub Actions workflow that scans before pushing to ECR
+- Environment-specific Terraform files for `dev`, `qa`, and `prod`
+- A provisioning workflow that plans and applies each environment
+- A delivery workflow that builds, scans, pushes, and deploys image updates to a selected environment
+- Baseline policy checks with `terraform fmt -check`, `terraform validate`, and TFLint
 
 ## Folder layout
 
@@ -18,18 +21,22 @@ This example shows how to provision a customer-specific ECS runtime using the `c
 - `main.tf` - Calls the shared customer ECS runtime module
 - `outputs.tf` - Useful runtime outputs
 - `catalog-info.yaml` - Backstage catalog entry for the generated runtime
+- `backend-config-*.hcl` - Shared remote state configuration per environment
+- `terraform.*.tfvars` - Environment-specific Terraform variables
 - `terraform.tfvars.example` - Example values including region and account
+- The generated repository also includes `.github/workflows/` for provisioning and image deployment
 
 ## How to use
 
 1. Copy this example into a customer-specific folder.
 2. Replace the placeholder values with the customer details.
-3. Run `terraform init`, `terraform plan`, and `terraform apply`.
+3. Run the `dev` provisioning workflow first.
+4. Promote through `qa` and `prod` after validation.
 
 ## Recommended inputs
 
-- AWS region
-- AWS account ID
+- AWS region selected in Backstage
+- AWS account ID selected in Backstage
 - Tenant name
 - Container image
 - Optional DNS name
@@ -48,3 +55,5 @@ Autoscaling defaults are standardized by environment in the shared module:
 - `prod`: more headroom and more conservative scale-in behavior
 
 Set the autoscaling variables only when you need to override those defaults.
+
+Use the generated delivery workflows to keep the runtime and app image promotion flow aligned across environments.

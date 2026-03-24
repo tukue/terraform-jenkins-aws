@@ -1,0 +1,21 @@
+aws_region              = "eu-north-1"
+aws_account_id          = "123456789012"
+customer_name           = "acme"
+tenant_name             = "acme-store"
+environment             = "prod"
+container_image         = "ghcr.io/your-org/saas-ecommerce-demo:latest"
+container_port          = 8080
+desired_count           = 3
+enable_autoscaling      = true
+cpu                     = 512
+memory                  = 1024
+alb_ingress_cidr_blocks = ["203.0.113.0/24"]
+enable_waf              = true
+waf_rate_limit          = 2000
+tags = {
+  Customer    = "acme"
+  Tenant      = "acme-store"
+  Environment = "prod"
+  Owner       = "platform-team"
+  Tier        = "production"
+}
