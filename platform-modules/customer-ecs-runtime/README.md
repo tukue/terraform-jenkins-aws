@@ -10,6 +10,7 @@ This module provisions a customer-specific ECS runtime on AWS.
 - Application Load Balancer
 - Target group and listeners
 - Security groups
+- IAM task and execution roles with scoped secret access options
 - CloudWatch logs
 - ECS Exec audit logs
 - ECR repository for customer images
@@ -61,3 +62,6 @@ module "customer_runtime" {
 - Autoscaling is enabled by default so new customer runtimes can scale without extra setup
 - WAF is enabled by default and protects the ALB using AWS managed rule groups plus rate limiting
 - ECR is created by default so the customer has a dedicated registry for scanned images, and tags are immutable by default
+- ECS execution-role secret access can be scoped to explicit Secrets Manager and SSM parameter ARNs
+- The application task role can be extended with explicit managed policies or scoped secret and KMS access when the workload needs AWS API access
+- Keep `task_secrets` aligned with the execution-role allow-lists so ECS can inject the secret values without broad IAM permissions

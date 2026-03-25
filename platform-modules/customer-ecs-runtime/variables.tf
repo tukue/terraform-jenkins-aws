@@ -243,7 +243,49 @@ variable "task_environment" {
 variable "task_secrets" {
   type        = map(string)
   default     = {}
-  description = "Secrets injected into the application container"
+  description = "Secrets injected into the application container; values should be Secrets Manager or SSM parameter ARNs"
+}
+
+variable "execution_role_secret_arns" {
+  type        = list(string)
+  default     = []
+  description = "Secret Manager secret ARNs that the ECS execution role can read for container secret injection"
+}
+
+variable "execution_role_parameter_arns" {
+  type        = list(string)
+  default     = []
+  description = "SSM parameter ARNs that the ECS execution role can read for container secret injection"
+}
+
+variable "execution_role_kms_key_arns" {
+  type        = list(string)
+  default     = []
+  description = "KMS key ARNs that the ECS execution role can use to decrypt injected secrets"
+}
+
+variable "task_role_policy_arns" {
+  type        = list(string)
+  default     = []
+  description = "Optional managed policy ARNs to attach to the application task role"
+}
+
+variable "task_role_secret_arns" {
+  type        = list(string)
+  default     = []
+  description = "Secret Manager secret ARNs that the application task role can read at runtime"
+}
+
+variable "task_role_parameter_arns" {
+  type        = list(string)
+  default     = []
+  description = "SSM parameter ARNs that the application task role can read at runtime"
+}
+
+variable "task_role_kms_key_arns" {
+  type        = list(string)
+  default     = []
+  description = "KMS key ARNs that the application task role can use to decrypt runtime secrets"
 }
 
 variable "assign_public_ip" {

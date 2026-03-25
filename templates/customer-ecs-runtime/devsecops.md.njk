@@ -11,6 +11,8 @@ AWS Region: ${{ values.aws_region }}
 - [ ] Approved image pushed to ECR and deployed to ECS only after the scan passes
 - [ ] Runtime provisioning workflow validated in `dev`, `qa`, and `prod`
 - [ ] Secrets stored in AWS Secrets Manager or Parameter Store
+- [ ] ECS execution-role allow-lists configured for every injected secret
+- [ ] Application task role scoped to only the AWS resources it needs
 - [ ] WAF enabled for public traffic
 - [ ] IAM reviewed for least privilege
 - [ ] Runtime tags include owner, account, region, and customer

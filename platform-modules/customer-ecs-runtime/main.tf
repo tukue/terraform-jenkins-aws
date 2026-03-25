@@ -9,10 +9,14 @@ locals {
   exec_log_group_name = "/ecs/exec/${local.name_prefix}"
   alb_subnet_ids      = var.alb_internal ? local.resolved_private_subnet_ids : local.resolved_public_subnet_ids
 
-  resolved_vpc_id             = var.vpc_id != "" ? var.vpc_id : data.aws_ssm_parameter.vpc_id[0].value
-  resolved_public_subnet_ids  = length(var.public_subnet_ids) > 0 ? var.public_subnet_ids : split(",", data.aws_ssm_parameter.public_subnet_ids[0].value)
-  resolved_private_subnet_ids = length(var.private_subnet_ids) > 0 ? var.private_subnet_ids : split(",", data.aws_ssm_parameter.private_subnet_ids[0].value)
-  ecr_repository_name         = trimspace(var.ecr_repository_name) != "" ? var.ecr_repository_name : "${local.name_prefix}-ecr"
+  resolved_vpc_id                        = var.vpc_id != "" ? var.vpc_id : data.aws_ssm_parameter.vpc_id[0].value
+  resolved_public_subnet_ids             = length(var.public_subnet_ids) > 0 ? var.public_subnet_ids : split(",", data.aws_ssm_parameter.public_subnet_ids[0].value)
+  resolved_private_subnet_ids            = length(var.private_subnet_ids) > 0 ? var.private_subnet_ids : split(",", data.aws_ssm_parameter.private_subnet_ids[0].value)
+  ecr_repository_name                    = trimspace(var.ecr_repository_name) != "" ? var.ecr_repository_name : "${local.name_prefix}-ecr"
+  execution_role_secret_resource_arns    = distinct(compact(var.execution_role_secret_arns))
+  execution_role_parameter_resource_arns = distinct(compact(var.execution_role_parameter_arns))
+  task_role_secret_resource_arns         = distinct(compact(var.task_role_secret_arns))
+  task_role_parameter_resource_arns      = distinct(compact(var.task_role_parameter_arns))
   autoscaling_defaults = {
     dev = {
       min_capacity       = 1
@@ -230,10 +234,85 @@ resource "aws_iam_role_policy_attachment" "task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy" "task_execution_secrets" {
+  count = length(local.execution_role_secret_resource_arns) > 0 || length(local.execution_role_parameter_resource_arns) > 0 || length(var.execution_role_kms_key_arns) > 0 ? 1 : 0
+
+  name = "${local.name_prefix}-ecs-execution-secrets"
+  role = aws_iam_role.task_execution.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = concat(
+      length(local.execution_role_secret_resource_arns) > 0 ? [{
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+        ]
+        Resource = local.execution_role_secret_resource_arns
+      }] : [],
+      length(local.execution_role_parameter_resource_arns) > 0 ? [{
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath"
+        ]
+        Resource = local.execution_role_parameter_resource_arns
+      }] : [],
+      length(var.execution_role_kms_key_arns) > 0 ? [{
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt"]
+        Resource = distinct(compact(var.execution_role_kms_key_arns))
+      }] : []
+    )
+  })
+}
+
 resource "aws_iam_role" "task" {
   name               = "${local.name_prefix}-ecs-task"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
   tags               = local.common_tags
+}
+
+resource "aws_iam_role_policy" "task_runtime_secrets" {
+  count = length(local.task_role_secret_resource_arns) > 0 || length(local.task_role_parameter_resource_arns) > 0 || length(var.task_role_kms_key_arns) > 0 ? 1 : 0
+
+  name = "${local.name_prefix}-ecs-task-secrets"
+  role = aws_iam_role.task.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = concat(
+      length(local.task_role_secret_resource_arns) > 0 ? [{
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+        ]
+        Resource = local.task_role_secret_resource_arns
+      }] : [],
+      length(local.task_role_parameter_resource_arns) > 0 ? [{
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath"
+        ]
+        Resource = local.task_role_parameter_resource_arns
+      }] : [],
+      length(var.task_role_kms_key_arns) > 0 ? [{
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt"]
+        Resource = distinct(compact(var.task_role_kms_key_arns))
+      }] : []
+    )
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "task_runtime_managed" {
+  for_each = toset(var.task_role_policy_arns)
+
+  role       = aws_iam_role.task.name
+  policy_arn = each.value
 }
 
 resource "aws_security_group" "alb" {

@@ -16,9 +16,9 @@ This document tracks the current platform features in a simple table so the repo
 | Networking configuration | Partial | ALB, subnets, internal/external exposure, and DNS exist, but richer network policy patterns are not implemented |
 | CI/CD integration | Partial | Generated GitHub Actions workflows now plan and apply Jenkins and ECS by environment, and baseline validation now includes `terraform fmt -check`, `terraform validate`, and TFLint before security scanning |
 | Jenkins integration | Partial | Backstage Jenkins plugin config exists, but ECS service delivery is mainly modeled through GitHub Actions |
-| Security guardrails | Partial | WAF, ECR scanning, tagging, and account/region checks exist, but IAM depth and policy enforcement are incomplete |
-| IAM least privilege | Partial | Separate execution and task roles exist, but task-role permissions are not fully implemented |
-| Secrets management | Partial | Runtime secret inputs exist, but full IAM and secret access patterns are not fully implemented |
+| Security guardrails | Implemented | WAF, ECR scanning, tagging, and account/region checks now sit alongside scoped IAM controls for runtime access |
+| IAM least privilege | Implemented | Separate execution and task roles now support explicit secret, parameter, KMS, and managed-policy scoping |
+| Secrets management | Implemented | Runtime secret inputs are paired with explicit IAM allow-lists for container injection and app runtime access |
 | Observability | Partial | CloudWatch logs and ECS Container Insights exist, but dashboards, tracing, and standard alarms are not fully implemented |
 | Logging | Implemented | CloudWatch log groups and ECS Exec log group are created |
 | Tracing | Not Implemented | X-Ray or OpenTelemetry-based tracing is not implemented |
@@ -58,7 +58,7 @@ Avoid presenting it as:
 
 | Priority | Feature | Target Outcome |
 |---|---|---|
-| High | IAM hardening | Complete least-privilege task role and secret access model |
+| High | IAM hardening | Extend the scoped IAM model to any new platform modules and workloads |
 | High | CI/CD governance | Add PR validation, approvals, and stronger deployment controls |
 | High | Policy-as-code baseline | Expand TFLint and related guardrails for Terraform delivery |
 | High | Observability pack | Add alarms, dashboards, and tracing defaults |
