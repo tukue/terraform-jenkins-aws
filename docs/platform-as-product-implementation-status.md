@@ -19,7 +19,7 @@ This document tracks the current platform features in a simple table so the repo
 | Security guardrails | Implemented | WAF, ECR scanning, tagging, and account/region checks now sit alongside scoped IAM controls for runtime access |
 | IAM least privilege | Implemented | Separate execution and task roles now support explicit secret, parameter, KMS, and managed-policy scoping |
 | Secrets management | Implemented | Runtime secret inputs are paired with explicit IAM allow-lists for container injection and app runtime access |
-| Observability | Partial | CloudWatch logs and ECS Container Insights exist, but dashboards, tracing, and standard alarms are not fully implemented |
+| Observability | Partial | Managed Prometheus, Grafana, and CloudWatch monitoring exist, but tracing and log aggregation are not fully implemented |
 | Logging | Implemented | CloudWatch log groups and ECS Exec log group are created |
 | Tracing | Not Implemented | X-Ray or OpenTelemetry-based tracing is not implemented |
 | Standardized service templates | Implemented | The ECS runtime follows a reusable Backstage and Terraform template path |

@@ -231,15 +231,15 @@ Transform the terraform-jenkins-aws repository into a mature platform project wi
 - **Effort**: 4-5 hours
 
 ### 5.3 Monitoring & Observability
-- **Status**: TODO
+- **Status**: IN PROGRESS
 - **Description**: Set up monitoring and observability
 - **Tasks**:
   - [x] Add managed Prometheus + OpenTelemetry Terraform module (`prometheus/`)
   - [x] Add self-hosted Grafana service module (`grafana/`)
   - [x] Add Grafana and Prometheus to local Docker observability stack
-  - [ ] Configure CloudWatch monitoring
-  - [ ] Set up dashboards
-  - [ ] Create alerting rules
+  - [x] Configure CloudWatch monitoring
+  - [x] Set up dashboards
+  - [x] Create alerting rules
   - [ ] Integrate with Slack
   - [ ] Create SLO definitions
   - [ ] Set up log aggregation

@@ -86,7 +86,7 @@ variable "run_ansible" {
 }
 
 variable "enable_observability" {
-  description = "Enable the managed Prometheus and OpenTelemetry observability module"
+  description = "Enable the managed Prometheus, CloudWatch monitoring, and OpenTelemetry observability stack"
   type        = bool
   default     = false
 }

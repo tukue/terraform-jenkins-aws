@@ -68,6 +68,19 @@ module "prometheus" {
   environment            = var.environment
   workspace_alias        = var.observability_workspace_alias
   jenkins_static_targets = var.observability_jenkins_targets
+  tags                   = var.tags
+}
+
+module "cloudwatch_observability" {
+  count = var.enable_observability ? 1 : 0
+
+  source = "./cloudwatch-observability"
+
+  environment        = var.environment
+  instance_id        = module.jenkins.jenkins_ec2_instance_ip
+  instance_name      = "Jenkins"
+  instance_public_ip = module.jenkins.dev_proj_1_ec2_instance_public_ip
+  tags               = var.tags
 }
 
 module "grafana" {

@@ -13,6 +13,21 @@ output "observability_otel_collector_config" {
   value       = var.enable_observability ? module.prometheus[0].otel_collector_config : null
 }
 
+output "cloudwatch_observability_dashboard_url" {
+  description = "CloudWatch dashboard URL for Jenkins observability"
+  value       = var.enable_observability ? module.cloudwatch_observability[0].dashboard_url : null
+}
+
+output "cloudwatch_cpu_alarm_name" {
+  description = "CloudWatch alarm name for Jenkins CPU"
+  value       = var.enable_observability ? module.cloudwatch_observability[0].cpu_alarm_name : null
+}
+
+output "cloudwatch_status_check_alarm_name" {
+  description = "CloudWatch alarm name for Jenkins EC2 status checks"
+  value       = var.enable_observability ? module.cloudwatch_observability[0].status_check_alarm_name : null
+}
+
 output "grafana_url" {
   description = "Grafana service URL"
   value       = var.enable_grafana_service ? module.grafana[0].grafana_url : null

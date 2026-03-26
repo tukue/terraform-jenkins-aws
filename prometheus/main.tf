@@ -70,7 +70,7 @@ ${local.prometheus_targets_yaml}
 
     extensions:
       sigv4auth:
-        region: ${data.aws_region.current.name}
+        region: ${data.aws_region.current.region}
         service: aps
 
     exporters:

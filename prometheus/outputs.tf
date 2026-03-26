@@ -1,6 +1,6 @@
 output "workspace_id" {
   description = "Amazon Managed Service for Prometheus workspace ID"
-  value       = aws_prometheus_workspace.this.workspace_id
+  value       = aws_prometheus_workspace.this.id
 }
 
 output "workspace_arn" {
