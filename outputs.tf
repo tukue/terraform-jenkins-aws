@@ -32,3 +32,14 @@ output "grafana_url" {
   description = "Grafana service URL"
   value       = var.enable_grafana_service ? module.grafana[0].grafana_url : null
 }
+
+output "vault_integration_enabled" {
+  description = "Whether Vault integration testing is enabled"
+  value       = var.enable_vault_integration
+}
+
+output "vault_test_secret_value" {
+  description = "Sensitive value read from Vault for integration testing"
+  value       = local.vault_test_secret_value
+  sensitive   = true
+}

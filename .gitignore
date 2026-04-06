@@ -12,6 +12,8 @@ crash.log
 !terraform.dev.tfvars
 !terraform.qa.tfvars
 !terraform.prod.tfvars
+!terraform.vault.tfvars
+!terraform.vault-local.tfvars
 
 # Ignore override files
 override.tf
