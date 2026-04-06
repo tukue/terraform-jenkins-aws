@@ -9,8 +9,6 @@ crash.log
 # Ignore Terraform variable files (if they contain sensitive data)
 *.tfvars
 *.tfvars.json
-!terraform.vault.tfvars
-!terraform.vault-local.tfvars
 
 # Ignore override files
 override.tf

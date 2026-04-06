@@ -1,8 +1,0 @@
-enable_vault_integration = true
-vault_address            = "http://127.0.0.1:8200"
-vault_token              = "root"
-vault_namespace          = ""
-vault_skip_tls_verify    = false
-vault_kv_mount           = "secret"
-vault_secret_path        = "jenkins/platform/test"
-vault_secret_key         = "value"
