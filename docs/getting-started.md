@@ -32,11 +32,6 @@ vim terraform.tfvars
 terraform init -backend-config="backend-config-dev.hcl"
 ```
 
-If the backend resources do not exist yet, bootstrap them first:
-```bash
-bash ./terraform-bootstrap.sh dev terraform-jenkins-aws-state-store-bucket
-```
-
 ### 5. Plan the Infrastructure
 ```bash
 terraform plan -var-file="terraform.dev.tfvars"
@@ -47,16 +42,7 @@ terraform plan -var-file="terraform.dev.tfvars"
 terraform apply -var-file="terraform.dev.tfvars" -var="bucket_name=jenkins-tfstate-platform"
 ```
 
-### 7. Run the Automated Apply
-```bash
-bash ./terraform-apply.sh dev terraform-jenkins-aws-state-store-bucket
-```
-
-This wrapper runs `terraform init`, `terraform plan`, and `terraform apply` with the correct environment tfvars file so Terraform does not pause for `cidr_private_subnet` or any of the other required inputs.
-
-Use the bootstrap wrapper only once per environment, before the remote backend exists. After that, use the normal apply wrapper.
-
-### 8. Test Vault Integration
+### 7. Test Vault Integration
 For a local Vault dev server, use the basic Vault tfvars file and run the plan with both tfvars files:
 ```bash
 terraform plan -var-file="terraform.dev.tfvars" -var-file="terraform.vault.tfvars"
