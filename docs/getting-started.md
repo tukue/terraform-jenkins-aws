@@ -42,6 +42,30 @@ terraform plan -var-file="terraform.dev.tfvars"
 terraform apply -var-file="terraform.dev.tfvars" -var="bucket_name=jenkins-tfstate-platform"
 ```
 
+### 7. Test Vault Integration
+Set the Vault inputs in your shell and keep the repository free of Vault tfvars files:
+```bash
+export TF_VAR_enable_vault_integration=true
+export TF_VAR_vault_address="http://127.0.0.1:8200"
+export TF_VAR_vault_token="root"
+export TF_VAR_vault_kv_mount="secret"
+export TF_VAR_vault_secret_path="jenkins/platform/test"
+export TF_VAR_vault_secret_key="value"
+terraform plan -var-file="terraform.dev.tfvars"
+```
+
+If you need a local dev server, start one in another terminal:
+```bash
+vault server -dev -dev-root-token-id=root
+```
+
+Then create the test secret:
+```bash
+vault kv put secret/jenkins/platform/test value="hello-from-vault"
+```
+
+If the secret exists in the local Vault server, Terraform will expose it through the sensitive output `vault_test_secret_value`.
+
 ## Common Tasks
 
 ### Creating a New Environment
