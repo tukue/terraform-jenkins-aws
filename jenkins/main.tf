@@ -22,6 +22,7 @@ resource "aws_instance" "jenkins_ec2_instance_ip" {
   key_name                    = aws_key_pair.jenkins_ec2_instance_public_key.key_name
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = var.sg_for_jenkins
+  #tfsec:ignore:aws-ec2-no-public-ip The Jenkins instance is intentionally public in the current deployment model.
   associate_public_ip_address = var.enable_public_ip_address
   monitoring                  = true # Enable detailed monitoring
 

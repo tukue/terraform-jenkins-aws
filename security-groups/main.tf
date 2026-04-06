@@ -49,15 +49,6 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
     }
   }
 
-  #Outgoing request
-  egress {
-    description = "Allow outgoing request"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] # This is generally acceptable for outbound traffic
-  }
-
   tags = merge(
     local.common_tags,
     {
@@ -82,15 +73,6 @@ resource "aws_security_group" "ec2_jenkins_port_8080" {
       to_port     = 8080
       protocol    = "tcp"
     }
-  }
-
-  # Add egress rule for Jenkins security group
-  egress {
-    description = "Allow outgoing request"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] # This is generally acceptable for outbound traffic
   }
 
   tags = merge(
