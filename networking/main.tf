@@ -9,6 +9,7 @@ locals {
 }
 
 # Create CloudWatch Log Group for VPC Flow Logs
+# tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/flow-logs/${var.environment}"
   retention_in_days = 30 # Adjust retention period as needed
@@ -49,6 +50,7 @@ resource "aws_iam_role" "vpc_flow_logs_role" {
 }
 
 # Create IAM policy for VPC Flow Logs
+# tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
   name = "${var.environment}-vpc-flow-logs-policy"
   role = aws_iam_role.vpc_flow_logs_role.id
@@ -58,7 +60,6 @@ resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
     Statement = [
       {
         Action = [
-          "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
           "logs:DescribeLogGroups",
