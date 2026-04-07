@@ -77,6 +77,29 @@ try {
   console.log('');
 }
 
+// Test Templates
+const templates = [
+  'templates/create-jenkins-ec2-template.yaml',
+  'templates/create-customer-ecs-runtime-template.yaml'
+];
+
+templates.forEach(templatePath => {
+  try {
+    const fullPath = path.join(__dirname, '..', templatePath);
+    const content = fs.readFileSync(fullPath, 'utf8');
+    const doc = yaml.load(content);
+
+    console.log(`✅ ${templatePath} loaded successfully`);
+    console.log(`   Kind: ${doc.kind}`);
+    console.log(`   Name: ${doc.metadata.name}`);
+    console.log(`   Title: ${doc.metadata.title}`);
+    console.log('');
+  } catch (error) {
+    console.log(`❌ Error loading ${templatePath}:`, error.message);
+    console.log('');
+  }
+});
+
 console.log('🎯 Catalog Summary:');
 console.log('- Jenkins Platform System with infrastructure components');
 console.log('- Platform Engineering teams and users');

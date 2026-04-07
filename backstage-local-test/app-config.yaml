@@ -16,8 +16,15 @@ backend:
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
   database:
-    client: better-sqlite3
-    connection: ':memory:'
+    client: pg
+    connection:
+      host: ${DB_HOST:-postgres}
+      port: ${DB_PORT:-5432}
+      user: ${DB_USER:-backstage}
+      password: ${DB_PASSWORD:-backstage}
+      database: ${DB_NAME:-backstage}
+  cache:
+    store: memory
 
 integrations:
   github:
@@ -28,12 +35,14 @@ catalog:
   providers:
     # Local file provider for our catalog-info.yaml
     file:
-      - target: ../catalog-info.yaml
-      - target: ../.backstage/system-and-components.yaml
-      - target: ../.backstage/groups-and-users.yaml
+      - target: /repo/catalog-info.yaml
+      - target: /repo/.backstage/system-and-components.yaml
+      - target: /repo/.backstage/groups-and-users.yaml
+      - target: /repo/templates/create-jenkins-ec2-template.yaml
+      - target: /repo/templates/create-customer-ecs-runtime-template.yaml
 
 scaffolder:
-  # Disable GitHub actions for local testing
+  # GitHub integration for scaffolder
   github:
     token: ${GITHUB_TOKEN:-}
     visibility: public

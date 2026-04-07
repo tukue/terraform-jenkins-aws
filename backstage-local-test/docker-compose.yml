@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: backstage-local-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-backstage}
+      POSTGRES_USER: ${DB_USER:-backstage}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-backstage}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - backstage_local_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-backstage} -d ${DB_NAME:-backstage}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backstage:
+    image: ${BACKSTAGE_IMAGE:-ghcr.io/backstage/community-all-in-one:latest}
+    container_name: backstage-local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-backstage}
+      DB_USER: ${DB_USER:-backstage}
+      DB_PASSWORD: ${DB_PASSWORD:-backstage}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      APP_CONFIG_app_baseUrl: http://localhost:3000
+      APP_CONFIG_backend_baseUrl: http://localhost:7007
+      APP_CONFIG_backend_cors_origin: http://localhost:3000
+    ports:
+      - "3000:3000"
+      - "7007:7007"
+    volumes:
+      - ./app-config.yaml:/app/app-config.local.yaml:ro
+      - ..:/repo:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+volumes:
+  backstage_local_postgres_data:

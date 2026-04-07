@@ -12,11 +12,10 @@ variable "aws_profile" {
 variable "aws_account_id" {
   type        = string
   description = "AWS account ID for the target environment"
-  default     = ""
 
   validation {
-    condition     = var.aws_account_id == "" || can(regex("^[0-9]{12}$", var.aws_account_id))
-    error_message = "aws_account_id must be a 12-digit AWS account ID when provided."
+    condition     = can(regex("^[0-9]{12}$", var.aws_account_id))
+    error_message = "aws_account_id must be a 12-digit AWS account ID."
   }
 }
 

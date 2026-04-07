@@ -8,7 +8,7 @@ This document tracks the Vault integration work for the Terraform Jenkins AWS pl
 |---|---|---|
 | Vault provider wiring | Implemented | Terraform Vault provider support exists in the root stack |
 | Optional Vault reads | Implemented | Vault access is feature-flagged so non-Vault runs still work |
-| Local Vault testing | Partial | Local test flow exists, but should be verified after code changes |
+| Local Vault testing | Implemented | Standalone `vault-service/` with Docker and setup script exists |
 | Secret consumption in Jenkins | Not Started | No Jenkins resource is consuming Vault data yet |
 | Secret rotation strategy | Not Started | Rotation and policy hardening are not implemented |
 | Production Vault auth | Not Started | Local dev auth is used for testing; production auth still needs design |

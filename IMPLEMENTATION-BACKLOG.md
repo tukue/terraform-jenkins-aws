@@ -231,11 +231,14 @@ Transform the terraform-jenkins-aws repository into a mature platform project wi
 - **Effort**: 4-5 hours
 
 ### 5.3 Monitoring & Observability
-- **Status**: IN PROGRESS
+- **Status**: COMPLETED ✅
 - **Description**: Set up monitoring and observability
 - **Tasks**:
   - [x] Add managed Prometheus + OpenTelemetry Terraform module (`prometheus/`)
   - [x] Add self-hosted Grafana service module (`grafana/`)
+  - [x] Create standalone local observability service (`observability-service/`)
+  - [x] Configure Prometheus with Node Exporter and cAdvisor for local monitoring
+  - [x] Provision Grafana with Prometheus data source and platform dashboard
   - [x] Add Grafana and Prometheus to local Docker observability stack
   - [x] Configure CloudWatch monitoring
   - [x] Set up dashboards
@@ -252,10 +255,15 @@ Transform the terraform-jenkins-aws repository into a mature platform project wi
 ## Phase 6: Advanced Features
 
 ### 6.1 Governance & Compliance
-- **Status**: TODO
+- **Status**: IN PROGRESS ⏳
 - **Description**: Implement governance and compliance features
 - **Tasks**:
-  - [ ] Create policy as code (Sentinel/OPA)
+  - [x] Create directory structure for policies (`policies/`)
+  - [x] Create OPA policies for tagging standards (`terraform/tags.rego`)
+  - [x] Create OPA policies for networking and security (`terraform/networking.rego`)
+  - [x] Create OPA policies for cost management (`terraform/cost.rego`)
+  - [x] Document policy usage and local testing in `policies/README.md`
+  - [ ] Integrate OPA/Conftest into GitHub Actions
   - [ ] Set up audit logging
   - [ ] Create compliance dashboards
   - [ ] Implement RBAC policies

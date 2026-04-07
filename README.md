@@ -57,6 +57,9 @@ Key capabilities:
 - `certificate-manager/` - ACM certificate resources
 - `s3.tf` - Terraform state backend resources
 - `backstage/` - Backstage deployment and local compose setup
+- `backstage-local-test/` - Quick local Backstage instance for testing the platform catalog and templates
+- `observability-service/` - Standalone local observability stack (Prometheus, Grafana)
+- `vault-service/` - Local Vault instance for secret management testing
 - `platform-modules/` - reusable platform modules
 - `platform-examples/` - example stacks
 - `templates/` - Backstage scaffolder templates
