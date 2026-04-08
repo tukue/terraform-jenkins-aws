@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: service-tier-wrapper
+  description: Simplified service deployment wrapper with opinionated tiers
+  tags:
+    - terraform
+    - aws
+    - ecs
+    - self-service
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: customer-runtimes

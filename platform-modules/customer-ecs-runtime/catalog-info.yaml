@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: customer-ecs-runtime
+  description: Opinionated ECS runtime for customer applications
+  tags:
+    - terraform
+    - aws
+    - ecs
+    - runtime
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: customer-runtimes
