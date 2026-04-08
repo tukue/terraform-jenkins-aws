@@ -1,0 +1,5 @@
+owners:
+  - name: Platform Team
+    email: platform-team@example.com
+    github_handle: "@platform-team"
+    responsibility: "Core module maintenance and infrastructure stability"
