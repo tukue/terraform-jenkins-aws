@@ -1,9 +1,8 @@
 LOCAL_COMPOSE := docker compose -f docker-compose.local.yaml
 REPO_ROOT := $(CURDIR)
 BACKSTAGE_APP_DIR := $(REPO_ROOT)/backstage-app
-TFSCAN ?= tfsec
 
-.PHONY: local-up local-down local-ps local-logs local-health backstage-install backstage-start backstage-validate tfscan
+.PHONY: local-up local-down local-ps local-logs local-health backstage-install backstage-start backstage-validate tfsec
 
 local-up:
 	$(LOCAL_COMPOSE) up -d
@@ -33,5 +32,5 @@ backstage-start:
 backstage-validate:
 	node backstage-local-test/test-catalog.js
 
-tfscan:
-	$(TFSCAN) . --exclude-downloaded-modules
+tfsec:
+	tfsec . --exclude-downloaded-modules
