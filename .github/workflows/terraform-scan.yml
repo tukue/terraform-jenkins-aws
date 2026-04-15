@@ -26,7 +26,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run tfsec
+      - name: Run tfscan
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: .

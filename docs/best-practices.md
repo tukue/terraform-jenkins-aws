@@ -1,309 +1,179 @@
-# Best Practices for terraform-jenkins-aws Platform
+# Platform Best Practices
 
-## Terraform Best Practices
+This document defines the preferred working style for the platform product paths in this repository.
 
-### Module Organization
-```
-modules/
-├── networking/
-│   ├── main.tf          # Module implementation
-│   ├── variables.tf     # Input variables
-│   ├── outputs.tf       # Output values
-│   └── README.md        # Module documentation
-├── security-groups/
-└── compute/
-```
+It is not a generic Terraform checklist. It is a platform baseline intended to keep the repo reusable, supportable, and legible as a product.
 
-**Principle**: Each module should be independently deployable and testable.
+## Best-Practice Intent
 
-### Variable Naming
-```hcl
-# Good
-variable "instance_type" { }
-variable "enable_monitoring" { }
-variable "tag_owner" { }
+Use these practices to protect the shared platform contract.
 
-# Bad
-variable "it" { }
-variable "mon" { }
-variable "owner_tag" { }
-```
+The main goal is to make the standard path easier to use than the custom path.
 
-### State Management
-```hcl
-# Always use remote backend for team environments
-terraform {
-  backend "s3" {
-    bucket         = "terraform-state-bucket"
-    key            = "prod/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform-locks"
-  }
-}
-```
+## 1. Prefer Product Paths Over Ad Hoc Changes
 
-### Error Handling
-```hcl
-# Validate critical variables
-variable "database_password" {
-  type        = string
-  sensitive   = true
-  description = "Database password (minimum 16 characters)"
-  
-  validation {
-    condition     = length(var.database_password) >= 16
-    error_message = "Database password must be at least 16 characters."
-  }
-}
-```
+- start from the documented Jenkins or ECS product path
+- use the existing environment model for `dev`, `qa`, and `prod`
+- prefer the checked-in modules, examples, and templates over bespoke stacks
+- treat non-standard customization as exception work
 
-## AWS Best Practices
+Why this matters:
 
-### Security
-```hcl
-# Enable encryption for all resources
-resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
-  bucket = aws_s3_bucket.example.id
+The repository is stronger when teams consume the platform through a clear path instead of treating it like a loose Terraform scratchpad.
 
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
+## 2. Keep Shared Modules Reusable
 
-# Use security groups for network control
-resource "aws_security_group" "app" {
-  name = "app-sg"
+- make module inputs explicit and well named
+- keep module outputs useful but minimal
+- avoid embedding one-team assumptions in shared modules
+- prefer composition over copying infrastructure logic between paths
+- document the product impact of module changes, not only the implementation detail
 
-  # Allow only necessary ports
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
-  }
+Good baseline:
 
-  # Restrict outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-```
+- environment-aware inputs
+- clear variable descriptions
+- stable output contracts
+- reusable naming and tagging conventions
 
-### Cost Optimization
-```hcl
-# Use appropriate instance types
-# Right-size based on actual workload
+Bad baseline:
 
-# Use Auto Scaling for variable loads
-resource "aws_autoscaling_group" "example" {
-  name                = "example-asg"
-  vpc_zone_identifier = aws_subnet.private[*].id
-  min_size            = 1
-  max_size            = 5
-  desired_capacity    = 2
+- team-specific values hardcoded in shared modules
+- broad variables with unclear meaning
+- copy-paste Terraform between product paths
 
-  # Mix of spot and on-demand instances
-  mixed_instances_policy {
-    instances_distribution {
-      on_demand_percentage_above_base_capacity = 20
-    }
-  }
-}
-```
+## 3. Preserve The Environment Model
 
-### High Availability
-```hcl
-# Multi-AZ deployments
-resource "aws_instance" "app" {
-  count             = 2
-  availability_zone = element(data.aws_availability_zones.available.names, count.index)
+- keep `dev`, `qa`, and `prod` as first-class platform concepts
+- use the matching backend config for the selected environment
+- keep tfvars aligned with the product path being used
+- do not blur environment behavior with hidden defaults
 
-  tags = {
-    Name = "app-${count.index}"
-  }
-}
+Why this matters:
 
-# Load balancing
-resource "aws_lb" "main" {
-  load_balancer_type = "application"
-  subnets            = aws_subnet.public[*].id
-  
-  enable_deletion_protection = true
-  enable_http2              = true
-}
-```
+The environment model is part of the platform contract. If it drifts, the repo stops behaving like a product and becomes harder to operate.
 
-### Monitoring & Logging
-```hcl
-# CloudWatch metrics
-resource "aws_cloudwatch_metric_alarm" "cpu_high" {
-  alarm_name          = "high-cpu"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = "300"
-  statistic           = "Average"
-  threshold           = "80"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-}
+## 4. Make Guardrails Visible
 
-# Application logging
-resource "aws_cloudwatch_log_group" "app" {
-  name              = "/aws/ec2/jenkins"
-  retention_in_days = 30
-}
-```
+- run Terraform formatting and validation on shared changes
+- keep linting and policy checks near the delivery path
+- document whether a control is required, recommended, or advisory
+- prefer visible defaults over tribal knowledge
 
-## Jenkins Best Practices
+Minimum baseline for shared platform work:
 
-### Configuration
-- Use Docker for Jenkins agents
-- Configure agent pools by workload type
-- Set workspace cleanup policies
-- Configure build timeout: 2 hours max
-
-### Security
-- Update Jenkins regularly
-- Enable CSRF protection
-- Use OAuth2 for authentication
-- Rotate SSH keys quarterly
-- Encrypt Jenkins credentials
-
-### Performance
-- Configure build executors: (CPU cores - 1)
-- Use distributed builds with agents
-- Archive only necessary artifacts
-- Configure workspace cleanup
-
-### Monitoring
-```groovy
-// Monitor build metrics
-pipeline {
-  options {
-    timestamps()
-    timeout(time: 2, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '30'))
-  }
-  
-  post {
-    always {
-      junit 'test-results/**/*.xml'
-      archiveArtifacts 'build/outputs/**'
-    }
-    failure {
-      emailext(to: 'team@example.com', subject: 'Build Failed')
-    }
-  }
-}
-```
-
-## Infrastructure as Code Best Practices
-
-### DRY Principle
-- Use modules to avoid repetition
-- Use variables for configuration
-- Use locals for computed values
-- Use data sources for existing resources
-
-### Testing
 ```bash
-# Validate syntax
+terraform fmt -check -recursive
 terraform validate
-
-# Format check
-terraform fmt -check -recursive .
-
-# Security scanning
-checkov -d .
-tflint .
-
-# Compliance check
-terraform plan -json | jq '..'
-
-# Cost estimation
-terraform plan -json | jq '.resource_changes[] | select(.change.actions[] == "create")'
+tflint
 ```
 
-### Documentation
+If policy or security checks are not enforced yet, say so directly rather than implying stronger governance than the repo actually has.
+
+## 5. Keep Documentation Product-Oriented
+
+- write docs for platform consumers, not only platform authors
+- keep product boundaries, responsibilities, and maturity level explicit
+- align docs with what the repo actually implements
+- update product docs when a change affects the standard path
+
+Documentation should answer:
+
+- who the product is for
+- when to use it
+- what inputs are expected
+- what outputs and support expectations exist
+- what is out of scope
+
+## 6. Use Sensible Terraform Practices
+
+- validate important inputs
+- use locals for repeated derived values
+- keep resource naming and tags consistent
+- prefer data sources over duplicating existing values
+- keep sensitive values out of checked-in tfvars where possible
+
+Example validation pattern:
+
 ```hcl
-# Document every variable
-variable "instance_type" {
+variable "environment" {
   type        = string
-  default     = "t3.micro"
-  description = "EC2 instance type (see https://aws.amazon.com/ec2/instance-types)"
-}
+  description = "Target platform environment"
 
-# Document every output
-output "instance_ip" {
-  value       = aws_instance.main.public_ip
-  description = "Public IP of the Jenkins instance"
+  validation {
+    condition     = contains(["dev", "qa", "prod"], var.environment)
+    error_message = "Environment must be one of: dev, qa, prod."
+  }
 }
 ```
 
-## Git Workflow Best Practices
+## 7. Treat Security As A Platform Default
 
-### Branch Strategy
-- `main`: Production-ready code
-- `develop`: Development branch
-- `feature/*`: Feature branches
-- `hotfix/*`: Emergency fixes
+- prefer least-privilege IAM patterns
+- keep tagging, network, and secret expectations explicit
+- document security assumptions in the product path
+- avoid presenting advisory practices as enforced security controls
 
-### Commit Message Format
-```
-feat(module): add new feature
+Current repo direction:
 
-This is a more detailed explanation of the change.
+- scoped IAM should be preferred
+- secrets handling should remain explicit
+- runtime and infrastructure defaults should be documented
+- unsupported security gaps should be called out honestly
 
-Closes #123
-```
+## 8. Keep The Golden Path Easy To Follow
 
-### Pull Request Checklist
-- [ ] Changes tested locally
-- [ ] Documentation updated
-- [ ] No breaking changes
-- [ ] Code follows standards
-- [ ] Security reviewed
-- [ ] Performance impact assessed
+- make the default path obvious in docs
+- keep examples aligned with the actual module structure
+- avoid adding optional complexity ahead of the core path
+- optimize for fast onboarding and repeatable review
 
-## Monitoring & Alerting
+For this repo, a good change makes it easier to:
 
-### Key Metrics
-- Instance health: CPU, memory, disk
-- Application health: Response time, error rate
-- Infrastructure health: Connection count, packet loss
-- Cost metrics: Daily spend, forecast
+- understand the Jenkins product path
+- understand the ECS runtime product path
+- navigate the environment structure
+- see how governance and support fit into delivery
 
-### Alert Thresholds
-| Metric | Warning | Critical | Action |
-|--------|---------|----------|--------|
-| CPU | >70% | >85% | Scale up |
-| Memory | >80% | >95% | Investigate |
-| Disk | >80% | >95% | Clean up |
-| Error Rate | >1% | >5% | Page on-call |
+## 9. Separate Shared Product Work From Consumer Exceptions
 
-## Incident Response
+- add repeatable improvements to the shared baseline
+- keep one-off exceptions out of the main product path unless they clearly generalize
+- be explicit when a change is for one team, one environment, or one edge case
 
-### Response Plan
-1. **Detect**: Monitor and alert
-2. **Respond**: Engage on-call engineer
-3. **Mitigate**: Stop the bleeding
-4. **Resolve**: Fix root cause
-5. **Learn**: Post-mortem and improve
+Promote a change into the shared baseline when it:
 
-### Escalation
-- Critical: Page on-call immediately
-- High: Notify team within 15 min
-- Medium: Notify team within 1 hour
-- Low: Create ticket for later
+- improves both product clarity and reuse
+- helps more than one workload or team
+- reduces operational ambiguity
+- strengthens supportability
 
-## Related Documentation
-- [Platform Standards](./STANDARDS.md)
-- [Contributing Guidelines](../CONTRIBUTING.md)
-- [Architecture Guide](../docs/architecture.md)
+## 10. Position The Repo Honestly
+
+- present the repo as a platform-as-product foundation
+- show real implementation depth without overstating maturity
+- call out missing pieces such as drift detection, stronger policy enforcement, or deeper observability where they are not implemented
+
+The repo is strongest when positioned as:
+
+- a platform engineering foundation
+- a consulting-friendly platform-as-product example
+- a reusable Jenkins and ECS platform baseline
+
+## Review Checklist
+
+Before merging a platform-facing change, check:
+
+- does it strengthen the documented product path
+- does it keep shared modules reusable
+- does it preserve the environment model
+- does it improve clarity for platform consumers
+- does it avoid overclaiming maturity or enforcement
+
+## Related Docs
+
+- [Getting Started](./getting-started.md)
+- [Platform Golden Paths](./platform-golden-paths.md)
+- [Platform Governance Model](./platform-governance-model.md)
+- [Platform Support Model](./platform-support-model.md)
+- [Platform Architecture](./architecture.md)
