@@ -80,7 +80,8 @@ try {
 // Test Templates
 const templates = [
   'templates/create-jenkins-ec2-template.yaml',
-  'templates/create-customer-ecs-runtime-template.yaml'
+  'templates/create-customer-ecs-runtime-template.yaml',
+  'templates/create-standard-service-template.yaml',
 ];
 
 templates.forEach(templatePath => {
@@ -101,11 +102,12 @@ templates.forEach(templatePath => {
 });
 
 console.log('🎯 Catalog Summary:');
-console.log('- Jenkins Platform System with infrastructure components');
+console.log('- Internal developer platform system with infrastructure components');
 console.log('- Platform Engineering teams and users');
-console.log('- Ready for Backstage deployment');
+console.log('- Jenkins, ECS runtime, and standard service templates');
+console.log('- Ready for local Backstage loading');
 console.log('');
 console.log('📋 Next Steps:');
-console.log('1. Set up GitHub OAuth2 (see .backstage/GITHUB-INTEGRATION-SETUP.md)');
-console.log('2. Deploy to AWS: cd backstage && terraform apply');
-console.log('3. Access at: http://<ec2-ip>:3000');
+console.log('1. Start locally: make local-up');
+console.log('2. Or run on host: make backstage-start');
+console.log('3. Access at: http://localhost:7000');

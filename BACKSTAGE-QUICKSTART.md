@@ -1,252 +1,115 @@
-# Quick Start: Backstage Integration
+# Quick Start: Backstage
 
-Get started with Backstage for this platform in 5 minutes.
+This repository already includes a Backstage app. The KISS path is to use the checked-in `backstage-app` and the root `Makefile` targets.
 
-## What You'll Get
+Do not start by creating a new Backstage app. Start by running the one that is already configured for this repo.
 
-- Centralized catalog of all infrastructure
-- Self-service templates for creating resources
-- Unified documentation and runbooks
-- Cost, compliance, and monitoring dashboards
+## Supported Local Paths
 
-## Installation Steps
+There are two simple local options:
 
-### 1. Prerequisites
+- `make local-up`
+  Uses Docker and starts the local stack, including Backstage, Grafana, Prometheus, and Vault.
+- `make backstage-start`
+  Runs the checked-in `backstage-app` directly on the host for frontend and backend development.
 
-```bash
-# Check if you have Node.js and npm
-node --version  # Should be 14.x or higher
-npm --version   # Should be 6.x or higher
-```
+## Prerequisites
 
-### 2. Create Backstage App
+- Node.js `22` or `24`
+- Yarn `4`
+- Docker, if you want the container-based local stack
+- optional `GITHUB_TOKEN` if you want GitHub-backed scaffolder or integration features
 
-```bash
-# Create new Backstage instance (if you don't have one)
-npx @backstage/create-app@latest
+## Fastest Path
 
-# Or use existing Backstage instance
-cd my-backstage-instance
-```
-
-### 2.1 Run Dockerized Backstage (Repository Setup)
-
-If you want a fast local runtime from this repository, use the prebuilt container setup:
+From the repository root:
 
 ```bash
-cd backstage
-cp .env.example .env
-docker compose up -d
+make backstage-validate
+make local-up
+make local-health
 ```
 
-Open `http://localhost:3000` after containers become healthy.
+Then open:
 
-### 3. Add GitHub Integration
+- `http://localhost:7000` for the Backstage UI
+- `http://localhost:7007` for the Backstage backend
 
-In `app-config.yaml`:
+## Host Development Path
 
-```yaml
-catalog:
-  providers:
-    github:
-      providerId: production
-      organization: 'tukue'
-      token: ${GITHUB_TOKEN}
-
-integrations:
-  github:
-    - host: github.com
-      token: ${GITHUB_TOKEN}
-```
-
-### 4. Register This Repository
-
-Add to your Backstage catalog:
-
-```yaml
-# In Backstage catalog location
-apiVersion: backstage.io/v1alpha1
-kind: Location
-metadata:
-  name: terraform-jenkins-aws
-spec:
-  targets:
-    - https://raw.githubusercontent.com/tukue/terraform-jenkins-aws/main/catalog-info.yaml
-```
-
-### 5. Install Required Plugins
+If you want to run Backstage without Docker:
 
 ```bash
-# From your backstage directory
-yarn add --cwd packages/app @backstage/plugin-catalog
-yarn add --cwd packages/app @backstage/plugin-techdocs
-yarn add --cwd packages/app @backstage/plugin-kubernetes
-yarn add --cwd packages/app @spotify-backstage/backstage-plugin-scaffolder-backend-module-terraform
+make backstage-install
+make backstage-start
 ```
 
-### 6. Add to Frontend (App)
+This starts the checked-in app under `backstage-app/` and sets `REPO_ROOT` so the catalog can load local repo files.
 
-In `packages/app/src/App.tsx`:
+## What Should Work
 
-```typescript
-import { TechDocsPage } from '@backstage/plugin-techdocs';
-import { CatalogPage } from '@backstage/plugin-catalog';
+The local Backstage setup should load:
 
-// Add routes
-<Route path="/catalog" element={<CatalogPage />} />
-<Route path="/docs" element={<TechDocsPage />} />
-```
+- root `catalog-info.yaml`
+- `.backstage/system-and-components.yaml`
+- `.backstage/groups-and-users.yaml`
+- `templates/create-jenkins-ec2-template.yaml`
+- `templates/create-customer-ecs-runtime-template.yaml`
+- `templates/create-standard-service-template.yaml`
 
-### 7. Start Backstage
+In the UI, the simplest smoke test is:
 
-```bash
-# Start the backend
-yarn start-backend
+1. open the catalog
+2. confirm the platform system and components load
+3. open the `Create` page
+4. confirm the Jenkins, customer ECS runtime, and standard service templates appear
 
-# In another terminal, start the frontend
-yarn start
-```
+## KISS Rules
 
-### 8. Access Backstage
+To keep the local Backstage flow simple in this repository:
 
-Open browser:
-```
-http://localhost:3000
-```
-
-## First Steps in Backstage
-
-### 1. View Catalog
-- Navigate to **Catalog** in the left sidebar
-- Search for "terraform-jenkins-aws"
-- Click to view component details
-
-### 2. Explore Documentation
-- Click on **Docs** tab
-- View Getting Started, Architecture, and Runbooks
-- Follow tutorials
-
-### 3. Create Resources (Optional)
-- Click **Create** button
-- Select "Create Jenkins EC2 Instance" template
-- Fill out the form
-- Deployment happens automatically
-
-## Customizations
-
-### Add Custom Logo
-In `app-config.yaml`:
-
-```yaml
-app:
-  title: Jenkins Platform
-  logo:
-    url: 'https://your-organization.com/logo.png'
-```
-
-### Customize Homepage
-Edit `packages/app/src/components/home/HomePage.tsx`
-
-### Add Team Information
-Update `catalog-info.yaml`:
-
-```yaml
-apiVersion: backstage.io/v1alpha1
-kind: Group
-metadata:
-  name: platform-team
-spec:
-  type: team
-  parent: organization
-  profile:
-    displayName: Platform Engineering
-    email: platform@organization.com
-```
-
-## Connecting to AWS
-
-### Install AWS Plugin
-
-```bash
-yarn add --cwd packages/app @aws-backstage/plugin-aws
-```
-
-### Configure AWS Access
-
-In `app-config.yaml`:
-
-```yaml
-aws:
-  s3:
-    bucket: my-bucket
-  ec2:
-    region: us-east-1
-    credentials:
-      roleArn: arn:aws:iam::ACCOUNT:role/backstage-role
-```
-
-## Enabling TechDocs
-
-TechDocs provides documentation directly in Backstage.
-
-### 1. Install Backend Plugin
-
-```bash
-yarn add --cwd packages/backend @backstage/plugin-techdocs-backend
-```
-
-### 2. Configure Docs Builder
-
-In `app-config.yaml`:
-
-```yaml
-techdocs:
-  builder: 'local'
-  generators:
-    techdocs: 'docker'
-  publisher:
-    type: 'local'
-```
-
-### 3. Access Docs
-
-- In Backstage, click on any component
-- Click **DOCS** tab
-- View auto-generated documentation from `docs/` folder
+- use `backstage-app/` as the primary local app
+- use the root `Makefile` targets as the entry point
+- treat `backstage-local-test/` as legacy support material, not the main path
+- prefer local file catalog locations over remote registration while iterating
 
 ## Troubleshooting
 
-### Catalog items not showing
-- Verify GitHub token is valid
-- Check `catalog-info.yaml` URL is accessible
-- Review Backstage backend logs
+### Catalog does not load
 
-### TechDocs not rendering
-- Ensure Docker is installed (for local builder)
-- Check docs folder structure
-- Verify mkdocs.yml is present
+Run:
 
-### Plugin errors
-- Run `yarn install` to ensure all dependencies
-- Clear cache: `rm -rf node_modules && yarn install`
-- Check plugin compatibility with Backstage version
+```bash
+make backstage-validate
+```
 
-## Next Steps
+This validates the local catalog and template YAML files without requiring a full Backstage startup.
 
-1. **Explore**: Browse the catalog and documentation
-2. **Customize**: Modify colors, branding, and layouts
-3. **Integrate**: Connect to your CI/CD, monitoring, and cost systems
-4. **Enable**: Turn on additional features as needed
-5. **Train**: Share with your team
+### Host start cannot find repo files
 
-## Get Help
+Use the root `Makefile` target instead of running `yarn start` manually:
 
-- 📖 [Backstage Documentation](https://backstage.io/docs)
-- 💬 [Backstage Community](https://backstage.io/community)
-- 🐛 [Report Issues](https://github.com/backstage/backstage/issues)
-- 📧 Contact: platform-team@organization.com
+```bash
+make backstage-start
+```
 
-## Related Documentation
-- [Backstage Integration Guide](./Backstage-Platform-Integration.md)
-- [Architecture Overview](./docs/architecture.md)
+That ensures `REPO_ROOT` is set correctly.
+
+### Docker stack is unhealthy
+
+Check:
+
+```bash
+make local-logs
+make local-ps
+```
+
+### GitHub integration features fail
+
+Set `GITHUB_TOKEN` before starting Backstage. Basic local catalog browsing does not require it, but scaffolder publishing and some integration flows do.
+
+## Related Docs
+
+- [Backstage App README](./backstage-app/README.md)
+- [Local Platform Quickstart](./docs/local-platform-quickstart.md)
 - [Getting Started](./docs/getting-started.md)
