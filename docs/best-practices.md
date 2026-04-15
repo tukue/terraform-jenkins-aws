@@ -160,6 +160,24 @@ The repo is strongest when positioned as:
 - a consulting-friendly platform-as-product example
 - a reusable Jenkins and ECS platform baseline
 
+## 11. Measure Platform Adoption And Friction
+
+- define a small set of platform success signals
+- measure whether teams are using the standard path or bypassing it
+- treat repeated confusion, exceptions, and manual fixes as product feedback
+- improve the platform where consumers get stuck most often
+
+Good signals for this repo:
+
+- how often the documented Jenkins and ECS paths are reused
+- where teams need custom overrides outside the standard path
+- how often docs, templates, or module inputs create avoidable confusion
+- whether governance checks catch issues early or too late
+
+Why this matters:
+
+A platform is not product-like if it only provisions infrastructure. It also needs feedback loops so the standard path can improve over time.
+
 ## Review Checklist
 
 Before merging a platform-facing change, check:
