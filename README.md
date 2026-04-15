@@ -46,6 +46,10 @@ Read first:
 
 - [Internal Developer Platform View](docs/internal-developer-platform.md)
 - [Platform-as-a-Product Implementation Status](docs/platform-as-product-implementation-status.md)
+- [Platform-as-Product Readiness Plan](docs/platform-as-product-readiness.md)
+- [Platform Golden Paths](docs/platform-golden-paths.md)
+- [Platform Governance Model](docs/platform-governance-model.md)
+- [Platform Support Model](docs/platform-support-model.md)
 
 ### Priority 2: Self-Service Experience
 
@@ -144,6 +148,10 @@ Use these documents as the primary entry points:
 
 - [Internal Developer Platform View](docs/internal-developer-platform.md)
 - [Platform-as-a-Product Implementation Status](docs/platform-as-product-implementation-status.md)
+- [Platform-as-Product Readiness Plan](docs/platform-as-product-readiness.md)
+- [Platform Golden Paths](docs/platform-golden-paths.md)
+- [Jenkins on AWS Platform Product](docs/platform-product-jenkins.md)
+- [Customer ECS Runtime Platform Product](docs/platform-product-ecs-runtime.md)
 - [Local Platform Quickstart](docs/local-platform-quickstart.md)
 - [Backstage Quick Start](BACKSTAGE-QUICKSTART.md)
 
