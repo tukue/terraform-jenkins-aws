@@ -50,6 +50,7 @@ Read first:
 - [Platform Golden Paths](docs/platform-golden-paths.md)
 - [Platform Governance Model](docs/platform-governance-model.md)
 - [Platform Support Model](docs/platform-support-model.md)
+- [Platform Versioning and Deprecation](docs/platform-versioning-and-deprecation.md)
 
 ### Priority 2: Self-Service Experience
 
@@ -152,6 +153,7 @@ Use these documents as the primary entry points:
 - [Platform Golden Paths](docs/platform-golden-paths.md)
 - [Jenkins on AWS Platform Product](docs/platform-product-jenkins.md)
 - [Customer ECS Runtime Platform Product](docs/platform-product-ecs-runtime.md)
+- [Platform Versioning and Deprecation](docs/platform-versioning-and-deprecation.md)
 - [Local Platform Quickstart](docs/local-platform-quickstart.md)
 - [Backstage Quick Start](BACKSTAGE-QUICKSTART.md)
 
