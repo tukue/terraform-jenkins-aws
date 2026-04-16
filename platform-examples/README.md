@@ -23,6 +23,12 @@ These are used by the multi-environment delivery workflow and by local Terraform
 
 This example shows the landing-zone aware ECS path where the customer selects AWS account and AWS region, and the platform resolves the rest.
 
+### Standard Service Tier Wrapper
+
+- `service-tier-wrapper/`
+
+This example shows the default product-facing path for standard service onboarding, where the caller selects a tier and container image instead of managing the full ECS runtime surface.
+
 ## How To Use
 
 1. Choose the example that matches your track.
@@ -34,3 +40,4 @@ This example shows the landing-zone aware ECS path where the customer selects AW
 
 - [Platform README](../README.md)
 - [Customer ECS Runtime Module](../platform-modules/customer-ecs-runtime/README.md)
+- [Service Tier Wrapper Module](../platform-modules/service-tier-wrapper/README.md)

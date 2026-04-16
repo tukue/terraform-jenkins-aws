@@ -1,0 +1,25 @@
+service_name    = "checkout-api"
+environment     = "qa"
+tier            = "med"
+container_image = "123456789012.dkr.ecr.eu-north-1.amazonaws.com/checkout-api:2026-04-16"
+
+aws_region     = "eu-north-1"
+aws_account_id = "123456789012"
+
+network_profile = "standard"
+dns_name        = "checkout-api.qa.example.internal"
+hosted_zone_id  = "Z1234567890EXAMPLE"
+
+task_environment = {
+  APP_ENV = "qa"
+  LOG_LEVEL = "info"
+}
+
+task_secrets = {
+  DATABASE_URL = "arn:aws:secretsmanager:eu-north-1:123456789012:secret:checkout-api/database-url"
+}
+
+tags = {
+  Owner = "platform-team"
+  CostCenter = "platform"
+}

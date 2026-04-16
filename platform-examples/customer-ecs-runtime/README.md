@@ -2,6 +2,8 @@
 
 This example shows how to provision a customer-specific ECS runtime using the `customer-ecs-runtime` platform module.
 
+If you need a standard service shape rather than a custom customer runtime, prefer the [service-tier-wrapper example](../service-tier-wrapper/README.md). That is the more productized consumer path.
+
 ## What this example is for
 
 - A dedicated runtime for a customer tenant
@@ -14,6 +16,16 @@ This example shows how to provision a customer-specific ECS runtime using the `c
 - A provisioning workflow that plans and applies each environment
 - A delivery workflow that builds, scans, pushes, and deploys image updates to a selected environment
 - Baseline policy checks with `terraform fmt -check`, `terraform validate`, and TFLint
+
+## When Not To Use This Example
+
+Do not start here when the service fits the platform's standard tiers and does not need custom ECS runtime decisions.
+
+Use this example only when you explicitly need:
+
+- lower-level runtime control
+- custom sizing outside the platform tiers
+- direct runtime engineering beyond the supported service wrapper contract
 
 ## Folder layout
 
