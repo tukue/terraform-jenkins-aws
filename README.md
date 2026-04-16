@@ -47,9 +47,11 @@ Read first:
 - [Internal Developer Platform View](docs/internal-developer-platform.md)
 - [Platform-as-a-Product Implementation Status](docs/platform-as-product-implementation-status.md)
 - [Platform-as-Product Readiness Plan](docs/platform-as-product-readiness.md)
+- [Changelog](CHANGELOG.md)
 - [Platform Golden Paths](docs/platform-golden-paths.md)
 - [Platform Governance Model](docs/platform-governance-model.md)
 - [Platform Support Model](docs/platform-support-model.md)
+- [Platform Service Tiers](docs/platform-service-tiers.md)
 - [Platform Versioning and Deprecation](docs/platform-versioning-and-deprecation.md)
 
 ### Priority 2: Self-Service Experience
@@ -111,9 +113,10 @@ Review:
 If this repo is being used as a consulting or portfolio profile, review it in this order:
 
 1. Read the platform positioning docs.
-2. Review the self-service templates and catalog model.
-3. Inspect the Terraform modules and examples.
-4. Review the operational docs and local support setup.
+2. Read the changelog for the latest platform-facing changes.
+3. Review the self-service templates and catalog model.
+4. Inspect the Terraform modules and examples.
+5. Review the operational docs and local support setup.
 
 ## Consulting Profile Positioning
 
@@ -150,9 +153,11 @@ Use these documents as the primary entry points:
 - [Internal Developer Platform View](docs/internal-developer-platform.md)
 - [Platform-as-a-Product Implementation Status](docs/platform-as-product-implementation-status.md)
 - [Platform-as-Product Readiness Plan](docs/platform-as-product-readiness.md)
+- [Changelog](CHANGELOG.md)
 - [Platform Golden Paths](docs/platform-golden-paths.md)
 - [Jenkins on AWS Platform Product](docs/platform-product-jenkins.md)
 - [Customer ECS Runtime Platform Product](docs/platform-product-ecs-runtime.md)
+- [Platform Service Tiers](docs/platform-service-tiers.md)
 - [Platform Versioning and Deprecation](docs/platform-versioning-and-deprecation.md)
 - [Local Platform Quickstart](docs/local-platform-quickstart.md)
 - [Backstage Quick Start](BACKSTAGE-QUICKSTART.md)

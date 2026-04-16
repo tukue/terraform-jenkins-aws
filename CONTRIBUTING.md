@@ -17,6 +17,17 @@ Preferred usage:
 
 Direct code contributions are limited to the project owner/maintainers unless specifically invited.
 
+## Platform Contribution Standard
+
+Changes in this repository should improve at least one of these outcomes:
+
+- stronger platform product clarity
+- better golden-path usability
+- more reusable infrastructure patterns
+- clearer governance, support, or operating guidance
+
+When changing shared platform assets, prefer the documented Jenkins and ECS product paths over one-off patterns and update the relevant product docs in the same change.
+
 ## When "Platform as a Product" Is Required
 
 Platform as a product is needed when infrastructure work must scale across many teams, not just one project.
@@ -196,12 +207,12 @@ Closes #123
 
 ```bash
 # Install dependencies
-brew install terraform terraform-docs tflint checkov
+brew install terraform terraform-docs tflint tfsec
 
 # Validate setup
 terraform version
 tflint --version
-checkov --version
+tfsec --version
 
 # Create feature branch
 git checkout -b feature/my-feature
@@ -226,7 +237,7 @@ terraform fmt -check .
 terraform plan -var-file="../dev.tfvars"
 
 # Security scanning
-checkov -d .
+make tfsec
 
 # Code analysis
 tflint .
@@ -254,7 +265,7 @@ tflint .
 - Terraform code must pass `terraform validate`
 - Must be formatted with `terraform fmt`
 - TFLint checks must pass
-- Checkov security scans must have no critical issues
+- `tfsec` scans should pass for the intended baseline path
 
 ### Test Coverage
 - All modules must have example configurations
@@ -318,6 +329,14 @@ Uses semantic versioning: MAJOR.MINOR.PATCH
 1. Update CHANGELOG.md
 2. Update version in module READMEs
 3. Create release tag: `v1.2.3`
+
+## Related Docs
+
+- [Platform Operating Model](docs/platform-operating-model.md)
+- [Platform Service Tiers](docs/platform-service-tiers.md)
+- [Platform Governance Model](docs/platform-governance-model.md)
+- [Platform Support Model](docs/platform-support-model.md)
+- [Platform Versioning and Deprecation](docs/platform-versioning-and-deprecation.md)
 4. Create GitHub release with notes
 5. Update documentation site
 
