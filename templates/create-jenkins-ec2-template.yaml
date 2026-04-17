@@ -12,7 +12,7 @@ metadata:
     - aws
   links:
     - title: Documentation
-      url: https://your-backstage-instance/docs/platforms/jenkins
+      url: http://localhost:7000/docs/default/component/terraform-jenkins-aws
 
 spec:
   owner: platform-team
@@ -87,7 +87,7 @@ spec:
       name: Fetch base Terraform template
       action: fetch:template
       input:
-        url: https://github.com/tukue/terraform-jenkins-aws/tree/main/templates/jenkins-ec2
+        url: ./jenkins-ec2
         targetPath: ./jenkins-infrastructure
 
     - id: template
@@ -150,7 +150,7 @@ spec:
       - title: Pull Request
         url: ${{ steps.create-pull-request.output.pullRequestUrl }}
       - title: Catalog
-        url: https://your-backstage-instance/catalog/default/component/${{ parameters.name }}
+        url: http://localhost:7000/catalog/default/component/${{ parameters.name }}
     text:
       - title: Next Steps
         content: |
