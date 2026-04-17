@@ -268,5 +268,5 @@ sudo vim /etc/default/jenkins
 ## Related Documentation
 
 - [Architecture Overview](../architecture.md)
-- [Disaster Recovery](./disaster-recovery.md)
-- [Monitoring Guide](./monitoring.md)
+- [Best Practices](../best-practices.md)
+- [Platform Support Model](../platform-support-model.md)

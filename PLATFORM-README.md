@@ -1,320 +1,90 @@
-# terraform-jenkins-aws Platform Project
+# Platform Product Overview
 
-Transform your infrastructure into a managed platform with Backstage, Terraform, and GitOps.
+This repository represents a platform-as-product implementation on AWS built around Backstage, Terraform, and reusable operating guidance.
 
-## 🚀 What's New: Platform Edition
+The focus is not "how to provision some infrastructure." The focus is "how to turn repeated infrastructure demand into platform products that teams can understand, adopt, and consume."
 
-This repository has been enhanced to become a **Platform Engineering** project with Backstage integration. It now provides:
+## What The Platform Product Includes
 
-✅ **Centralized Catalog**: Discover all infrastructure components in one place  
-✅ **Self-Service Templates**: Create resources without deep infrastructure knowledge  
-✅ **Unified Documentation**: Architecture, runbooks, and guides in Backstage  
-✅ **Infrastructure as Code**: Terraform modules for reliable, repeatable deployments  
-✅ **DevOps Best Practices**: CI/CD, security, monitoring, and cost management  
-✅ **Team Enablement**: Checklists, standards, and onboarding guides  
+The current platform surface is built from four layers:
 
-## 📋 Quick Start
+1. Product tracks for Jenkins infrastructure and ECS runtime delivery
+2. Self-service entry points through Backstage catalog entities and templates
+3. Reusable Terraform modules and example consumption patterns
+4. Governance, support, versioning, and runbook documentation
 
-### For First-Time Users
-1. Read [Getting Started](./docs/getting-started.md)
-2. Review [Architecture Overview](./docs/architecture.md)
-3. Follow [Backstage Quick Start](./BACKSTAGE-QUICKSTART.md)
+## Product Tracks
 
-### For Platform Administrators
-1. Review [Implementation Backlog](./IMPLEMENTATION-BACKLOG.md)
-2. Check [Deployment Guide](./DEPLOYMENT-GUIDE.md)
-3. Configure with [Platform Standards](./platform-standards/STANDARDS.md)
+### Jenkins on AWS
 
-### For Contributors
-1. Read [Contributing Guidelines](./CONTRIBUTING.md)
-2. Review [Best Practices](./docs/best-practices.md)
-3. Check [Checklists](./platform-standards/CHECKLISTS.md)
+This track provides a standardized Jenkins infrastructure path for teams that need a repeatable CI/CD foundation on AWS.
 
-## 📁 Repository Structure
+Primary reference:
 
-```
-terraform-jenkins-aws/
-├── 📚 Documentation
-│   ├── README.md                           # Original project docs
-│   ├── Backstage-Platform-Integration.md   # Backstage intro
-│   ├── Backstage-Platform-Integration.md   # Backstage guide
-│   ├── BACKSTAGE-QUICKSTART.md             # 5-min Backstage setup
-│   ├── DEPLOYMENT-GUIDE.md                 # Step-by-step deployment
-│   ├── CONTRIBUTING.md                     # Contribution guidelines
-│   └── IMPLEMENTATION-BACKLOG.md           # 12-week implementation plan
-│
-├── 📖 Platform Documentation
-│   └── docs/
-│       ├── getting-started.md              # Quick start guide
-│       ├── architecture.md                 # System design
-│       ├── best-practices.md               # Engineering practices
-│       └── runbooks/
-│           └── scaling-jenkins.md          # Operational guide
-│
-├── 🔧 Platform Standards
-│   └── platform-standards/
-│       ├── STANDARDS.md                    # Platform standards
-│       └── CHECKLISTS.md                   # Pre/post deployment checklists
-│
-├── 🎯 Backstage Configuration
-│   ├── catalog-info.yaml                   # Component registration
-│   └── .backstage/
-│       └── config.md                       # Backstage config
-│
-├── 🛠️ Self-Service Templates
-│   ├── templates/
-│   │   ├── README.md                       # Template guide
-│   │   └── create-jenkins-ec2-template.yaml # EC2 creation template
-│   └── terraform-modules-template-README.md
-│
-├── 📦 Terraform Modules (Original)
-│   ├── main.tf, variables.tf, outputs.tf   # Root module
-│   ├── terraform/
-│   │   ├── networking/                     # VPC, subnets
-│   │   ├── security-groups/                # Firewall rules
-│   │   ├── jenkins/                        # Jenkins EC2
-│   │   ├── load-balancer/                  # ALB configuration
-│   │   ├── certificate-manager/            # SSL/TLS
-│   │   └── domain-registration/            # Route 53
-│   │
-│   └── ansible/                            # Configuration management
-│       ├── playbook/
-│       │   └── jenkins-setup.yml
-│       └── inventory/
-│           └── aws_ec2.yml
-│
-└── 📜 Build & Deployment
-    ├── Terragrunt files
-    ├── Shell scripts (ec2-scheduler, cost-manager)
-    └── GitHub Actions (coming)
-```
+- [docs/platform-product-jenkins.md](docs/platform-product-jenkins.md)
 
-## 🎯 Key Features
+### Customer ECS Runtime
 
-### 1. Infrastructure as Code
-- **Terraform Modules**: Reusable, composable infrastructure
-- **Multi-Environment**: Dev, QA, Production with separate backends
-- **State Management**: S3 backend with versioning and locking
-- **Ansible Automation**: Automated EC2 configuration
+This track provides a repeatable ECS runtime path for teams that need a standardized customer or service runtime baseline on AWS.
 
-### 2. Developer Portal (Backstage)
-- **Service Catalog**: Discover all infrastructure components
-- **TechDocs**: Searchable documentation integrated in Backstage
-- **Scaffolder**: Self-service infrastructure creation
-- **Plugins**: GitHub, AWS, Kubernetes integrations
+Primary reference:
 
-### 3. Self-Service Infrastructure
-- **Templates**: Create EC2, RDS, S3, VPCs with templates
-- **Approval Workflows**: Governance and compliance
-- **Automated Provisioning**: GitHub Actions auto-deploys
-- **Cost Awareness**: Estimates and budgets in templates
+- [docs/platform-product-ecs-runtime.md](docs/platform-product-ecs-runtime.md)
 
-### 4. DevOps Practices
-- **CI/CD**: Automated validation and deployment
-- **Security**: Checkov, TFLint, and vulnerability scanning
-- **Monitoring**: CloudWatch dashboards and alerts
-- **Cost Management**: EC2 scheduler, cost analyzer included
+## Consumer Experience
 
-### 5. Documentation & Knowledge
-- **Architecture Diagrams**: System design with Mermaid
-- **Runbooks**: Operational procedures for scaling, DR, monitoring
-- **Best Practices**: Terraform, AWS, Jenkins, security standards
-- **Contributing Guide**: Clear onboarding for new team members
+The intended consumer flow is:
 
-## 📚 Documentation Map
+1. Discover the platform and ownership model in Backstage.
+2. Select a supported golden path or product track.
+3. Use documented templates, examples, and environment inputs.
+4. Operate within published standards, support boundaries, and lifecycle guidance.
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [Getting Started](./docs/getting-started.md) | Quick onboarding | New users |
-| [Architecture](./docs/architecture.md) | System design | Technical leads |
-| [Best Practices](./docs/best-practices.md) | Implementation patterns | Developers |
-| [Platform Standards](./platform-standards/STANDARDS.md) | Rules and conventions | All teams |
-| [Contributing](./CONTRIBUTING.md) | Contribution process | Contributors |
-| [Deployment Guide](./DEPLOYMENT-GUIDE.md) | Step-by-step deployment | DevOps/SRE |
-| [Implementation Backlog](./IMPLEMENTATION-BACKLOG.md) | Development roadmap | Project managers |
-| [Backstage Setup](./BACKSTAGE-QUICKSTART.md) | Portal configuration | Administrators |
+This makes the repository easier to understand as a platform product instead of a set of raw implementation files.
 
-## 🚀 Getting Started in 3 Steps
+## Key Entry Points
 
-### Step 1: Setup Backstage (One-time)
-```bash
-# Follow Backstage Quick Start guide
-# https://github.com/tukue/terraform-jenkins-aws/blob/main/BACKSTAGE-QUICKSTART.md
+Start with these documents:
 
-npx @backstage/create-app@latest
-cd my-backstage-app
-yarn install
+- [README.md](README.md)
+- [docs/internal-developer-platform.md](docs/internal-developer-platform.md)
+- [docs/platform-as-product-implementation-status.md](docs/platform-as-product-implementation-status.md)
+- [docs/platform-as-product-readiness.md](docs/platform-as-product-readiness.md)
+- [docs/platform-golden-paths.md](docs/platform-golden-paths.md)
+- [docs/platform-operating-model.md](docs/platform-operating-model.md)
+- [docs/platform-support-model.md](docs/platform-support-model.md)
+- [docs/platform-governance-model.md](docs/platform-governance-model.md)
 
-# Add this repo to catalog in app-config.yaml
-```
+## Self-Service and Catalog
 
-### Step 2: Deploy Your First Infrastructure
-```bash
-# Clone this repository
-git clone https://github.com/tukue/terraform-jenkins-aws.git
-cd terraform-jenkins-aws
+The self-service surface is represented by:
 
-# Initialize Terraform
-terraform init -backend-config="backend-config-dev.hcl"
+- [catalog-info.yaml](catalog-info.yaml)
+- [templates/README.md](templates/README.md)
+- [BACKSTAGE-QUICKSTART.md](BACKSTAGE-QUICKSTART.md)
 
-# Review and apply
-terraform plan -var-file="terraform.dev.tfvars"
-terraform apply -var-file="terraform.dev.tfvars"
-```
+These assets show how platform capabilities become discoverable and consumable rather than remaining hidden in infrastructure code.
 
-### Step 3: View in Backstage
-```bash
-# Open Backstage Portal
-http://localhost:3000
+## Implementation Foundation
 
-# Navigate to Catalog
-# Search for "terraform-jenkins-aws"
-# Click to view component
-# Explore documentation and runbooks
-```
+The product foundation behind the user-facing experience lives in:
 
-## 🔄 Implementation Phases
+- [platform-modules](platform-modules)
+- [platform-examples](platform-examples)
+- environment-specific Terraform inputs for `dev`, `qa`, and `prod`
+- supporting docs, runbooks, and local platform tooling
 
-The repository includes a **12-week implementation plan**:
+## Positioning Guidance
 
-| Phase | Duration | Focus |
-|-------|----------|-------|
-| **Phase 1** | Week 1-2 | Foundation & Catalog discovery |
-| **Phase 2** | Week 3-4 | Backstage integration |
-| **Phase 3** | Week 5-6 | Self-service templates |
-| **Phase 4** | Week 7-8 | Documentation & runbooks |
-| **Phase 5** | Week 9-10 | Automation & CI/CD |
-| **Phase 6** | Week 11-12 | Advanced features |
-| **Phase 7** | Ongoing | Maintenance & evolution |
+Use this repository to demonstrate:
 
-[View Full Implementation Backlog](./IMPLEMENTATION-BACKLOG.md)
+- platform product thinking
+- self-service enablement
+- reusable infrastructure design
+- explicit support and governance boundaries
 
-## 📋 Pre-Deployment Checklist
+Avoid presenting it as:
 
-Before going to production, ensure:
-
-- [ ] Terraform validates and passes security scans
-- [ ] Documentation is complete and reviewed
-- [ ] Team is trained on platform usage
-- [ ] Monitoring and alerting configured
-- [ ] Backup and disaster recovery tested
-- [ ] Security approvals obtained
-- [ ] Stakeholders notified
-
-[View Complete Checklists](./platform-standards/CHECKLISTS.md)
-
-## 🏛️ Architecture Overview
-
-```
-User (Developer)
-    ↓
-    ├─→ Backstage Portal (Service Catalog & Documentation)
-    │       ├─→ Self-Service Templates
-    │       ├─→ TechDocs (Documentation)
-    │       └─→ Monitoring Dashboards
-    │
-    └─→ GitHub (Source of Truth)
-            ├─→ Terraform Code
-            ├─→ CI/CD Pipeline (GitHub Actions)
-            └─→ Pull Requests (Code Review)
-                    ↓
-                    → tf init/plan/apply
-                    → Security Scanning
-                    → Cost Estimation
-                    → Manual Approval
-                    ↓
-            AWS Infrastructure
-            ├─→ VPC, Subnets, Security Groups
-            ├─→ EC2 Instances with Ansible
-            ├─→ Load Balancer & SSL/TLS
-            ├─→ Route 53 DNS
-            ├─→ S3 State Backend
-            └─→ CloudWatch Monitoring
-```
-
-[View Detailed Architecture](./docs/architecture.md)
-
-## 🔧 Common Tasks
-
-### Create New Jenkins Environment
-```bash
-terraform workspace new staging
-terraform workspace select staging
-terraform plan -var-file="terraform.staging.tfvars"
-terraform apply -var-file="terraform.staging.tfvars"
-```
-
-### Scale Jenkins Instance
-[See Scaling Runbook](./docs/runbooks/scaling-jenkins.md)
-
-### Add New Team Member
-1. Point to [Getting Started](./docs/getting-started.md)
-2. Share [Best Practices](./docs/best-practices.md)
-3. Add to team in Backstage
-
-### Contribute to Platform
-1. Follow [Contributing Guidelines](./CONTRIBUTING.md)
-2. Review [Standards](./platform-standards/STANDARDS.md)
-3. Use [Checklists](./platform-standards/CHECKLISTS.md)
-
-## 📊 Template Availability
-
-| Resource | Status | Template | Documentation |
-|----------|--------|----------|----------------|
-| EC2 Instance | ✅ Ready | [create-jenkins-ec2-template.yaml](./templates/create-jenkins-ec2-template.yaml) | [Guide](./templates/README.md) |
-| VPC | 📝 Coming | — | — |
-| RDS | 📝 Coming | — | — |
-| S3 Bucket | 📝 Coming | — | — |
-| Load Balancer | 📝 Coming | — | — |
-
-## 🤝 Support & Get Help
-
-**Questions or Issues?**
-- 📖 [Documentation](./docs/)
-- 💬 [Discussions](https://github.com/tukue/terraform-jenkins-aws/discussions)
-- 🐛 [Report Issues](https://github.com/tukue/terraform-jenkins-aws/issues)
-- 📧 Email: platform-team@organization.com
-- 💭 Slack: #platform-engineering
-
-## 🔐 Security
-
-- All state stored encrypted in S3
-- IAM roles and policies follow least privilege
-- Security scanning with Checkov and TFLint
-- Regular vulnerability assessments
-- Compliance with platform standards
-
-[See Security Details](./docs/best-practices.md#security)
-
-## 📈 Monitoring & Observability
-
-- CloudWatch dashboards for all resources
-- Alert configured for critical metrics
-- Cost monitoring and budgeting
-- Performance tracking and optimization
-- Automated health checks
-
-## 📄 License
-
-This project is licensed under the MIT License - see LICENSE file for details.
-
-## 🙏 Contributing
-
-We welcome contributions! Please follow our [Contributing Guidelines](./CONTRIBUTING.md).
-
-## 📞 Contact
-
-- Platform Team: platform-team@organization.com
-- Slack: #platform-engineering
-- GitHub Issues: [Report a Bug](https://github.com/tukue/terraform-jenkins-aws/issues)
-
----
-
-## Next Steps
-
-1. **Read**: [Architecture Overview](./docs/architecture.md) (10 min)
-2. **Setup**: [Backstage Quick Start](./BACKSTAGE-QUICKSTART.md) (15 min)
-3. **Deploy**: [Deployment Guide](./DEPLOYMENT-GUIDE.md) (1-2 hours)
-4. **Implement**: [Implementation Backlog](./IMPLEMENTATION-BACKLOG.md) (12 weeks)
-
-**Let's build an amazing platform together! 🚀**
+- a finished enterprise platform
+- a fully managed Backstage deployment
+- a complete production operations environment

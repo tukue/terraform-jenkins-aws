@@ -274,6 +274,6 @@ After successful deployment:
 - PagerDuty: Critical issues
 
 ## Related Documentation
-- [Implementation Backlog](../IMPLEMENTATION-BACKLOG.md)
-- [Architecture Guide](../docs/architecture.md)
-- [Operations Runbooks](../docs/runbooks/)
+- [Implementation Backlog](./IMPLEMENTATION-BACKLOG.md)
+- [Architecture Guide](./docs/architecture.md)
+- [Operations Runbooks](./docs/runbooks/scaling-jenkins.md)

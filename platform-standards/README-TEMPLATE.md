@@ -21,9 +21,9 @@ module "my_service" {
 
 ## Governance & Support
 - **Owner**: [Reference team]
-- **Support**: See [OWNERS.yaml](./OWNERS.yaml) for specific contact and maintenance details.
+- **Support**: Add an `OWNERS.yaml` file in the module or service directory for specific contact and maintenance details.
 - **Compliance**: This module adheres to the platform's standard OPA security and cost policies.
 
 ## Documentation
-- [Deployment Guide](../docs/deployment-guide.md)
+- [Deployment Guide](../DEPLOYMENT-GUIDE.md)
 - [Architecture Details](../docs/architecture.md)

@@ -34,11 +34,11 @@ Use this checklist to measure progress as the integration evolves:
 
 ## Relevant Files
 
-- [`vault.tf`](/c:/Users/tukue/terraform-jenkins-aws/vault.tf)
-- [`versions.tf`](/c:/Users/tukue/terraform-jenkins-aws/versions.tf)
-- [`outputs.tf`](/c:/Users/tukue/terraform-jenkins-aws/outputs.tf)
-- [`docs/getting-started.md`](/c:/Users/tukue/terraform-jenkins-aws/docs/getting-started.md)
-- [`vault-local-test/README.md`](/c:/Users/tukue/terraform-jenkins-aws/vault-local-test/README.md)
+- [`vault.tf`](../vault.tf)
+- [`versions.tf`](../versions.tf)
+- [`outputs.tf`](../outputs.tf)
+- [`docs/getting-started.md`](./getting-started.md)
+- [`vault-local-test/README.md`](../vault-local-test/README.md)
 
 ## Notes
 

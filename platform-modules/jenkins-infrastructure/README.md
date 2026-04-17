@@ -74,6 +74,6 @@ output "jenkins_url" {
 
 ## See Also
 
-- [Platform Engineer Documentation](../../platform-standards/PLATFORM-ENGINEERS.md)
-- [Examples](../examples/)
+- [Platform Standards](../../platform-standards/STANDARDS.md)
+- [Jenkins Platform Product](../../docs/platform-product-jenkins.md)
 - [Best Practices](../../docs/best-practices.md)

@@ -1,174 +1,128 @@
-# Platform Engineering Portfolio
+# Platform-As-Product Repository
 
-This repository is structured as a consulting-style platform engineering profile rather than a loose Terraform codebase.
+This repository is positioned as a platform engineering product portfolio, not a loose Terraform codebase.
 
-It demonstrates how to package infrastructure into a usable platform product with:
+It packages infrastructure into reusable platform capabilities with:
 
-- reusable Terraform modules
-- self-service Backstage templates
+- productized Terraform modules
+- Backstage self-service templates
+- clear consumer-facing documentation
 - environment-aware delivery patterns
-- platform documentation and runbooks
-- baseline governance, security, and observability
+- governance, support, and operational guidance
 
-## What This Repo Shows
+## Product Focus
 
-The repository currently showcases two platform product tracks:
+The repository currently centers on two platform product tracks:
 
-1. Jenkins platform on AWS for standardized CI/CD infrastructure
-2. ECS customer runtime platform for repeatable SaaS environment delivery
+1. `Jenkins on AWS` for standardized CI/CD infrastructure
+2. `Customer ECS Runtime` for repeatable tenant or service runtime delivery
 
-Both tracks are presented as productized platform capabilities instead of one-off infrastructure work.
+The value is not just the provisioning logic. The value is the product surface around it:
 
-## Why This Matters
+- named capabilities that teams can understand and request
+- golden paths that reduce one-off delivery work
+- published boundaries, defaults, and ownership
+- documentation that explains how the platform is consumed and supported
 
-The consulting value of this repository is in the operating model it suggests:
+## Consumer Journeys
 
-- turn repeated infrastructure demand into reusable platform services
-- reduce delivery variance with standard modules and templates
-- give teams a self-service entry point through Backstage
-- make ownership, guardrails, and supportability visible
-- document the platform as something teams consume, not just something engineers build
+The main journeys this repository supports are:
 
-## Priority Order
+1. Discover the platform products, their boundaries, and their operating model.
+2. Review the Backstage self-service flow and scaffolder templates.
+3. Inspect the reusable Terraform modules and examples behind the product surface.
+4. Review runbooks, support expectations, and implementation maturity.
 
-These are the most important elements in the repo, ordered by portfolio value.
+## Start Here
 
-### Priority 1: Productized Platform Story
-
-This is the highest-value layer because it changes the repo from an infrastructure sample into a platform engineering profile.
-
-- clear platform boundaries
-- named product tracks
-- reusable service patterns
-- consumer-facing docs and templates
-
-Read first:
+Use these as the main entry points:
 
 - [Internal Developer Platform View](docs/internal-developer-platform.md)
 - [Platform-as-a-Product Implementation Status](docs/platform-as-product-implementation-status.md)
-- [Platform-as-Product Readiness Plan](docs/platform-as-product-readiness.md)
-- [Changelog](CHANGELOG.md)
+- [Platform-as-Product Readiness](docs/platform-as-product-readiness.md)
+- [Jenkins on AWS Platform Product](docs/platform-product-jenkins.md)
+- [Customer ECS Runtime Platform Product](docs/platform-product-ecs-runtime.md)
 - [Platform Golden Paths](docs/platform-golden-paths.md)
-- [Platform Governance Model](docs/platform-governance-model.md)
-- [Platform Support Model](docs/platform-support-model.md)
 - [Platform Service Tiers](docs/platform-service-tiers.md)
+- [Platform Support Model](docs/platform-support-model.md)
+- [Platform Governance Model](docs/platform-governance-model.md)
 - [Platform Versioning and Deprecation](docs/platform-versioning-and-deprecation.md)
 
-### Priority 2: Self-Service Experience
+## Platform Surface
 
-This is the strongest proof that the platform is consumable, not just operable.
+The strongest platform-product signals in this repository are:
 
-- Backstage catalog registration
-- scaffolder templates
-- standard input model for new services and runtimes
+### Product Definition
 
-Review:
+- explicit product-track docs for Jenkins and ECS runtime
+- platform operating model, governance model, and support model
+- service tiers and lifecycle expectations
 
-- [Templates Overview](templates/README.md)
-- [Backstage Quick Start](BACKSTAGE-QUICKSTART.md)
+### Self-Service Experience
 
-### Priority 3: Reusable Infrastructure Foundation
+- Backstage catalog registration in [catalog-info.yaml](catalog-info.yaml)
+- scaffolder templates in [templates/README.md](templates/README.md)
+- local portal setup in [BACKSTAGE-QUICKSTART.md](BACKSTAGE-QUICKSTART.md)
 
-This shows the platform has real implementation depth behind the product surface.
+### Reusable Implementation
 
-- Terraform modules
-- environment-specific configuration
-- AWS networking, load balancing, security, and runtime building blocks
+- reusable building blocks in [platform-modules](platform-modules)
+- example consumption patterns in [platform-examples](platform-examples)
+- environment-aware Terraform configuration for `dev`, `qa`, and `prod`
 
-Review:
+### Operational Readiness
 
-- [platform-modules](platform-modules)
-- [platform-examples](platform-examples)
+- local platform setup in [docs/local-platform-quickstart.md](docs/local-platform-quickstart.md)
+- observability support in [observability-service/README.md](observability-service/README.md)
+- secret workflow support in [vault-service/README.md](vault-service/README.md)
+- runbooks such as [docs/runbooks/scaling-jenkins.md](docs/runbooks/scaling-jenkins.md)
 
-### Priority 4: Operational Readiness
-
-This layer shows the platform is designed to be supported, not only provisioned.
-
-- runbooks
-- observability assets
-- Vault and local platform support components
-
-Review:
-
-- [Local Platform Quickstart](docs/local-platform-quickstart.md)
-- [Observability Service](observability-service/README.md)
-- [Vault Service](vault-service/README.md)
-
-## Repo Structure
+## Repository Structure
 
 | Path | Purpose |
 |---|---|
+| `docs/` | Platform-product docs, architecture, operating model, and runbooks |
 | `platform-modules/` | Reusable platform building blocks |
 | `platform-examples/` | Example implementations of platform patterns |
 | `templates/` | Backstage scaffolder templates for self-service |
-| `backstage-app/` | Backstage application for local platform portal work |
+| `backstage-app/` | Local Backstage app assets |
 | `backstage/` | Backstage deployment-oriented assets |
-| `jenkins/` | Jenkins infrastructure product track |
-| `docs/` | Architecture, product, and implementation documentation |
+| `jenkins/` | Jenkins product implementation assets |
 | `observability-service/` | Local observability support stack |
 | `vault-service/` | Local Vault support for secret workflow testing |
 
 ## Recommended Review Flow
 
-If this repo is being used as a consulting or portfolio profile, review it in this order:
+If the goal is to evaluate this repo as a platform-as-product example, review it in this order:
 
-1. Read the platform positioning docs.
-2. Read the changelog for the latest platform-facing changes.
-3. Review the self-service templates and catalog model.
-4. Inspect the Terraform modules and examples.
-5. Review the operational docs and local support setup.
+1. Read the platform-positioning documents.
+2. Read the product-track documents.
+3. Review the Backstage catalog and templates.
+4. Inspect the reusable Terraform modules and examples.
+5. Review the operating model, support model, and runbooks.
 
-## Consulting Profile Positioning
+## Positioning
 
-This repository is strongest when positioned as:
+This repository is strongest when presented as:
 
-- a platform engineering portfolio
-- a platform-as-a-product transformation example
+- a platform-as-product transformation example
+- a platform engineering portfolio for standardization and enablement
 - a Backstage plus Terraform self-service reference implementation
-- a consulting profile for standardization, enablement, and platform design
+- a consulting-friendly example of turning repeated infra work into products
 
-It should not be positioned as:
+It should not be presented as:
 
-- a finished enterprise platform
-- a fully production-hardened Backstage deployment
-- a complete multi-runtime internal developer platform
-
-## Priority-Based Improvement Roadmap
-
-The next improvements should be prioritized by consulting impact rather than by technical novelty.
-
-| Priority | Focus Area | Why It Matters |
-|---|---|---|
-| High | Platform product narrative | Makes the repo legible to clients, hiring managers, and stakeholders |
-| High | Self-service golden paths | Proves the platform is consumable and repeatable |
-| High | Governance and delivery guardrails | Shows maturity beyond provisioning |
-| Medium | Observability and support model | Strengthens operational credibility |
-| Medium | Backstage production hardening | Improves realism of the portal story |
-| Low | Additional runtime products | Expands scope after the core story is clear |
-
-## Start Here
-
-Use these documents as the primary entry points:
-
-- [Internal Developer Platform View](docs/internal-developer-platform.md)
-- [Platform-as-a-Product Implementation Status](docs/platform-as-product-implementation-status.md)
-- [Platform-as-Product Readiness Plan](docs/platform-as-product-readiness.md)
-- [Changelog](CHANGELOG.md)
-- [Platform Golden Paths](docs/platform-golden-paths.md)
-- [Jenkins on AWS Platform Product](docs/platform-product-jenkins.md)
-- [Customer ECS Runtime Platform Product](docs/platform-product-ecs-runtime.md)
-- [Platform Service Tiers](docs/platform-service-tiers.md)
-- [Platform Versioning and Deprecation](docs/platform-versioning-and-deprecation.md)
-- [Local Platform Quickstart](docs/local-platform-quickstart.md)
-- [Backstage Quick Start](BACKSTAGE-QUICKSTART.md)
+- a fully production-hardened internal developer platform
+- a complete enterprise governance implementation
+- a finished multi-runtime platform with mature automation in every path
 
 ## Contribution Standard
 
-Changes in this repository should improve one of these outcomes:
+Changes in this repository should improve at least one of these outcomes:
 
-- stronger platform product clarity
+- stronger product clarity
 - better self-service usability
 - more reusable infrastructure patterns
-- clearer operating model and documentation
+- clearer ownership, support, and governance
 
 For contribution expectations, see [CONTRIBUTING.md](CONTRIBUTING.md).

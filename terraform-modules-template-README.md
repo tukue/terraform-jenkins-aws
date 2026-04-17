@@ -158,6 +158,6 @@ To add a new template:
 - [ ] Log groups
 
 ## Related Documentation
-- [Template Usage Guide](./README.md)
-- [Terraform Modules](../README.md)
-- [Best Practices](../docs/best-practices.md)
+- [Platform README](./README.md)
+- [Platform Product Overview](./PLATFORM-README.md)
+- [Best Practices](./docs/best-practices.md)
