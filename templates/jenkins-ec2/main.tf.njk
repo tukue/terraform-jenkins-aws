@@ -1,0 +1,5 @@
+module "jenkins_infrastructure" {
+  source = "../../platform-modules/jenkins-infrastructure"
+
+  environment = "${{ values.environment }}"
+}

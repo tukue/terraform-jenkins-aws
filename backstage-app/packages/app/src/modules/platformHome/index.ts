@@ -1,0 +1,1 @@
+export { platformHomePlugin } from './plugin';

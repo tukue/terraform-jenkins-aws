@@ -1,0 +1,125 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-standard-service
+  title: Create Standard Service Deployment
+  description: Provision a new service using platform-approved tiers (small, med, large)
+  tags:
+    - aws
+    - ecs
+    - ecs-service
+    - production-ready
+    - standardized
+  links:
+    - title: Service Tiers Documentation
+      url: https://your-backstage-instance/docs/platforms/service-tiers
+
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: Service Details
+      required:
+        - service_name
+        - environment
+        - tier
+        - container_image
+      properties:
+        service_name:
+          title: Service Name
+          type: string
+          description: Unique name for your service (e.g., checkout-api)
+          pattern: '^[a-z0-9-]{3,32}$'
+
+        description:
+          title: Description
+          type: string
+          description: Brief description of the service
+          maxLength: 100
+
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - qa
+            - prod
+          description: Target deployment environment
+
+        tier:
+          title: Service Tier
+          type: string
+          enum:
+            - small
+            - med
+            - large
+          description: Resource allocation (small=256MB, med=512MB, large=1GB)
+          default: small
+
+        container_image:
+          title: Container Image
+          type: string
+          description: Docker image URI (e.g., ghcr.io/org/service:v1)
+          default: nginx:latest
+
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Target Repository
+          type: string
+          description: Repository that will store the service definition
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    - id: fetch-base
+      name: Fetch standard service template
+      action: fetch:template
+      input:
+        url: ./standard-service
+        targetPath: ./
+        values:
+          service_name: ${{ parameters.service_name }}
+          description: ${{ parameters.description }}
+          environment: ${{ parameters.environment }}
+          tier: ${{ parameters.tier }}
+          container_image: ${{ parameters.container_image }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+        defaultBranch: main
+        description: |
+          Standard service deployment for ${{ parameters.service_name }} in ${{ parameters.environment }}.
+          Tier: ${{ parameters.tier }}
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Catalog Entry
+        url: https://your-backstage-instance/catalog/default/component/${{ parameters.service_name }}
+    text:
+      - title: Next Steps
+        content: |
+          Your standard service deployment has been created!
+
+          1. Review the generated Terraform code.
+          2. Approve the infrastructure change.
+          3. Monitor the deployment in your CI/CD pipeline.

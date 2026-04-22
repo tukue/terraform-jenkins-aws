@@ -1,0 +1,46 @@
+app:
+  # Should be the same as backend.baseUrl when using the `app-backend` plugin.
+  baseUrl: http://localhost:7007
+
+backend:
+  # Note that the baseUrl should be the URL that the browser and other clients
+  # should use when communicating with the backend, i.e. it needs to be
+  # reachable not just from within the backend host, but from all of your
+  # callers. When its value is "http://localhost:7007", it's strictly private
+  # and can't be reached by others.
+  baseUrl: http://localhost:7007
+  # The listener can also be expressed as a single <host>:<port> string. In this case we bind to
+  # all interfaces, the most permissive setting. The right value depends on your specific deployment.
+  listen: ':7007'
+
+  # config options: https://node-postgres.com/apis/client
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+
+auth:
+  providers:
+    guest: {}
+
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location, Template, Group, User]
+  locations:
+    - type: file
+      target: ${REPO_ROOT}/catalog-info.yaml
+    - type: file
+      target: ${REPO_ROOT}/.backstage/system-and-components.yaml
+    - type: file
+      target: ${REPO_ROOT}/.backstage/groups-and-users.yaml
+    - type: file
+      target: ${REPO_ROOT}/templates/create-jenkins-ec2-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-customer-ecs-runtime-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-standard-service-template.yaml
+      rules:
+        - allow: [Template]

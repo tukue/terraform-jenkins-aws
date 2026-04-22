@@ -32,3 +32,9 @@ remote_backend_s3.tf
 
 # Ignore backend configuration files
 backend-config-*.
+
+# Local environment variables
+.env
+backstage-app/node_modules/
+backstage-app/node_modules.broken/
+.bin/

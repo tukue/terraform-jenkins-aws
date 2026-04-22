@@ -1,0 +1,19 @@
+FROM node:24-bookworm
+
+ENV NODE_OPTIONS=--no-node-snapshot
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 g++ build-essential libsqlite3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable
+
+WORKDIR /app
+
+COPY backstage-app/ ./
+
+RUN yarn install
+
+EXPOSE 3000 7007
+
+CMD ["yarn", "start"]
