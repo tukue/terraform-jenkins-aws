@@ -2,14 +2,22 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: terraform-jenkins-aws
-  description: Terraform configurations for Jenkins deployment on AWS
+  title: Platform Product Foundation
+  description: Platform-as-product foundation for Jenkins infrastructure, customer ECS runtimes, and Backstage self-service workflows on AWS
   tags:
     - terraform
     - aws
-    - jenkins
+    - backstage
+    - platform
+    - idp
     - infrastructure
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    github.com/project-slug: tukue/terraform-jenkins-aws
 spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
+  providesApis:
+    - platform-self-service-api

@@ -1,6 +1,6 @@
 app:
-  title: Jenkins Platform Portal
-  baseUrl: http://localhost:3000
+  title: Platform Product Portal
+  baseUrl: http://localhost:7000
   support:
     url: https://github.com/tukue/terraform-jenkins-aws/issues
     items:
@@ -17,7 +17,7 @@ backend:
   csp:
     connect-src: ["'self'", 'http:', 'https:']
   cors:
-    origin: http://localhost:3000
+    origin: http://localhost:7000
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
   database:
@@ -38,7 +38,7 @@ auth:
       development:
         clientId: ${GITHUB_CLIENT_ID}
         clientSecret: ${GITHUB_CLIENT_SECRET}
-        callbackUrl: http://localhost:3000/api/auth/github/handler/frame
+        callbackUrl: http://localhost:7000/api/auth/github/handler/frame
 
 # Plugin Integrations Configuration
 integrations:
@@ -77,6 +77,7 @@ catalog:
       - target: ../../.backstage/groups-and-users.yaml
       - target: ../../templates/create-jenkins-ec2-template.yaml
       - target: ../../templates/create-customer-ecs-runtime-template.yaml
+      - target: ../../templates/create-standard-service-template.yaml
 
 # Terraform Plugin Configuration
 terraform:

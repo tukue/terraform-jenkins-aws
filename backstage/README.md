@@ -6,6 +6,7 @@ Backstage is the front door for both platform tracks:
 
 - Jenkins platform provisioning and discovery
 - ECS customer runtime self-service provisioning
+- platform standards, ownership, and documentation discovery
 
 ## Local Development
 
@@ -18,6 +19,7 @@ docker compose ps
 ```
 
 Backstage will be available at `http://localhost:3000`.
+If your local portal is already running on port `7000`, use `http://localhost:7000` as the user-facing URL and keep the backend on `7007`.
 
 Grafana will be available at `http://localhost:3001` and Prometheus at `http://localhost:9090`.
 

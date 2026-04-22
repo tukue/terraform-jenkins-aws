@@ -1,9 +1,9 @@
 app:
-  title: Jenkins Platform - Local Test
-  baseUrl: http://localhost:3000
+  title: Platform Product Portal - Local Test
+  baseUrl: http://localhost:7000
 
 organization:
-  name: Jenkins Platform
+  name: Platform Engineering
 
 backend:
   baseUrl: http://localhost:7007
@@ -12,17 +12,12 @@ backend:
   csp:
     connect-src: ["'self'", 'http:', 'https:']
   cors:
-    origin: http://localhost:3000
+    origin: http://localhost:7000
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
   database:
-    client: pg
-    connection:
-      host: ${DB_HOST:-postgres}
-      port: ${DB_PORT:-5432}
-      user: ${DB_USER:-backstage}
-      password: ${DB_PASSWORD:-backstage}
-      database: ${DB_NAME:-backstage}
+    client: better-sqlite3
+    connection: ':memory:'
   cache:
     store: memory
 
@@ -40,6 +35,7 @@ catalog:
       - target: /repo/.backstage/groups-and-users.yaml
       - target: /repo/templates/create-jenkins-ec2-template.yaml
       - target: /repo/templates/create-customer-ecs-runtime-template.yaml
+      - target: /repo/templates/create-standard-service-template.yaml
 
 scaffolder:
   # GitHub integration for scaffolder

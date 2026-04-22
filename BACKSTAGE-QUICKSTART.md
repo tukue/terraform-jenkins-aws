@@ -35,6 +35,8 @@ Then open:
 - `http://localhost:7000` for the Backstage UI
 - `http://localhost:7007` for the Backstage backend
 
+The UI now opens on a dedicated `Platform Home` page instead of dropping straight into the raw catalog index.
+
 ## Host Development Path
 
 If you want to run Backstage without Docker:
@@ -59,10 +61,12 @@ The local Backstage setup should load:
 
 In the UI, the simplest smoke test is:
 
-1. open the catalog
-2. confirm the platform system and components load
-3. open the `Create` page
-4. confirm the Jenkins, customer ECS runtime, and standard service templates appear
+1. open `Platform Home`
+2. confirm the product cards and golden-path guidance load
+3. open the catalog
+4. confirm the platform system and components load
+5. open the `Create` page
+6. confirm the Jenkins, customer ECS runtime, and standard service templates appear
 
 ## KISS Rules
 

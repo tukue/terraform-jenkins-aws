@@ -1,16 +1,16 @@
 apiVersion: backstage.io/v1alpha1
 kind: System
 metadata:
-  name: jenkins-platform
-  title: Jenkins Platform System
+  name: internal-developer-platform
+  title: Internal Developer Platform
   description: |
-    Complete platform for managing Jenkins CI/CD infrastructure on AWS.
-    Includes infrastructure provisioning, monitoring, and self-service capabilities.
+    Platform-as-product system for AWS infrastructure delivery with Backstage,
+    reusable Terraform modules, operational guardrails, and self-service workflows.
   tags:
     - platform
-    - jenkins
+    - backstage
     - aws
-    - ci-cd
+    - idp
 spec:
   owner: platform-team
   domain: platform
@@ -19,18 +19,18 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: terraform-core
-  title: Terraform Core Infrastructure
-  description: Core Terraform modules for AWS infrastructure
+  name: platform-product-foundation
+  title: Platform Product Foundation
+  description: Root repository for the Backstage-integrated platform product
   tags:
     - terraform
-    - infrastructure
-    - iac
+    - backstage
+    - platform
 spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -38,7 +38,7 @@ kind: Component
 metadata:
   name: terraform-networking
   title: Networking Module
-  description: VPC, subnets, and security groups for Jenkins platform
+  description: VPC, subnets, and security groups shared by the platform products
   tags:
     - networking
     - vpc
@@ -47,9 +47,9 @@ spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
   dependsOn:
-    - component:default/terraform-core
+    - component:default/platform-product-foundation
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -57,7 +57,7 @@ kind: Component
 metadata:
   name: terraform-jenkins-module
   title: Jenkins EC2 Module
-  description: Terraform module for provisioning Jenkins on EC2
+  description: Terraform module for provisioning the Jenkins platform track on EC2
   tags:
     - jenkins
     - compute
@@ -66,7 +66,7 @@ spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
   dependsOn:
     - component:default/terraform-networking
     - component:default/terraform-security-groups
@@ -86,7 +86,7 @@ spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
   dependsOn:
     - component:default/terraform-networking
 
@@ -105,7 +105,7 @@ spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
   dependsOn:
     - component:default/terraform-networking
 
@@ -124,7 +124,7 @@ spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -132,7 +132,7 @@ kind: Component
 metadata:
   name: terraform-dns
   title: DNS Configuration Module
-  description: Route 53 DNS and domain configuration
+  description: Route 53 DNS and domain configuration for platform products
   tags:
     - dns
     - route53
@@ -141,7 +141,7 @@ spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
   dependsOn:
     - component:default/terraform-certificates
 
@@ -160,9 +160,46 @@ spec:
   type: infrastructure
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
   dependsOn:
     - component:default/terraform-jenkins-module
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: customer-ecs-runtime-product
+  title: Customer ECS Runtime Product
+  description: Self-service ECS runtime product exposed through Backstage scaffolder templates
+  tags:
+    - ecs
+    - runtime
+    - scaffolder
+    - terraform
+spec:
+  type: service
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - component:default/terraform-networking
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: platform-self-service-api
+  title: Platform Self-Service API
+  description: Logical API surface for Backstage-driven platform provisioning flows
+  tags:
+    - backstage
+    - scaffolder
+    - platform
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -179,4 +216,4 @@ spec:
   type: openapi
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform

@@ -1,128 +1,59 @@
-# Getting Started
+# 🚀 Onboarding: Getting Started with the Platform
 
-Use this document to choose the right entry point into the platform product paths in this repository.
+Welcome to the **Internal Developer Platform**. This guide will help you choose the right path into the repository, whether you're a first-time user, a platform engineer, or a stakeholder.
 
-This repository currently presents two main platform tracks:
+---
 
-- `Jenkins on AWS`
-- `Customer ECS Runtime`
+## 🧭 Choose Your Entry Point
 
-If you are reviewing the repo as a platform product, start with the product docs first and then move into the implementation path you care about.
+### Path 1: Local Evaluation (The "Look and Feel")
+Best for: *Evaluating the platform experience without AWS costs.*
+1.  **Run the Portal**: Follow the **[Backstage Quickstart](../BACKSTAGE-QUICKSTART.md)** to spin up a local instance of the developer portal.
+2.  **Explore the Catalog**: Navigate to `http://localhost:3000` to see the Jenkins and ECS components.
+3.  **Inspect Templates**: See how we define "Golden Paths" in the `templates/` directory.
 
-## Start Here
+### Path 2: Jenkins on AWS (CI/CD Foundation)
+Best for: *Provisioning standard Jenkins infrastructure in AWS.*
+1.  **Review the Product**: Read the **[Jenkins Product Doc](./platform-product-jenkins.md)**.
+2.  **Provision Dev**:
+    ```bash
+    terraform init -backend-config="backend-config-dev.hcl"
+    terraform plan -var-file="terraform.dev.tfvars"
+    terraform apply -var-file="terraform.dev.tfvars"
+    ```
+3.  **Scale and Manage**: Use the **[Scaling Jenkins Runbook](./runbooks/scaling-jenkins.md)**.
 
-Read these documents in order:
+### Path 3: Customer ECS Runtime (Container Platform)
+Best for: *Delivering a standardized, multi-environment container runtime.*
+1.  **Review the Product**: Read the **[ECS Runtime Product Doc](./platform-product-ecs-runtime.md)**.
+2.  **Understand the Design**: Review the **[Multi-Tenant Design](./multi-tenant-customer-runtime-design.md)**.
+3.  **Inspect Examples**: See reference patterns in `platform-examples/customer-ecs-runtime/`.
 
-1. [Platform-as-Product Readiness Plan](./platform-as-product-readiness.md)
-2. [Platform Golden Paths](./platform-golden-paths.md)
-3. [Jenkins on AWS Platform Product](./platform-product-jenkins.md) or [Customer ECS Runtime Platform Product](./platform-product-ecs-runtime.md)
+---
 
-## Choose Your Path
+## 🛠️ Prerequisites
 
-### Path 1: Local Platform Evaluation
+*   **Tools**: Git, Terraform (v1.6+), and Docker (for local evaluation).
+*   **AWS Access**: An AWS account with permissions to create VPCs, EC2, ECS, and IAM roles.
+*   **Knowledge**: Basic understanding of Terraform modules and environment management.
 
-Use this path when you want to inspect the platform experience locally before provisioning AWS resources.
+---
 
-Start here:
+## 📐 Platform Core Concepts
 
-- [Local Platform Quickstart](./local-platform-quickstart.md)
-- [Internal Developer Platform View](./internal-developer-platform.md)
-- [Templates Overview](../templates/README.md)
+To be successful, understand these three pillars:
+1.  **Environments**: We use dedicated `.tfvars` and backend configs for `dev`, `qa`, and `prod`.
+2.  **Golden Paths**: Don't build from scratch; use a documented product track.
+3.  **Support Tiers**: Different environments have different service levels (L1-L3 support).
 
-This path is best for:
+---
 
-- portfolio review
-- local workflow validation
-- understanding how the platform is packaged
+## 📖 Related Documentation
+- **[Architecture & Security](./architecture.md)**: How everything is wired together.
+- **[Best Practices](./best-practices.md)**: Naming, tagging, and coding standards.
+- **[Operating Model](./platform-operating-model.md)**: How we run the platform.
+- **[Support Model](./platform-support-model.md)**: How to get help when you're stuck.
 
-### Path 2: Jenkins on AWS
-
-Use this path when you want to provision the Jenkins infrastructure baseline in AWS.
-
-Start here:
-
-1. Review [Jenkins on AWS Platform Product](./platform-product-jenkins.md).
-2. Review [DEPLOYMENT-GUIDE.md](../DEPLOYMENT-GUIDE.md).
-3. Choose the target environment:
-   - `terraform.dev.tfvars`
-   - `terraform.qa.tfvars`
-   - `terraform.prod.tfvars`
-4. Initialize Terraform with the matching backend config:
-
-```bash
-terraform init -backend-config="backend-config-dev.hcl"
-```
-
-5. Plan the selected environment:
-
-```bash
-terraform plan -var-file="terraform.dev.tfvars"
-```
-
-6. Apply after review:
-
-```bash
-terraform apply -var-file="terraform.dev.tfvars" -var="bucket_name=jenkins-tfstate-platform"
-```
-
-7. Use [Scaling Jenkins Runbook](./runbooks/scaling-jenkins.md) and [Architecture Documentation](./architecture.md) for follow-through.
-
-### Path 3: Customer ECS Runtime
-
-Use this path when you want to review or extend the reusable ECS runtime pattern.
-
-Start here:
-
-1. Review [Customer ECS Runtime Platform Product](./platform-product-ecs-runtime.md).
-2. Review [Multi-Tenant Customer Runtime Design](./multi-tenant-customer-runtime-design.md).
-3. Review [Multi-Tenant ECS Provisioning Implementation](./multi-tenant-ecs-provisioning-implementation.md).
-4. Inspect the reusable baseline in [platform-examples/customer-ecs-runtime/README.md](../platform-examples/customer-ecs-runtime/README.md) and `platform-modules/customer-ecs-runtime/`.
-
-This path is best for:
-
-- understanding the ECS runtime product boundary
-- reviewing the multi-environment runtime model
-- extending the reusable runtime baseline
-
-## Prerequisites
-
-For AWS-backed work, you should have:
-
-- AWS account access with appropriate IAM permissions
-- Terraform
-- Git
-- any environment-specific variable values required by the selected product path
-
-For local evaluation, use:
-
-- `make local-up`
-- `make local-health`
-
-## Optional: Local Vault Test
-
-If you want to validate the local Vault integration during Terraform planning, set the Vault inputs in your shell:
-
-```bash
-export TF_VAR_enable_vault_integration=true
-export TF_VAR_vault_address="http://127.0.0.1:8200"
-export TF_VAR_vault_token="root"
-export TF_VAR_vault_kv_mount="secret"
-export TF_VAR_vault_secret_path="jenkins/platform/test"
-export TF_VAR_vault_secret_key="value"
-terraform plan -var-file="terraform.dev.tfvars"
-```
-
-Then create the test secret:
-
-```bash
-vault kv put secret/jenkins/platform/test value="hello-from-vault"
-```
-
-If the secret exists in the local Vault server, Terraform exposes it through the sensitive output `vault_test_secret_value`.
-
-## Related Docs
-
-- [Platform Operating Model](./platform-operating-model.md)
-- [Platform Governance Model](./platform-governance-model.md)
-- [Platform Support Model](./platform-support-model.md)
-- [Best Practices](./best-practices.md)
+---
+*Created: March 2024*  
+*Contact: platform-team@organization.com*

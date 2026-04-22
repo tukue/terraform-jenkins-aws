@@ -1,90 +1,54 @@
-# Platform Product Overview
+# 📂 Platform Product Catalog
 
-This repository represents a platform-as-product implementation on AWS built around Backstage, Terraform, and reusable operating guidance.
+This repository represents an **AWS-based Platform Engineering** framework. We treat infrastructure as a **Product**, not just a set of scripts.
 
-The focus is not "how to provision some infrastructure." The focus is "how to turn repeated infrastructure demand into platform products that teams can understand, adopt, and consume."
+---
 
-## What The Platform Product Includes
+## 🏗️ The Platform Product Layers
 
-The current platform surface is built from four layers:
+The platform is structured in four layers to enable scale and developer experience:
 
-1. Product tracks for Jenkins infrastructure and ECS runtime delivery
-2. Self-service entry points through Backstage catalog entities and templates
-3. Reusable Terraform modules and example consumption patterns
-4. Governance, support, versioning, and runbook documentation
+### 1. Product Tracks (Golden Paths)
+High-level "Capabilities" designed for developer consumption.
+*   **[Jenkins on AWS](docs/platform-product-jenkins.md)**: Repeatable, scalable, and secure CI/CD foundations.
+*   **[Customer ECS Runtime](docs/platform-product-ecs-runtime.md)**: Multi-tenant, secure container runtime with built-in networking and observability.
 
-## Product Tracks
+### 2. Self-Service Layer (Backstage)
+The developer portal provides a "Marketplace" for the platform products.
+*   **[Backstage Catalog](catalog-info.yaml)**: All resources are registered and discoverable.
+*   **[Scaffolder Templates](templates/README.md)**: One-click creation of new Jenkins or ECS environments.
 
-### Jenkins on AWS
+### 3. Implementation Foundation (Terraform)
+Reusable, environment-aware building blocks.
+*   **[Platform Modules](platform-modules/)**: Tested and versioned modules for core infra.
+*   **[Platform Examples](platform-examples/)**: Reference patterns for multi-environment delivery.
 
-This track provides a standardized Jenkins infrastructure path for teams that need a repeatable CI/CD foundation on AWS.
+### 4. Governance & Operating Model
+Documentation defining how we operate and support the platform.
+*   **[Service Tiers](docs/platform-service-tiers.md)**: Different support levels for `dev` vs `prod`.
+*   **[Support Model](docs/platform-support-model.md)**: How to get help (L1-L3 support).
+*   **[Governance Model](docs/platform-governance-model.md)**: How we manage standards and compliance.
 
-Primary reference:
+---
 
-- [docs/platform-product-jenkins.md](docs/platform-product-jenkins.md)
+## 🎯 Value Proposition
 
-### Customer ECS Runtime
+We shift the focus from **provisioning raw resources** to **delivering platform capabilities**:
+*   **Faster Lead Time**: Developers use "Golden Paths" instead of starting from scratch.
+*   **Better Security**: Hardened defaults and policy-as-code are built-in.
+*   **Operational Consistency**: Common observability, logging, and scaling patterns.
+*   **Scalable Support**: Documentation and self-service reduce manual support overhead.
 
-This track provides a repeatable ECS runtime path for teams that need a standardized customer or service runtime baseline on AWS.
+---
 
-Primary reference:
+## 🧭 Entry Points
 
-- [docs/platform-product-ecs-runtime.md](docs/platform-product-ecs-runtime.md)
+| Journey | Start Here |
+| :--- | :--- |
+| **New to the platform?** | [Getting Started Guide](docs/getting-started.md) |
+| **Want to see the portal?** | [Backstage Quickstart](BACKSTAGE-QUICKSTART.md) |
+| **Deploying to AWS?** | [Deployment Guide](DEPLOYMENT-GUIDE.md) |
+| **Contributing code?** | [Contributing Guide](CONTRIBUTING.md) |
 
-## Consumer Experience
-
-The intended consumer flow is:
-
-1. Discover the platform and ownership model in Backstage.
-2. Select a supported golden path or product track.
-3. Use documented templates, examples, and environment inputs.
-4. Operate within published standards, support boundaries, and lifecycle guidance.
-
-This makes the repository easier to understand as a platform product instead of a set of raw implementation files.
-
-## Key Entry Points
-
-Start with these documents:
-
-- [README.md](README.md)
-- [docs/internal-developer-platform.md](docs/internal-developer-platform.md)
-- [docs/platform-as-product-implementation-status.md](docs/platform-as-product-implementation-status.md)
-- [docs/platform-as-product-readiness.md](docs/platform-as-product-readiness.md)
-- [docs/platform-golden-paths.md](docs/platform-golden-paths.md)
-- [docs/platform-operating-model.md](docs/platform-operating-model.md)
-- [docs/platform-support-model.md](docs/platform-support-model.md)
-- [docs/platform-governance-model.md](docs/platform-governance-model.md)
-
-## Self-Service and Catalog
-
-The self-service surface is represented by:
-
-- [catalog-info.yaml](catalog-info.yaml)
-- [templates/README.md](templates/README.md)
-- [BACKSTAGE-QUICKSTART.md](BACKSTAGE-QUICKSTART.md)
-
-These assets show how platform capabilities become discoverable and consumable rather than remaining hidden in infrastructure code.
-
-## Implementation Foundation
-
-The product foundation behind the user-facing experience lives in:
-
-- [platform-modules](platform-modules)
-- [platform-examples](platform-examples)
-- environment-specific Terraform inputs for `dev`, `qa`, and `prod`
-- supporting docs, runbooks, and local platform tooling
-
-## Positioning Guidance
-
-Use this repository to demonstrate:
-
-- platform product thinking
-- self-service enablement
-- reusable infrastructure design
-- explicit support and governance boundaries
-
-Avoid presenting it as:
-
-- a finished enterprise platform
-- a fully managed Backstage deployment
-- a complete production operations environment
+---
+*Positioning: Internal Developer Platform Reference Implementation*
