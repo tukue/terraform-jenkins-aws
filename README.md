@@ -59,6 +59,8 @@ We don't just "provide infrastructure"; we build **Products** for internal devel
 ## 🛠️ Quick Actions
 - **View Roadmap**: [IMPLEMENTATION-BACKLOG.md](IMPLEMENTATION-BACKLOG.md)
 - **Check Standards**: [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Run Quality Gate**: `make quality`
+- **Follow Delivery Runbook**: [Terraform Delivery](docs/runbooks/terraform-delivery.md)
 - **Local Test**: `make local-up` (Requires Docker)
 
 ---

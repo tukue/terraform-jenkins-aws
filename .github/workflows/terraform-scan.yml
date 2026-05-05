@@ -3,6 +3,10 @@ name: Terraform Security Scan
 permissions:
   contents: read
 
+concurrency:
+  group: terraform-security-scan-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     paths:
@@ -22,6 +26,7 @@ jobs:
   security-scan:
     name: Terraform Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

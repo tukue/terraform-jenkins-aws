@@ -1,0 +1,10 @@
+# Platform ownership defaults.
+* @tukue
+
+# Core infrastructure modules.
+/platform-modules/ @tukue
+/networking/ @tukue
+/security-groups/ @tukue
+/jenkins/ @tukue
+/policies/ @tukue
+/.github/workflows/ @tukue

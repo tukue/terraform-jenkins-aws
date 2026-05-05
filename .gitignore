@@ -12,8 +12,8 @@ crash.log
 !terraform.dev.tfvars
 !terraform.qa.tfvars
 !terraform.prod.tfvars
-!terraform.vault.tfvars
-!terraform.vault-local.tfvars
+!terraform.tfvars.example
+!terraform.vault-local.tfvars.example
 
 # Ignore override files
 override.tf
@@ -24,8 +24,7 @@ override.tf.json
 # Ignore .terraform directory
 .terraform/
 
-# Ignore local environment files
-.terraform.lock.hcl
+# Keep .terraform.lock.hcl committed for reproducible provider selections.
 
 # Ignore remote backend configuration files
 remote_backend_s3.tf    
