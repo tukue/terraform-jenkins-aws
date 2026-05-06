@@ -86,7 +86,15 @@ catalog:
     - type: file
       target: ${REPO_ROOT}/.backstage/system-and-components.yaml
     - type: file
+      target: ${REPO_ROOT}/.backstage/platform-resources.yaml
+    - type: file
       target: ${REPO_ROOT}/.backstage/groups-and-users.yaml
+    - type: file
+      target: ${REPO_ROOT}/platform-modules/customer-ecs-runtime/catalog-info.yaml
+    - type: file
+      target: ${REPO_ROOT}/platform-modules/jenkins-infrastructure/catalog-info.yaml
+    - type: file
+      target: ${REPO_ROOT}/platform-modules/service-tier-wrapper/catalog-info.yaml
     - type: file
       target: ${REPO_ROOT}/templates/create-jenkins-ec2-template.yaml
       rules:
@@ -97,6 +105,10 @@ catalog:
         - allow: [Template]
     - type: file
       target: ${REPO_ROOT}/templates/create-standard-service-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-s3-bucket-template.yaml
       rules:
         - allow: [Template]
 

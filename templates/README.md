@@ -26,6 +26,14 @@ The provisioning workflow treats `terraform fmt -check`, `terraform validate`, a
 The ECS module also provisions a dedicated ECR repository for the approved image.
 If the application source repository is private, add a `SOURCE_REPO_TOKEN` secret in the generated runtime repo for checkout access.
 
+### Secure S3 Bucket
+
+**File**: `create-s3-bucket-template.yaml`
+
+Creates a standalone repository for a tagged, encrypted S3 bucket with public access blocked, object ownership enforced, versioning enabled by default, and lifecycle controls for noncurrent object versions.
+
+Use this when a team needs a standard storage bucket without hand-writing the baseline security controls.
+
 ## Template Design Principles
 
 - keep customer input small

@@ -74,10 +74,15 @@ catalog:
     file:
       - target: ../../catalog-info.yaml
       - target: ../../.backstage/system-and-components.yaml
+      - target: ../../.backstage/platform-resources.yaml
       - target: ../../.backstage/groups-and-users.yaml
+      - target: ../../platform-modules/customer-ecs-runtime/catalog-info.yaml
+      - target: ../../platform-modules/jenkins-infrastructure/catalog-info.yaml
+      - target: ../../platform-modules/service-tier-wrapper/catalog-info.yaml
       - target: ../../templates/create-jenkins-ec2-template.yaml
       - target: ../../templates/create-customer-ecs-runtime-template.yaml
       - target: ../../templates/create-standard-service-template.yaml
+      - target: ../../templates/create-s3-bucket-template.yaml
 
 # Terraform Plugin Configuration
 terraform:

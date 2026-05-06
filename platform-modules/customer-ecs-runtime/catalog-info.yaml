@@ -12,4 +12,6 @@ spec:
   type: terraform-module
   lifecycle: production
   owner: platform-team
-  system: customer-runtimes
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/customer-ecs-cluster

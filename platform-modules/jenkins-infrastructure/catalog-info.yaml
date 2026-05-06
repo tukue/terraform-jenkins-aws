@@ -11,4 +11,7 @@ spec:
   type: terraform-module
   lifecycle: production
   owner: platform-team
-  system: jenkins-platform
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/jenkins-ec2-runtime
+    - resource:default/aws-vpc-network
