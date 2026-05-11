@@ -1,0 +1,170 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-rds-database
+  title: Create RDS Database
+  description: Provision a secure, managed RDS database instance
+  tags:
+    - aws
+    - rds
+    - database
+    - terraform
+    - self-service
+spec:
+  owner: platform-team
+  type: infrastructure
+
+  parameters:
+    - title: Database details
+      required:
+        - identifier
+        - environment
+        - engine
+        - username
+        - password
+        - owner
+      properties:
+        identifier:
+          title: RDS Identifier
+          type: string
+          description: Unique name for the RDS instance
+          pattern: '^[a-z0-9-]+$'
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - qa
+            - prod
+        engine:
+          title: Database Engine
+          type: string
+          enum:
+            - postgres
+            - mysql
+          default: postgres
+        engine_version:
+          title: Engine Version
+          type: string
+          default: "14.7"
+        instance_class:
+          title: Instance Class
+          type: string
+          default: db.t3.micro
+        db_name:
+          title: Initial Database Name
+          type: string
+          default: mydb
+        username:
+          title: Master Username
+          type: string
+          default: dbadmin
+        password:
+          title: Master Password
+          type: string
+          ui:widget: password
+        allocated_storage:
+          title: Allocated Storage (GB)
+          type: number
+          default: 20
+        publicly_accessible:
+          title: Publicly Accessible
+          type: boolean
+          default: false
+        skip_final_snapshot:
+          title: Skip Final Snapshot
+          type: boolean
+          default: true
+
+    - title: Network & Ownership
+      required:
+        - aws_region
+        - owner
+        - project
+      properties:
+        aws_region:
+          title: AWS Region
+          type: string
+          default: eu-north-1
+        owner:
+          title: Owner Email
+          type: string
+        project:
+          title: Project Name
+          type: string
+        cost_center:
+          title: Cost Center
+          type: string
+          default: "platform-ops"
+        security_group_id:
+          title: Security Group ID
+          type: string
+          description: Optional SG ID (if not provided, defaults will be used)
+        db_subnet_group_name:
+          title: DB Subnet Group Name
+          type: string
+          description: Optional Subnet Group Name
+
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Target Repository
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+
+  steps:
+    - id: fetch-base
+      name: Fetch RDS template
+      action: fetch:template
+      input:
+        url: ./rds-database
+        targetPath: ./
+        values:
+          identifier: ${{ parameters.identifier }}
+          environment: ${{ parameters.environment }}
+          engine: ${{ parameters.engine }}
+          engine_version: ${{ parameters.engine_version }}
+          instance_class: ${{ parameters.instance_class }}
+          db_name: ${{ parameters.db_name }}
+          username: ${{ parameters.username }}
+          password: ${{ parameters.password }}
+          allocated_storage: ${{ parameters.allocated_storage }}
+          publicly_accessible: ${{ parameters.publicly_accessible }}
+          skip_final_snapshot: ${{ parameters.skip_final_snapshot }}
+          aws_region: ${{ parameters.aws_region }}
+          owner: ${{ parameters.owner }}
+          project: ${{ parameters.project }}
+          cost_center: ${{ parameters.cost_center }}
+          security_group_id: ${{ parameters.security_group_id }}
+          db_subnet_group_name: ${{ parameters.db_subnet_group_name }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+        defaultBranch: main
+        description: RDS database definition for ${{ parameters.identifier }}.
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Catalog Entry
+        url: https://your-backstage-instance/catalog/default/resource/${{ parameters.identifier }}

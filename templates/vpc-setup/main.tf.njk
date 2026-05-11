@@ -1,0 +1,18 @@
+module "vpc" {
+  source = "github.com/your-org/terraform-jenkins-aws//platform-modules/vpc?ref=main"
+
+  vpc_name             = "{{ vpc_name }}"
+  vpc_cidr             = "{{ vpc_cidr }}"
+  public_subnet_cidrs  = {{ public_subnet_cidrs | dump }}
+  private_subnet_cidrs = {{ private_subnet_cidrs | dump }}
+  availability_zones   = {{ availability_zones | dump }}
+  enable_nat_gateway   = {{ enable_nat_gateway }}
+  
+  environment = "{{ environment }}"
+  
+  tags = {
+    Owner       = "{{ owner }}"
+    Project     = "{{ project }}"
+    CostCenter  = "{{ cost_center }}"
+  }
+}

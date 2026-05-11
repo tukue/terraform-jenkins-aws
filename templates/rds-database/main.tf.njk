@@ -1,0 +1,26 @@
+module "rds" {
+  source = "github.com/your-org/terraform-jenkins-aws//platform-modules/rds-database?ref=main"
+
+  identifier           = "{{ identifier }}"
+  allocated_storage    = {{ allocated_storage }}
+  engine               = "{{ engine }}"
+  engine_version       = "{{ engine_version }}"
+  instance_class       = "{{ instance_class }}"
+  db_name              = "{{ db_name }}"
+  username             = "{{ username }}"
+  password             = "{{ password }}"
+  skip_final_snapshot  = {{ skip_final_snapshot }}
+  publicly_accessible  = {{ publicly_accessible }}
+  
+  # Network settings (should be passed or discovered)
+  vpc_security_group_ids = ["{{ security_group_id }}"]
+  db_subnet_group_name   = "{{ db_subnet_group_name }}"
+
+  environment = "{{ environment }}"
+  
+  tags = {
+    Owner       = "{{ owner }}"
+    Project     = "{{ project }}"
+    CostCenter  = "{{ cost_center }}"
+  }
+}

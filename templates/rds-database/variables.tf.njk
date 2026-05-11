@@ -1,0 +1,36 @@
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "{{ aws_region }}"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "{{ environment }}"
+}
+
+variable "identifier" {
+  description = "RDS identifier"
+  type        = string
+  default     = "{{ identifier }}"
+}
+
+variable "db_name" {
+  description = "Database name"
+  type        = string
+  default     = "{{ db_name }}"
+}
+
+variable "username" {
+  description = "Database admin username"
+  type        = string
+  default     = "{{ username }}"
+}
+
+variable "password" {
+  description = "Database admin password"
+  type        = string
+  sensitive   = true
+  default     = "{{ password }}"
+}

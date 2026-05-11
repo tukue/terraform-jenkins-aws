@@ -97,6 +97,9 @@ const templates = [
   'templates/create-customer-ecs-runtime-template.yaml',
   'templates/create-standard-service-template.yaml',
   'templates/create-s3-bucket-template.yaml',
+  'templates/create-vpc-template.yaml',
+  'templates/create-rds-database-template.yaml',
+  'templates/create-ec2-instance-template.yaml',
 ];
 
 templates.forEach(templatePath => {

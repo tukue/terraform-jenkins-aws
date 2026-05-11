@@ -83,6 +83,9 @@ catalog:
       - target: ../../templates/create-customer-ecs-runtime-template.yaml
       - target: ../../templates/create-standard-service-template.yaml
       - target: ../../templates/create-s3-bucket-template.yaml
+      - target: ../../templates/create-vpc-template.yaml
+      - target: ../../templates/create-rds-database-template.yaml
+      - target: ../../templates/create-ec2-instance-template.yaml
 
 # Terraform Plugin Configuration
 terraform:

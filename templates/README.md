@@ -4,6 +4,24 @@ This directory contains Backstage Scaffolder templates for the two platform trac
 
 ## Templates
 
+### AWS VPC Setup
+
+**File**: `create-vpc-template.yaml`
+
+Provisions a standard AWS VPC with public and private subnets across multiple availability zones, including an optional NAT Gateway and internet connectivity.
+
+### RDS Database
+
+**File**: `create-rds-database-template.yaml`
+
+Provisions a secure, managed RDS database instance (PostgreSQL or MySQL) with platform guardrails, storage configuration, and tagging.
+
+### EC2 Instance
+
+**File**: `create-ec2-instance-template.yaml`
+
+Provisions a standard EC2 instance with platform guardrails, monitoring, and automated tagging.
+
 ### Jenkins EC2 Instance
 
 **File**: `create-jenkins-ec2-template.yaml`
