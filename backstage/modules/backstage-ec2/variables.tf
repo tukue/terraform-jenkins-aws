@@ -65,9 +65,9 @@ variable "db_user" {
   sensitive   = true
 }
 
-variable "db_password" {
+variable "db_password_secret_arn" {
   type        = string
-  description = "Database password"
+  description = "ARN of the Secrets Manager secret containing the database password"
   sensitive   = true
 }
 

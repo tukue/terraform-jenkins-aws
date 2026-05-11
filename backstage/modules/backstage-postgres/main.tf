@@ -21,9 +21,9 @@ resource "aws_db_instance" "backstage" {
   storage_encrypted = true
   kms_key_id        = aws_kms_key.backstage_db.arn
 
-  db_name  = var.db_name
-  username = var.user
-  password = var.password
+  db_name                     = var.db_name
+  username                    = var.user
+  manage_master_user_password = true
 
   instance_class = var.instance_class
 

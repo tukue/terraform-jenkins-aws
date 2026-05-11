@@ -39,3 +39,14 @@ output "db_connection_string" {
   description = "PostgreSQL connection string (replace password)"
   sensitive   = true
 }
+
+output "master_user_secret_arn" {
+  value       = try(aws_db_instance.backstage.master_user_secret[0].secret_arn, null)
+  description = "ARN of the Secrets Manager secret containing the managed master user password"
+  sensitive   = true
+}
+
+output "kms_key_arn" {
+  value       = aws_kms_key.backstage_db.arn
+  description = "ARN of the KMS key used for Backstage RDS encryption"
+}

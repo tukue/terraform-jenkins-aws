@@ -1,0 +1,130 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-s3-bucket
+  title: Create S3 Bucket
+  description: Provision a secure, tagged S3 bucket using platform defaults
+  tags:
+    - aws
+    - s3
+    - storage
+    - terraform
+    - self-service
+spec:
+  owner: platform-team
+  type: infrastructure
+
+  parameters:
+    - title: Bucket details
+      required:
+        - bucket_name
+        - environment
+        - owner
+        - aws_region
+        - aws_account_id
+      properties:
+        bucket_name:
+          title: Bucket Name
+          type: string
+          description: Globally unique S3 bucket name
+          pattern: '^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$'
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - qa
+            - prod
+        owner:
+          title: Owner Email
+          type: string
+          pattern: '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        aws_region:
+          title: AWS Region
+          type: string
+          default: eu-north-1
+        aws_account_id:
+          title: AWS Account ID
+          type: string
+          pattern: '^[0-9]{12}$'
+        force_destroy:
+          title: Allow Force Destroy
+          type: boolean
+          default: false
+          description: Keep disabled for production buckets unless an exception is approved
+        versioning_enabled:
+          title: Enable Versioning
+          type: boolean
+          default: true
+        lifecycle_expiration_days:
+          title: Expire Noncurrent Versions After Days
+          type: number
+          default: 90
+          minimum: 30
+          maximum: 3650
+
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Target Repository
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+              additionalScopes:
+                github:
+                  - workflow
+
+  steps:
+    - id: fetch-base
+      name: Fetch S3 bucket template
+      action: fetch:template
+      input:
+        url: ./s3-bucket
+        targetPath: ./
+        values:
+          bucket_name: ${{ parameters.bucket_name }}
+          environment: ${{ parameters.environment }}
+          owner: ${{ parameters.owner }}
+          aws_region: ${{ parameters.aws_region }}
+          aws_account_id: ${{ parameters.aws_account_id }}
+          force_destroy: ${{ parameters.force_destroy }}
+          versioning_enabled: ${{ parameters.versioning_enabled }}
+          lifecycle_expiration_days: ${{ parameters.lifecycle_expiration_days }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+        defaultBranch: main
+        description: Secure S3 bucket definition for ${{ parameters.bucket_name }}.
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Catalog Entry
+        url: https://your-backstage-instance/catalog/default/resource/${{ parameters.bucket_name }}
+    text:
+      - title: Next Steps
+        content: |
+          Your S3 bucket repository has been created.
+
+          1. Review the generated Terraform code and tags.
+          2. Confirm the AWS account and region.
+          3. Run the standard Terraform quality gate before applying.

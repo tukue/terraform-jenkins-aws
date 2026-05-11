@@ -1,0 +1,34 @@
+# VPC: {{ vpc_name }}
+
+This repository contains the Terraform configuration for the VPC `{{ vpc_name }}` in the `{{ environment }}` environment.
+
+## Infrastructure Details
+
+- **CIDR Block:** {{ vpc_cidr }}
+- **Environment:** {{ environment }}
+- **Project:** {{ project }}
+- **Owner:** {{ owner }}
+- **NAT Gateway:** {{ "Enabled" if enable_nat_gateway else "Disabled" }}
+- **VPC Flow Logs:** {{ "Enabled" if enable_flow_logs else "Disabled" }}
+
+## Subnets
+
+- **Public Subnets:** {{ public_subnet_cidrs | join(', ') }}
+- **Private Subnets:** {{ private_subnet_cidrs | join(', ') }}
+
+## Usage
+
+1. Initialize Terraform:
+   ```bash
+   terraform init
+   ```
+
+2. Plan the changes:
+   ```bash
+   terraform plan
+   ```
+
+3. Apply the changes:
+   ```bash
+   terraform apply
+   ```

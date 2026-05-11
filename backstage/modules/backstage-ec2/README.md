@@ -21,8 +21,8 @@ module "backstage_ec2" {
   db_port     = module.backstage_postgres.db_port
   db_name     = "backstage"
   db_user     = "backstage_admin"
-  db_password = var.db_password
-  
+  db_password_secret_arn = module.backstage_postgres.master_user_secret_arn
+
   # GitHub integration
   github_client_id     = var.github_client_id
   github_client_secret = var.github_client_secret
@@ -45,6 +45,6 @@ module "backstage_ec2" {
 
 - VPC with public subnet
 - Security group for Backstage
-- IAM instance profile with ECR and CloudWatch permissions
+- IAM instance profile with ECR, CloudWatch, and Secrets Manager permissions
 - RDS PostgreSQL database
 - GitHub OAuth2 credentials

@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: ${{ values.bucket_name }}
+  description: Secure S3 bucket owned by ${{ values.owner }}
+  tags:
+    - aws
+    - s3
+    - storage
+    - terraform
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: storage
+  owner: platform-team
+  system: internal-developer-platform

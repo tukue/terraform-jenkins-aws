@@ -26,18 +26,6 @@ variable "enable_nat" {
   description = "Enable NAT Gateway for private subnets"
 }
 
-# Database variables
-variable "db_password" {
-  type        = string
-  description = "RDS master password"
-  sensitive   = true
-
-  validation {
-    condition     = length(var.db_password) >= 8
-    error_message = "Password must be at least 8 characters."
-  }
-}
-
 variable "db_allocated_storage" {
   type        = number
   default     = 100

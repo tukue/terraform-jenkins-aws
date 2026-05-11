@@ -4,6 +4,24 @@ This directory contains Backstage Scaffolder templates for the two platform trac
 
 ## Templates
 
+### AWS VPC Setup
+
+**File**: `create-vpc-template.yaml`
+
+Provisions a standard AWS VPC with public and private subnets across multiple availability zones, including an optional NAT Gateway and internet connectivity.
+
+### RDS Database
+
+**File**: `create-rds-database-template.yaml`
+
+Provisions a secure, managed RDS database instance (PostgreSQL or MySQL) with platform guardrails, storage configuration, and tagging.
+
+### EC2 Instance
+
+**File**: `create-ec2-instance-template.yaml`
+
+Provisions a standard EC2 instance with platform guardrails, monitoring, and automated tagging.
+
 ### Jenkins EC2 Instance
 
 **File**: `create-jenkins-ec2-template.yaml`
@@ -25,6 +43,14 @@ It also includes a GitHub Actions workflow that provisions the runtime across `d
 The provisioning workflow treats `terraform fmt -check`, `terraform validate`, and TFLint as the baseline policy layer before any security scan runs.
 The ECS module also provisions a dedicated ECR repository for the approved image.
 If the application source repository is private, add a `SOURCE_REPO_TOKEN` secret in the generated runtime repo for checkout access.
+
+### Secure S3 Bucket
+
+**File**: `create-s3-bucket-template.yaml`
+
+Creates a standalone repository for a tagged, encrypted S3 bucket with public access blocked, object ownership enforced, versioning enabled by default, and lifecycle controls for noncurrent object versions.
+
+Use this when a team needs a standard storage bucket without hand-writing the baseline security controls.
 
 ## Template Design Principles
 

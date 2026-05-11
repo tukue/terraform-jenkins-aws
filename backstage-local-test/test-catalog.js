@@ -77,11 +77,29 @@ try {
   console.log('');
 }
 
+// Test platform-resources.yaml
+try {
+  const resourcesPath = path.join(__dirname, '..', '.backstage', 'platform-resources.yaml');
+  const resourcesContent = fs.readFileSync(resourcesPath, 'utf8');
+  const docs = yaml.loadAll(resourcesContent);
+
+  console.log('✅ platform-resources.yaml loaded successfully');
+  console.log(`   Resources: ${docs.filter(doc => doc.kind === 'Resource').length}`);
+  console.log('');
+} catch (error) {
+  console.log('❌ Error loading platform-resources.yaml:', error.message);
+  console.log('');
+}
+
 // Test Templates
 const templates = [
   'templates/create-jenkins-ec2-template.yaml',
   'templates/create-customer-ecs-runtime-template.yaml',
   'templates/create-standard-service-template.yaml',
+  'templates/create-s3-bucket-template.yaml',
+  'templates/create-vpc-template.yaml',
+  'templates/create-rds-database-template.yaml',
+  'templates/create-ec2-instance-template.yaml',
 ];
 
 templates.forEach(templatePath => {
@@ -103,8 +121,9 @@ templates.forEach(templatePath => {
 
 console.log('🎯 Catalog Summary:');
 console.log('- Internal developer platform system with infrastructure components');
+console.log('- AWS platform resources and reusable Terraform modules');
 console.log('- Platform Engineering teams and users');
-console.log('- Jenkins, ECS runtime, and standard service templates');
+console.log('- Jenkins, ECS runtime, standard service, and S3 bucket templates');
 console.log('- Ready for local Backstage loading');
 console.log('');
 console.log('📋 Next Steps:');

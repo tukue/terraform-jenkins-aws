@@ -1,0 +1,59 @@
+name: Backstage Catalog Validation
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backstage-catalog-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    paths:
+      - 'catalog-info.yaml'
+      - '.backstage/**/*.yaml'
+      - 'platform-modules/**/catalog-info.yaml'
+      - 'templates/**/*.yaml'
+      - 'templates/**/*.njk'
+      - 'backstage-local-test/**'
+      - 'backstage-app/app-config*.yaml'
+      - 'backstage/app-config-plugins.yaml'
+      - '.github/workflows/backstage-catalog-validation.yml'
+  pull_request:
+    paths:
+      - 'catalog-info.yaml'
+      - '.backstage/**/*.yaml'
+      - 'platform-modules/**/catalog-info.yaml'
+      - 'templates/**/*.yaml'
+      - 'templates/**/*.njk'
+      - 'backstage-local-test/**'
+      - 'backstage-app/app-config*.yaml'
+      - 'backstage/app-config-plugins.yaml'
+      - '.github/workflows/backstage-catalog-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-catalog:
+    name: Validate Backstage catalog
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: backstage-local-test/package-lock.json
+
+      - name: Install catalog test dependencies
+        working-directory: backstage-local-test
+        run: npm ci
+
+      - name: Run catalog validation
+        run: make backstage-validate

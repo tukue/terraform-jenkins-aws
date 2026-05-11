@@ -1,0 +1,144 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-vpc
+  title: Create AWS VPC
+  description: Provision a standard VPC with public and private subnets
+  tags:
+    - aws
+    - vpc
+    - networking
+    - terraform
+    - self-service
+spec:
+  owner: platform-team
+  type: infrastructure
+
+  parameters:
+    - title: VPC details
+      required:
+        - vpc_name
+        - environment
+        - owner
+      properties:
+        vpc_name:
+          title: VPC Name
+          type: string
+          description: Name of the VPC
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - qa
+            - prod
+        vpc_cidr:
+          title: VPC CIDR Block
+          type: string
+          default: "10.0.0.0/16"
+        enable_nat_gateway:
+          title: Enable NAT Gateway
+          type: boolean
+          default: false
+        enable_flow_logs:
+          title: Enable VPC Flow Logs
+          type: boolean
+          default: true
+        public_subnet_cidrs:
+          title: Public Subnet CIDRs
+          type: array
+          items:
+            type: string
+          default: ["10.0.1.0/24", "10.0.2.0/24"]
+        private_subnet_cidrs:
+          title: Private Subnet CIDRs
+          type: array
+          items:
+            type: string
+          default: ["10.0.11.0/24", "10.0.12.0/24"]
+        availability_zones:
+          title: Availability Zones
+          type: array
+          items:
+            type: string
+          default: ["eu-north-1a", "eu-north-1b"]
+
+    - title: Ownership
+      required:
+        - aws_region
+        - owner
+        - project
+      properties:
+        aws_region:
+          title: AWS Region
+          type: string
+          default: eu-north-1
+        owner:
+          title: Owner Email
+          type: string
+        project:
+          title: Project Name
+          type: string
+        cost_center:
+          title: Cost Center
+          type: string
+          default: "platform-ops"
+
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Target Repository
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+
+  steps:
+    - id: fetch-base
+      name: Fetch VPC template
+      action: fetch:template
+      input:
+        url: ./vpc-setup
+        targetPath: ./
+        values:
+          vpc_name: ${{ parameters.vpc_name }}
+          environment: ${{ parameters.environment }}
+          vpc_cidr: ${{ parameters.vpc_cidr }}
+          enable_nat_gateway: ${{ parameters.enable_nat_gateway }}
+          enable_flow_logs: ${{ parameters.enable_flow_logs }}
+          public_subnet_cidrs: ${{ parameters.public_subnet_cidrs }}
+          private_subnet_cidrs: ${{ parameters.private_subnet_cidrs }}
+          availability_zones: ${{ parameters.availability_zones }}
+          aws_region: ${{ parameters.aws_region }}
+          owner: ${{ parameters.owner }}
+          project: ${{ parameters.project }}
+          cost_center: ${{ parameters.cost_center }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+        defaultBranch: main
+        description: VPC definition for ${{ parameters.vpc_name }}.
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Catalog Entry
+        url: https://your-backstage-instance/catalog/default/resource/${{ parameters.vpc_name }}

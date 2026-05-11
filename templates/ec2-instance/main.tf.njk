@@ -1,0 +1,18 @@
+module "ec2" {
+  source = "github.com/your-org/terraform-jenkins-aws//platform-modules/ec2-instance?ref=main"
+
+  name                   = "{{ name }}"
+  ami_id                 = "{{ ami_id }}"
+  instance_type          = "{{ instance_type }}"
+  subnet_id              = "{{ subnet_id }}"
+  vpc_security_group_ids = {{ security_group_ids | dump }}
+  key_name               = "{{ key_name }}"
+  
+  environment = "{{ environment }}"
+  
+  tags = {
+    Owner       = "{{ owner }}"
+    Project     = "{{ project }}"
+    CostCenter  = "{{ cost_center }}"
+  }
+}
