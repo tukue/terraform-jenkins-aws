@@ -27,10 +27,3 @@ variable "username" {
   type        = string
   default     = "{{ username }}"
 }
-
-variable "password" {
-  description = "Database admin password"
-  type        = string
-  sensitive   = true
-  default     = "{{ password }}"
-}

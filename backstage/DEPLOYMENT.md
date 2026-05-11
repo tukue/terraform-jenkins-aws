@@ -56,7 +56,6 @@ environment              = "dev"  # or "qa", "prod"
 github_client_id         = "your-client-id"
 github_client_secret     = "your-client-secret"
 github_token             = "your-token"
-db_password              = "YourSecurePassword123!"
 key_name                 = "backstage-key"
 ```
 

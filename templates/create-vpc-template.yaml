@@ -41,6 +41,10 @@ spec:
           title: Enable NAT Gateway
           type: boolean
           default: false
+        enable_flow_logs:
+          title: Enable VPC Flow Logs
+          type: boolean
+          default: true
         public_subnet_cidrs:
           title: Public Subnet CIDRs
           type: array
@@ -107,6 +111,7 @@ spec:
           environment: ${{ parameters.environment }}
           vpc_cidr: ${{ parameters.vpc_cidr }}
           enable_nat_gateway: ${{ parameters.enable_nat_gateway }}
+          enable_flow_logs: ${{ parameters.enable_flow_logs }}
           public_subnet_cidrs: ${{ parameters.public_subnet_cidrs }}
           private_subnet_cidrs: ${{ parameters.private_subnet_cidrs }}
           availability_zones: ${{ parameters.availability_zones }}

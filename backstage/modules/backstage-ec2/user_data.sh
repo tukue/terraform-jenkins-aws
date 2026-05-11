@@ -25,13 +25,16 @@ chmod +x /usr/local/bin/docker-compose
 mkdir -p /opt/backstage
 cd /opt/backstage
 
+# Retrieve the database password at runtime so it is not stored in Terraform state.
+DB_PASSWORD=$(aws secretsmanager get-secret-value --secret-id "${db_password_secret_arn}" --query SecretString --output text | python -c 'import json,sys; print(json.load(sys.stdin)["password"])')
+
 # Create .env file with database and GitHub credentials
 cat > /opt/backstage/.env << 'ENVFILE'
 # Database configuration
 DB_HOST=${db_host}
 DB_PORT=${db_port}
 DB_USER=${db_user}
-DB_PASSWORD=${db_password}
+DB_PASSWORD=__DB_PASSWORD__
 DB_NAME=${db_name}
 
 # GitHub OAuth2
@@ -43,6 +46,8 @@ GITHUB_TOKEN=${github_token}
 NODE_ENV=production
 LOG_LEVEL=debug
 ENVFILE
+
+DB_PASSWORD="$DB_PASSWORD" python -c 'import os; path="/opt/backstage/.env"; data=open(path).read().replace("__DB_PASSWORD__", os.environ["DB_PASSWORD"]); open(path, "w").write(data)'
 
 # Create docker-compose.yml
 cat > /opt/backstage/docker-compose.yml << 'DOCKER'
@@ -175,9 +180,12 @@ for i in {1..30}; do
 done
 
 # Display access information
+IMDS_TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+PUBLIC_IPV4=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" http://169.254.169.254/latest/meta-data/public-ipv4)
+
 echo "========================================"
 echo "Backstage Installation Complete!"
 echo "========================================"
-echo "Access Backstage at: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):3000"
+echo "Access Backstage at: http://$PUBLIC_IPV4:3000"
 echo "Logs available at: /var/log/backstage-setup.log"
 echo "========================================"

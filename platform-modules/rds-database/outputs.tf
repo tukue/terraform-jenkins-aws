@@ -43,3 +43,9 @@ output "db_instance_port" {
   description = "The database port"
   value       = aws_db_instance.this.port
 }
+
+output "master_user_secret_arn" {
+  description = "ARN of the AWS Secrets Manager secret containing the managed master user password"
+  value       = try(aws_db_instance.this.master_user_secret[0].secret_arn, null)
+  sensitive   = true
+}

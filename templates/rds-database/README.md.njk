@@ -29,4 +29,4 @@ This repository contains the Terraform configuration for the RDS database `{{ id
 
 ## Security Note
 
-The database password is marked as sensitive. It is recommended to manage it via a secret manager (like AWS Secrets Manager or Vault) in a production environment.
+The database master password is generated and managed by Amazon RDS in AWS Secrets Manager. Terraform outputs the secret ARN, not the password value.

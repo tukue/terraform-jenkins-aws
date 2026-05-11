@@ -17,16 +17,16 @@ data "aws_ami" "amazon_linux_2" {
 # User data script for Backstage setup
 locals {
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
-    db_host              = var.db_host
-    db_port              = var.db_port
-    db_name              = var.db_name
-    db_user              = var.db_user
-    db_password          = var.db_password
-    github_client_id     = var.github_client_id
-    github_client_secret = var.github_client_secret
-    github_token         = var.github_token
-    backstage_version    = var.backstage_version
-    aws_region           = var.aws_region
+    db_host                = var.db_host
+    db_port                = var.db_port
+    db_name                = var.db_name
+    db_user                = var.db_user
+    db_password_secret_arn = var.db_password_secret_arn
+    github_client_id       = var.github_client_id
+    github_client_secret   = var.github_client_secret
+    github_token           = var.github_token
+    backstage_version      = var.backstage_version
+    aws_region             = var.aws_region
   }))
 }
 
@@ -51,6 +51,12 @@ resource "aws_instance" "backstage" {
   # User data
   user_data                   = local.user_data
   user_data_replace_on_change = true
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
 
   # Monitoring
   monitoring = true

@@ -8,7 +8,6 @@ github_client_secret = "your-github-client-secret"
 github_token         = "your-github-token"
 
 # Database
-db_password            = "your-secure-db-password-min-8-chars"
 db_allocated_storage   = 100
 db_instance_class      = "db.t3.medium"
 db_backup_retention    = 7

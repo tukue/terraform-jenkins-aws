@@ -9,6 +9,7 @@ This repository contains the Terraform configuration for the VPC `{{ vpc_name }}
 - **Project:** {{ project }}
 - **Owner:** {{ owner }}
 - **NAT Gateway:** {{ "Enabled" if enable_nat_gateway else "Disabled" }}
+- **VPC Flow Logs:** {{ "Enabled" if enable_flow_logs else "Disabled" }}
 
 ## Subnets
 

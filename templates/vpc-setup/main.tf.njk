@@ -7,6 +7,7 @@ module "vpc" {
   private_subnet_cidrs = {{ private_subnet_cidrs | dump }}
   availability_zones   = {{ availability_zones | dump }}
   enable_nat_gateway   = {{ enable_nat_gateway }}
+  enable_flow_logs     = {{ enable_flow_logs }}
   
   environment = "{{ environment }}"
   

@@ -29,17 +29,6 @@ variable "user" {
   sensitive   = true
 }
 
-variable "password" {
-  type        = string
-  description = "Master password (minimum 8 characters)"
-  sensitive   = true
-
-  validation {
-    condition     = length(var.password) >= 8
-    error_message = "Password must be at least 8 characters."
-  }
-}
-
 variable "subnet_ids" {
   type        = list(string)
   description = "Subnet IDs for DB subnet group"

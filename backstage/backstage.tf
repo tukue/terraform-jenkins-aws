@@ -10,7 +10,6 @@ module "backstage_postgres" {
 
   db_name  = "backstage"
   user     = "backstage_admin"
-  password = var.db_password
 
   subnet_ids         = module.vpc.private_subnets
   security_group_ids = [aws_security_group.backstage_db.id]
@@ -39,7 +38,7 @@ module "backstage_ec2" {
   db_port     = module.backstage_postgres.db_port
   db_name     = "backstage"
   db_user     = "backstage_admin"
-  db_password = var.db_password
+  db_password_secret_arn = module.backstage_postgres.master_user_secret_arn
 
   # GitHub integration
   github_client_id     = var.github_client_id
@@ -51,5 +50,8 @@ module "backstage_ec2" {
 
   tags = var.tags
 
-  depends_on = [module.backstage_postgres]
+  depends_on = [
+    module.backstage_postgres,
+    aws_iam_role_policy.backstage_secrets
+  ]
 }

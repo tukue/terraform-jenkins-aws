@@ -44,14 +44,14 @@ variable "username" {
   type        = string
 }
 
-variable "password" {
-  description = "Password for the master DB user. Note that this may show up in logs, and it will be stored in the state file"
-  type        = string
-  sensitive   = true
-}
-
 variable "parameter_group_name" {
   description = "Name of the DB parameter group to associate"
+  type        = string
+  default     = null
+}
+
+variable "kms_key_id" {
+  description = "ARN of the KMS key to use for RDS storage encryption. If null, the default AWS managed RDS key is used"
   type        = string
   default     = null
 }

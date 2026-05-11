@@ -6,9 +6,16 @@ resource "aws_instance" "this" {
   key_name               = var.key_name
   user_data              = var.user_data
 
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
   root_block_device {
     volume_size = var.root_volume_size
     volume_type = var.root_volume_type
+    encrypted   = true
   }
 
   tags = merge(

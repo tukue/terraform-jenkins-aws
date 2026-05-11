@@ -14,8 +14,7 @@ module "backstage_postgres" {
   
   db_name  = "backstage"
   user     = "backstage_admin"
-  password = var.db_password
-  
+
   subnet_ids             = module.vpc.private_subnet_ids
   security_group_ids     = [aws_security_group.backstage_db.id]
   
@@ -36,6 +35,7 @@ module "backstage_postgres" {
 - `db_name` - Database name
 - `db_username` - Database username
 - `db_resource_id` - RDS resource ID
+- `master_user_secret_arn` - Secrets Manager secret ARN for the managed master password
 
 ## Variables
 

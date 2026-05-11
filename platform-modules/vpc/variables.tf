@@ -45,6 +45,29 @@ variable "enable_nat_gateway" {
   default     = false
 }
 
+variable "enable_flow_logs" {
+  description = "Enable VPC Flow Logs for network security monitoring"
+  type        = boolean
+  default     = true
+}
+
+variable "flow_log_retention_in_days" {
+  description = "CloudWatch Logs retention period for VPC Flow Logs"
+  type        = number
+  default     = 90
+}
+
+variable "flow_log_traffic_type" {
+  description = "Traffic type captured by VPC Flow Logs"
+  type        = string
+  default     = "ALL"
+
+  validation {
+    condition     = contains(["ACCEPT", "REJECT", "ALL"], var.flow_log_traffic_type)
+    error_message = "flow_log_traffic_type must be one of ACCEPT, REJECT, or ALL."
+  }
+}
+
 variable "environment" {
   description = "Environment name"
   type        = string
