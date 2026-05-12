@@ -1,0 +1,276 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-security-group
+  title: Create Security Group
+  description: Provision a tagged AWS security group using platform defaults
+  tags:
+    - aws
+    - security-group
+    - networking
+    - terraform
+    - self-service
+spec:
+  owner: platform-team
+  type: infrastructure
+
+  parameters:
+    - title: Security group details
+      required:
+        - name
+        - description
+        - vpc_id
+        - environment
+        - aws_region
+        - aws_account_id
+        - owner
+        - project
+      properties:
+        name:
+          title: Security Group Name
+          type: string
+          description: Name for the security group
+          pattern: '^[a-zA-Z0-9][a-zA-Z0-9._-]{1,254}$'
+        description:
+          title: Description
+          type: string
+          default: Managed by the platform security group template
+          minLength: 10
+        vpc_id:
+          title: VPC ID
+          type: string
+          pattern: '^vpc-[a-f0-9]{8}$|^vpc-[a-f0-9]{17}$'
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - qa
+            - prod
+        aws_region:
+          title: AWS Region
+          type: string
+          default: eu-north-1
+        aws_account_id:
+          title: AWS Account ID
+          type: string
+          pattern: '^[0-9]{12}$'
+        owner:
+          title: Owner Email
+          type: string
+          pattern: '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        project:
+          title: Project Name
+          type: string
+        cost_center:
+          title: Cost Center
+          type: string
+          default: platform-ops
+        github_org:
+          title: Platform Module GitHub Organization
+          type: string
+          default: your-org
+          pattern: '^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$'
+
+    - title: Network rules
+      properties:
+        ingress_rules:
+          title: Ingress Rules
+          type: array
+          description: Inbound rules. Use private network CIDRs or security group references; broad internet CIDRs are rejected by the Terraform module.
+          default:
+            - description: Allow HTTPS from corporate network
+              from_port: 443
+              to_port: 443
+              protocol: tcp
+              cidr_blocks:
+                - 10.0.0.0/8
+              security_groups: []
+              self: false
+          items:
+            type: object
+            anyOf:
+              - properties:
+                  cidr_blocks:
+                    minItems: 1
+              - properties:
+                  security_groups:
+                    minItems: 1
+              - properties:
+                  self:
+                    const: true
+            required:
+              - description
+              - from_port
+              - to_port
+              - protocol
+              - cidr_blocks
+              - security_groups
+              - self
+            properties:
+              description:
+                title: Description
+                type: string
+              from_port:
+                title: From Port
+                type: number
+                minimum: 0
+                maximum: 65535
+              to_port:
+                title: To Port
+                type: number
+                minimum: 0
+                maximum: 65535
+              protocol:
+                title: Protocol
+                type: string
+                default: tcp
+              cidr_blocks:
+                title: CIDR Blocks
+                type: array
+                items:
+                  type: string
+                  pattern: '^(([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))$'
+                  not:
+                    enum:
+                      - 0.0.0.0/0
+              security_groups:
+                title: Source Security Groups
+                type: array
+                items:
+                  type: string
+                  pattern: '^sg-[a-f0-9]{8}$|^sg-[a-f0-9]{17}$'
+                default: []
+              self:
+                title: Allow Self Reference
+                type: boolean
+                default: false
+        egress_rules:
+          title: Egress Rules
+          type: array
+          description: Outbound rules. No egress is created unless an explicit destination is provided.
+          default: []
+          items:
+            type: object
+            anyOf:
+              - properties:
+                  cidr_blocks:
+                    minItems: 1
+              - properties:
+                  security_groups:
+                    minItems: 1
+              - properties:
+                  self:
+                    const: true
+            required:
+              - description
+              - from_port
+              - to_port
+              - protocol
+              - cidr_blocks
+              - security_groups
+              - self
+            properties:
+              description:
+                title: Description
+                type: string
+              from_port:
+                title: From Port
+                type: number
+                minimum: 0
+                maximum: 65535
+              to_port:
+                title: To Port
+                type: number
+                minimum: 0
+                maximum: 65535
+              protocol:
+                title: Protocol
+                type: string
+              cidr_blocks:
+                title: CIDR Blocks
+                type: array
+                items:
+                  type: string
+                  pattern: '^(([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))$'
+              security_groups:
+                title: Destination Security Groups
+                type: array
+                items:
+                  type: string
+                  pattern: '^sg-[a-f0-9]{8}$|^sg-[a-f0-9]{17}$'
+                default: []
+              self:
+                title: Allow Self Reference
+                type: boolean
+                default: false
+
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Target Repository
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+              additionalScopes:
+                github:
+                  - workflow
+
+  steps:
+    - id: fetch-base
+      name: Fetch security group template
+      action: fetch:template
+      input:
+        url: ./security-group-setup
+        targetPath: ./
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          vpc_id: ${{ parameters.vpc_id }}
+          environment: ${{ parameters.environment }}
+          aws_region: ${{ parameters.aws_region }}
+          aws_account_id: ${{ parameters.aws_account_id }}
+          owner: ${{ parameters.owner }}
+          project: ${{ parameters.project }}
+          cost_center: ${{ parameters.cost_center }}
+          github_org: ${{ parameters.github_org }}
+          ingress_rules: ${{ parameters.ingress_rules }}
+          egress_rules: ${{ parameters.egress_rules }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+        defaultBranch: main
+        description: Security group definition for ${{ parameters.name }}.
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Catalog Entry
+        url: ${{ steps.register.output.catalogInfoUrl }}
+    text:
+      - title: Next Steps
+        content: |
+          Your security group repository has been created.
+
+          1. Review ingress rules for least privilege.
+          2. Confirm the VPC, AWS account, and region.
+          3. Run the standard Terraform quality gate before applying.

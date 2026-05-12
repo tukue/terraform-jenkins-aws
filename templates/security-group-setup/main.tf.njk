@@ -1,0 +1,44 @@
+module "security_group" {
+  source = "github.com/{{ github_org }}/terraform-jenkins-aws//platform-modules/security-group?ref=main"
+
+  name        = "{{ name }}"
+  description = "{{ description }}"
+  vpc_id      = "{{ vpc_id }}"
+
+  ingress_rules = [
+  {% for rule in ingress_rules %}
+    {
+      description      = "{{ rule.description }}"
+      from_port        = {{ rule.from_port }}
+      to_port          = {{ rule.to_port }}
+      protocol         = "{{ rule.protocol }}"
+      cidr_blocks      = {{ rule.cidr_blocks | dump }}
+      security_groups  = {{ rule.security_groups | dump }}
+      self             = {{ rule.self }}
+    },
+  {% endfor %}
+  ]
+
+  egress_rules = [
+  {% for rule in egress_rules %}
+    {
+      description      = "{{ rule.description }}"
+      from_port        = {{ rule.from_port }}
+      to_port          = {{ rule.to_port }}
+      protocol         = "{{ rule.protocol }}"
+      cidr_blocks      = {{ rule.cidr_blocks | dump }}
+      security_groups  = {{ rule.security_groups | dump }}
+      self             = {{ rule.self }}
+    },
+  {% endfor %}
+  ]
+
+  environment = "{{ environment }}"
+
+  tags = {
+    Owner       = "{{ owner }}"
+    Project     = "{{ project }}"
+    CostCenter  = "{{ cost_center }}"
+    AwsAccount  = "{{ aws_account_id }}"
+  }
+}

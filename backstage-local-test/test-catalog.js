@@ -100,6 +100,7 @@ const templates = [
   'templates/create-vpc-template.yaml',
   'templates/create-rds-database-template.yaml',
   'templates/create-ec2-instance-template.yaml',
+  'templates/create-security-group-template.yaml',
 ];
 
 templates.forEach(templatePath => {
@@ -123,7 +124,7 @@ console.log('🎯 Catalog Summary:');
 console.log('- Internal developer platform system with infrastructure components');
 console.log('- AWS platform resources and reusable Terraform modules');
 console.log('- Platform Engineering teams and users');
-console.log('- Jenkins, ECS runtime, standard service, and S3 bucket templates');
+console.log('- Jenkins, ECS runtime, standard service, S3 bucket, and security group templates');
 console.log('- Ready for local Backstage loading');
 console.log('');
 console.log('📋 Next Steps:');

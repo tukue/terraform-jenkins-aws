@@ -52,6 +52,14 @@ Creates a standalone repository for a tagged, encrypted S3 bucket with public ac
 
 Use this when a team needs a standard storage bucket without hand-writing the baseline security controls.
 
+### Security Group
+
+**File**: `create-security-group-template.yaml`
+
+Creates a standalone repository for a tagged AWS security group with explicit ingress and egress rule inputs.
+
+Use this when a team needs reusable network access control without bypassing platform ownership, environment, and cost tags.
+
 ## Template Design Principles
 
 - keep customer input small

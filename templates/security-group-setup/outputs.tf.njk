@@ -1,0 +1,14 @@
+output "security_group_id" {
+  description = "Created security group ID"
+  value       = module.security_group.id
+}
+
+output "security_group_arn" {
+  description = "Created security group ARN"
+  value       = module.security_group.arn
+}
+
+output "security_group_name" {
+  description = "Created security group name"
+  value       = module.security_group.name
+}
