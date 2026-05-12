@@ -67,6 +67,11 @@ spec:
           title: Cost Center
           type: string
           default: platform-ops
+        github_org:
+          title: Platform Module GitHub Organization
+          type: string
+          default: your-org
+          pattern: '^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$'
 
     - title: Network rules
       properties:
@@ -235,6 +240,7 @@ spec:
           owner: ${{ parameters.owner }}
           project: ${{ parameters.project }}
           cost_center: ${{ parameters.cost_center }}
+          github_org: ${{ parameters.github_org }}
           ingress_rules: ${{ parameters.ingress_rules }}
           egress_rules: ${{ parameters.egress_rules }}
 
