@@ -32,12 +32,14 @@ This status reflects the implementation backlog and the current feature branch w
 - Registered platform module catalog entries in Backstage app configuration.
 - Aligned platform module catalog entries to `internal-developer-platform`.
 - Added the `create-s3-bucket` Backstage template.
+- Added the `create-security-group` Backstage template.
 - Added generated S3 bucket Terraform template files with encryption, public access blocking, ownership controls, versioning, lifecycle controls, and standard tags.
+- Added generated security group Terraform template files with explicit ingress and egress rule inputs.
 - Updated local catalog validation to include platform resources and the S3 template.
 - Added a GitHub Actions workflow for Backstage catalog validation.
 
 ## Next Priority Tasks
 
 - Add PR cost estimation for Terraform changes.
-- Add the remaining self-service templates: basic EC2, RDS, VPC, security group, and load balancer.
+- Add the remaining self-service template for load balancers.
 - Add operational runbooks for blue-green deployment, disaster recovery, SSL renewal, and security updates.

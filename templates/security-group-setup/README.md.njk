@@ -1,0 +1,23 @@
+# {{ name }}
+
+This repository defines an AWS security group using the platform Terraform module.
+
+## Inputs
+
+- Environment: `{{ environment }}`
+- AWS region: `{{ aws_region }}`
+- AWS account: `{{ aws_account_id }}`
+- VPC ID: `{{ vpc_id }}`
+- Owner: `{{ owner }}`
+- Project: `{{ project }}`
+
+## Usage
+
+```bash
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan
+```
+
+Before applying, review each ingress rule for least privilege. Broad access to sensitive ports should require an approved exception.

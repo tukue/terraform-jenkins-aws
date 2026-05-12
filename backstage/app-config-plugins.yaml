@@ -86,6 +86,7 @@ catalog:
       - target: ../../templates/create-vpc-template.yaml
       - target: ../../templates/create-rds-database-template.yaml
       - target: ../../templates/create-ec2-instance-template.yaml
+      - target: ../../templates/create-security-group-template.yaml
 
 # Terraform Plugin Configuration
 terraform:

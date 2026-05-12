@@ -120,7 +120,7 @@ Transform the terraform-jenkins-aws repository into a mature platform project wi
   - [x] Create template for RDS databases (`platform-modules/rds-database`)
   - [x] Create template for S3 buckets (`templates/s3-bucket`)
   - [x] Create template for VPC setup (`platform-modules/vpc`)
-  - [ ] Create template for security groups
+  - [x] Create template for security groups
   - [ ] Create template for load balancers
 - **Owner**: Platform Team
 - **Priority**: P1 (High)

@@ -111,6 +111,22 @@ catalog:
       target: ${REPO_ROOT}/templates/create-s3-bucket-template.yaml
       rules:
         - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-vpc-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-rds-database-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-ec2-instance-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-security-group-template.yaml
+      rules:
+        - allow: [Template]
 
 kubernetes:
   # see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
