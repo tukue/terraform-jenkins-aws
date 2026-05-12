@@ -40,7 +40,7 @@ spec:
         vpc_id:
           title: VPC ID
           type: string
-          pattern: '^vpc-[a-f0-9]+$'
+          pattern: '^vpc-[a-f0-9]{8}$|^vpc-[a-f0-9]{17}$'
         environment:
           title: Environment
           type: string
@@ -73,7 +73,7 @@ spec:
         ingress_rules:
           title: Ingress Rules
           type: array
-          description: Inbound rules. Avoid broad CIDRs on sensitive ports unless an exception is approved.
+          description: Inbound rules. Use private network CIDRs or security group references; broad internet CIDRs are rejected by the Terraform module.
           default:
             - description: Allow HTTPS from corporate network
               from_port: 443
@@ -85,6 +85,16 @@ spec:
               self: false
           items:
             type: object
+            anyOf:
+              - properties:
+                  cidr_blocks:
+                    minItems: 1
+              - properties:
+                  security_groups:
+                    minItems: 1
+              - properties:
+                  self:
+                    const: true
             required:
               - description
               - from_port
@@ -116,11 +126,16 @@ spec:
                 type: array
                 items:
                   type: string
+                  pattern: '^(([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))$'
+                  not:
+                    enum:
+                      - 0.0.0.0/0
               security_groups:
                 title: Source Security Groups
                 type: array
                 items:
                   type: string
+                  pattern: '^sg-[a-f0-9]{8}$|^sg-[a-f0-9]{17}$'
                 default: []
               self:
                 title: Allow Self Reference
@@ -129,18 +144,20 @@ spec:
         egress_rules:
           title: Egress Rules
           type: array
-          description: Outbound rules. Defaults to all outbound traffic.
-          default:
-            - description: Allow all outbound traffic
-              from_port: 0
-              to_port: 0
-              protocol: "-1"
-              cidr_blocks:
-                - 0.0.0.0/0
-              security_groups: []
-              self: false
+          description: Outbound rules. No egress is created unless an explicit destination is provided.
+          default: []
           items:
             type: object
+            anyOf:
+              - properties:
+                  cidr_blocks:
+                    minItems: 1
+              - properties:
+                  security_groups:
+                    minItems: 1
+              - properties:
+                  self:
+                    const: true
             required:
               - description
               - from_port
@@ -171,11 +188,13 @@ spec:
                 type: array
                 items:
                   type: string
+                  pattern: '^(([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2]))$'
               security_groups:
                 title: Destination Security Groups
                 type: array
                 items:
                   type: string
+                  pattern: '^sg-[a-f0-9]{8}$|^sg-[a-f0-9]{17}$'
                 default: []
               self:
                 title: Allow Self Reference
@@ -240,7 +259,7 @@ spec:
       - title: Repository
         url: ${{ steps.publish.output.remoteUrl }}
       - title: Catalog Entry
-        url: https://your-backstage-instance/catalog/default/resource/${{ parameters.name }}
+        url: ${{ steps.register.output.catalogInfoUrl }}
     text:
       - title: Next Steps
         content: |

@@ -20,4 +20,4 @@ terraform validate
 terraform plan
 ```
 
-Before applying, review each ingress rule for least privilege. Broad access to sensitive ports should require an approved exception.
+Before applying, review each ingress and egress rule for least privilege. The module rejects empty rule sources and unrestricted ingress CIDRs.
