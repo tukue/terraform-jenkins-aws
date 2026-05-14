@@ -61,7 +61,7 @@ module "jenkins_alb_waf" {
   vpc_id                = module.networking.vpc_id
   public_subnet_ids     = tolist(module.networking.public_subnet_ids)
   alb_security_group_id = module.security_group.sg_alb_http_https_id
-  jenkins_instance_id   = module.jenkins.jenkins_ec2_instance_ip
+  jenkins_instance_id   = module.jenkins.jenkins_instance_id
   jenkins_port          = var.jenkins_port
   certificate_arn       = var.alb_certificate_arn
   enable_waf            = var.enable_waf
@@ -86,7 +86,7 @@ module "cloudwatch_observability" {
   source = "./cloudwatch-observability"
 
   environment        = var.environment
-  instance_id        = module.jenkins.jenkins_ec2_instance_ip
+  instance_id        = module.jenkins.jenkins_instance_id
   instance_name      = "Jenkins"
   instance_public_ip = module.jenkins.dev_proj_1_ec2_instance_public_ip
   tags               = var.tags

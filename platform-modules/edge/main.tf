@@ -69,17 +69,24 @@ resource "aws_lb_listener" "http" {
   #tfsec:ignore:aws-elb-http-not-used
   protocol          = "HTTP"
 
-  default_action {
-    type             = local.has_certificate ? "redirect" : "forward"
-    target_group_arn = local.has_certificate ? null : aws_lb_target_group.jenkins.arn
+  dynamic "default_action" {
+    for_each = local.has_certificate ? [1] : []
+    content {
+      type = "redirect"
 
-    dynamic "redirect" {
-      for_each = local.has_certificate ? [1] : []
-      content {
+      redirect {
         port        = "443"
         protocol    = "HTTPS"
         status_code = "HTTP_301"
       }
+    }
+  }
+
+  dynamic "default_action" {
+    for_each = local.has_certificate ? [] : [1]
+    content {
+      type             = "forward"
+      target_group_arn = aws_lb_target_group.jenkins.arn
     }
   }
 

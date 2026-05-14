@@ -44,4 +44,9 @@ variable "enable_nat_gateway" {
   description = "Create NAT gateways so private subnets can reach the internet for package installation and updates"
   type        = bool
   default     = true
+
+  validation {
+    condition     = !var.enable_nat_gateway || length(var.cidr_public_subnet) > 0
+    error_message = "enable_nat_gateway requires at least one public subnet."
+  }
 }

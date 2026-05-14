@@ -159,7 +159,7 @@ resource "aws_eip" "nat" {
 }
 
 resource "aws_nat_gateway" "private_subnet_egress" {
-  count = var.enable_nat_gateway ? 1 : 0
+  count = var.enable_nat_gateway && length(aws_subnet.dev_proj_1_public_subnets) > 0 ? 1 : 0
 
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.dev_proj_1_public_subnets[count.index].id

@@ -43,4 +43,9 @@ variable "allowed_alb_cidr_blocks" {
   description = "CIDR blocks allowed to reach the public Jenkins ALB on HTTP and HTTPS"
   type        = list(string)
   default     = []
+
+  validation {
+    condition     = length(var.allowed_alb_cidr_blocks) > 0
+    error_message = "allowed_alb_cidr_blocks must contain at least one CIDR block."
+  }
 }

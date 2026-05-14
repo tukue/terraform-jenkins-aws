@@ -25,9 +25,6 @@ resource "aws_instance" "jenkins_ec2_instance_ip" {
   associate_public_ip_address = var.enable_public_ip_address
   monitoring                  = true # Enable detailed monitoring
 
-  # Enable EBS optimization if the instance type supports it
-  ebs_optimized = true
-
   # Root volume encryption
   root_block_device {
     encrypted   = true
@@ -45,9 +42,11 @@ resource "aws_instance" "jenkins_ec2_instance_ip" {
   # Enable termination protection
   disable_api_termination = true
 
-  # Enable detailed monitoring
-  credit_specification {
-    cpu_credits = "standard" # Use standard CPU credits to avoid unexpected costs
+  dynamic "credit_specification" {
+    for_each = can(regex("^t[234]", var.instance_type)) ? [1] : []
+    content {
+      cpu_credits = "standard" # Use standard CPU credits to avoid unexpected costs
+    }
   }
 }
 
@@ -69,7 +68,7 @@ resource "null_resource" "ansible_provisioner" {
   depends_on = [aws_instance.jenkins_ec2_instance_ip]
 
   provisioner "local-exec" {
-    command = "ansible-playbook -i ../ansible/inventory/aws_ec2.yml ../ansible/playbooks/jenkins-setup.yml"
+    command = "ansible-playbook -i ${path.root}/ansible/inventory/aws_ec2.yml ${path.root}/ansible/playbook/jenkins-setup.yml"
 
     environment = {
       ANSIBLE_HOST_KEY_CHECKING = "False"
