@@ -55,7 +55,7 @@ output "jenkins_waf_web_acl_arn" {
 
 output "vpc_id" {
   description = "Jenkins VPC ID"
-  value       = module.networking.dev_proj_1_vpc_id
+  value       = module.networking.vpc_id
 }
 
 output "jenkins_instance_id" {
