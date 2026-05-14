@@ -39,3 +39,9 @@ variable "flow_logs_retention_days" {
   type        = number
   default     = 30
 }
+
+variable "enable_nat_gateway" {
+  description = "Create NAT gateways so private subnets can reach the internet for package installation and updates"
+  type        = bool
+  default     = true
+}

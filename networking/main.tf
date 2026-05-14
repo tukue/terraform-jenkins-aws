@@ -145,6 +145,35 @@ resource "aws_internet_gateway" "dev_proj_1_public_internet_gateway" {
   )
 }
 
+resource "aws_eip" "nat" {
+  count = var.enable_nat_gateway ? 1 : 0
+
+  domain = "vpc"
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-nat-eip-${count.index + 1}"
+    }
+  )
+}
+
+resource "aws_nat_gateway" "private_subnet_egress" {
+  count = var.enable_nat_gateway ? 1 : 0
+
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.dev_proj_1_public_subnets[count.index].id
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-nat-${count.index + 1}"
+    }
+  )
+
+  depends_on = [aws_internet_gateway.dev_proj_1_public_internet_gateway]
+}
+
 # Public Route Table
 resource "aws_route_table" "dev_proj_1_public_route_table" {
   vpc_id = aws_vpc.dev_proj_1_vpc_eu_north_1.id
@@ -170,7 +199,15 @@ resource "aws_route_table_association" "dev_proj_1_public_rt_subnet_association"
 # Private Route Table
 resource "aws_route_table" "dev_proj_1_private_subnets" {
   vpc_id = aws_vpc.dev_proj_1_vpc_eu_north_1.id
-  #depends_on = [aws_nat_gateway.nat_gateway]
+
+  dynamic "route" {
+    for_each = var.enable_nat_gateway && length(aws_nat_gateway.private_subnet_egress) > 0 ? [1] : []
+    content {
+      cidr_block     = "0.0.0.0/0"
+      nat_gateway_id = aws_nat_gateway.private_subnet_egress[0].id
+    }
+  }
+
   tags = merge(
     local.common_tags,
     {
@@ -222,6 +259,26 @@ resource "aws_network_acl" "main" {
     cidr_block = var.allowed_ssh_cidr # This should be restricted in variables
     from_port  = 22
     to_port    = 22
+  }
+
+  # Allow ALB-to-Jenkins traffic inside the VPC
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 400
+    action     = "allow"
+    cidr_block = var.vpc_cidr
+    from_port  = 8080
+    to_port    = 8080
+  }
+
+  # Allow return traffic for outbound connections through NAT and ALB responses
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 500
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 1024
+    to_port    = 65535
   }
 
   # Allow all outbound

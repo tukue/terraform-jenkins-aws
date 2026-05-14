@@ -34,6 +34,10 @@ module "jenkins_infrastructure" {
 
   # Basic settings
   environment = var.environment
+  aws_region  = var.aws_region
+  aws_profile = var.aws_profile
+  aws_account_id = var.aws_account_id
+  bucket_name = var.bucket_name
 
   # Naming
   vpc_name = "${var.project_name}-vpc"
@@ -43,12 +47,18 @@ module "jenkins_infrastructure" {
   cidr_public_subnet   = [cidrsubnet(var.vpc_cidr, 4, 1), cidrsubnet(var.vpc_cidr, 4, 2)]
   cidr_private_subnet  = [cidrsubnet(var.vpc_cidr, 4, 11), cidrsubnet(var.vpc_cidr, 4, 12)]
   eu_availability_zone = local.azs
+  enable_nat_gateway   = var.enable_nat_gateway
 
   # EC2 Configuration
-  ec2_ami_id    = data.aws_ami.latest_ubuntu.id
-  instance_type = local.instance_type
-  public_key    = var.public_key
-  run_ansible   = var.ansible_enabled
+  ec2_ami_id          = data.aws_ami.latest_ubuntu.id
+  instance_type       = local.instance_type
+  public_key          = var.public_key
+  run_ansible         = var.ansible_enabled
+  alb_certificate_arn                 = var.alb_certificate_arn
+  allowed_alb_cidr_blocks            = var.allowed_alb_cidr_blocks
+  allowed_jenkins_egress_cidr_blocks = var.allowed_jenkins_egress_cidr_blocks
+  enable_waf                          = var.enable_waf
+  waf_rate_limit                      = var.waf_rate_limit
 
   # Tagging
   tags = local.common_tags

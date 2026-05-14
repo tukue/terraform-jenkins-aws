@@ -25,14 +25,19 @@ module "networking" {
   eu_availability_zone = var.eu_availability_zone
   cidr_private_subnet  = var.cidr_private_subnet
   environment          = var.environment
+  enable_nat_gateway   = var.enable_nat_gateway
 }
 
 module "security_group" {
-  source              = "./security-groups"
-  ec2_sg_name         = "SG for EC2 to enable SSH(22), HTTPS(443) and HTTP(80)"
-  vpc_id              = module.networking.dev_proj_1_vpc_id
-  ec2_jenkins_sg_name = "Allow port 8080 for jenkins"
-  environment         = var.environment
+  source                              = "./security-groups"
+  ec2_sg_name                         = "SG for EC2 to enable SSH(22), HTTPS(443) and HTTP(80)"
+  vpc_id                              = module.networking.dev_proj_1_vpc_id
+  vpc_cidr                            = var.vpc_cidr
+  ec2_jenkins_sg_name                 = "Allow port 8080 for jenkins"
+  alb_sg_name                         = "Allow HTTP and HTTPS for Jenkins ALB"
+  allowed_alb_cidr_blocks             = var.allowed_alb_cidr_blocks
+  allowed_jenkins_egress_cidr_blocks = length(var.allowed_jenkins_egress_cidr_blocks) > 0 ? var.allowed_jenkins_egress_cidr_blocks : [var.vpc_cidr]
+  environment                         = var.environment
 }
 
 module "jenkins" {
@@ -41,23 +46,27 @@ module "jenkins" {
   instance_type             = var.instance_type
   tag_name                  = "Jenkins:Ubuntu Linux EC2"
   public_key                = var.public_key
-  subnet_id                 = tolist(module.networking.dev_proj_1_public_subnets)[0]
-  sg_for_jenkins            = [module.security_group.sg_ec2_sg_ssh_http_id, module.security_group.sg_ec2_jenkins_port_8080]
-  enable_public_ip_address  = true
+  subnet_id                 = tolist(module.networking.dev_proj_1_private_subnets)[0]
+  sg_for_jenkins            = [module.security_group.sg_ec2_jenkins_port_8080]
+  enable_public_ip_address  = false
   user_data_install_jenkins = templatefile("./jenkins-runner-script/jenkins-installer.sh", {})
   environment               = var.environment
   run_ansible               = var.run_ansible
 }
 
-module "lb_target_group" {
-  source                   = "./load-balancer-target-group"
-  lb_target_group_name     = "jenkins-lb-target-group"
-  lb_target_group_port     = 443
-  lb_target_group_protocol = "HTTPS"
-  vpc_id                   = module.networking.dev_proj_1_vpc_id
-  ec2_instance_id          = module.jenkins.jenkins_ec2_instance_ip
-  environment              = var.environment
-  certificate_arn          = "dummy-arn" # Placeholder value
+module "jenkins_alb_waf" {
+  source = "./modules/jenkins-alb-waf"
+
+  name_prefix           = "${var.environment}-jenkins"
+  vpc_id                = module.networking.dev_proj_1_vpc_id
+  public_subnet_ids     = tolist(module.networking.dev_proj_1_public_subnets)
+  alb_security_group_id = module.security_group.sg_alb_http_https_id
+  jenkins_instance_id   = module.jenkins.jenkins_ec2_instance_ip
+  jenkins_port          = var.jenkins_port
+  certificate_arn       = var.alb_certificate_arn
+  enable_waf            = var.enable_waf
+  waf_rate_limit        = var.waf_rate_limit
+  tags                  = local.common_tags
 }
 
 module "prometheus" {
