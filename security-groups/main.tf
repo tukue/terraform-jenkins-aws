@@ -49,11 +49,57 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
     }
   }
 
+  egress {
+    description = "Allow outbound traffic"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+  }
+
   tags = merge(
     local.common_tags,
     {
       Name    = "${var.environment}-sg-ssh-http"
       Purpose = "Allow SSH, HTTP, and HTTPS traffic from specified ranges"
+    }
+  )
+}
+
+resource "aws_security_group" "alb_http_https" {
+  name        = var.alb_sg_name
+  description = "Allow public HTTP and HTTPS access to the Jenkins ALB"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "Allow public HTTP"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+  }
+
+  ingress {
+    description = "Allow public HTTPS"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+  }
+
+  egress {
+    description = "Allow outbound traffic to Jenkins targets"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name    = "${var.environment}-sg-jenkins-alb"
+      Purpose = "Public ALB access for Jenkins"
     }
   )
 }
@@ -73,6 +119,22 @@ resource "aws_security_group" "ec2_jenkins_port_8080" {
       to_port     = 8080
       protocol    = "tcp"
     }
+  }
+
+  ingress {
+    description     = "Allow Jenkins from ALB"
+    security_groups = [aws_security_group.alb_http_https.id]
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+  }
+
+  egress {
+    description = "Allow outbound traffic"
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
   }
 
   tags = merge(

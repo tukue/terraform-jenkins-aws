@@ -78,6 +78,36 @@ variable "instance_type" {
   default     = "t3.small"
 }
 
+variable "enable_nat_gateway" {
+  description = "Create NAT gateway egress for private subnets so Jenkins can install and update packages"
+  type        = bool
+  default     = true
+}
+
+variable "jenkins_port" {
+  description = "Port Jenkins listens on inside the private subnet"
+  type        = number
+  default     = 8080
+}
+
+variable "alb_certificate_arn" {
+  description = "Optional ACM certificate ARN for HTTPS on the Jenkins ALB. If empty, the ALB serves HTTP."
+  type        = string
+  default     = ""
+}
+
+variable "enable_waf" {
+  description = "Attach a regional AWS WAFv2 Web ACL to the Jenkins ALB"
+  type        = bool
+  default     = true
+}
+
+variable "waf_rate_limit" {
+  description = "Maximum requests per 5-minute period from a single IP before WAF blocks it"
+  type        = number
+  default     = 2000
+}
+
 variable "run_ansible" {
   description = "Whether to run Ansible configuration after provisioning"
   type        = bool

@@ -1,13 +1,15 @@
 output "jenkins_url" {
-  value       = "http://${module.jenkins_infrastructure.jenkins_public_ip}:8080"
+  value       = module.jenkins_infrastructure.jenkins_url
   description = "Jenkins portal URL"
 }
 
 output "jenkins_access_info" {
   value = {
-    url             = "http://${module.jenkins_infrastructure.jenkins_public_ip}:8080"
+    url             = module.jenkins_infrastructure.jenkins_url
     instance_id     = module.jenkins_infrastructure.jenkins_instance_id
-    instance_ip     = module.jenkins_infrastructure.jenkins_public_ip
+    instance_ip     = module.jenkins_infrastructure.jenkins_private_ip
+    alb_dns_name    = module.jenkins_infrastructure.jenkins_alb_dns_name
+    waf_web_acl_arn = module.jenkins_infrastructure.jenkins_waf_web_acl_arn
     security_groups = module.jenkins_infrastructure.security_group_ids
     vpc_id          = module.jenkins_infrastructure.vpc_id
   }
@@ -38,7 +40,22 @@ output "jenkins_instance_id" {
 
 output "jenkins_public_ip" {
   value       = module.jenkins_infrastructure.jenkins_public_ip
-  description = "Jenkins instance public IP"
+  description = "Jenkins instance public IP. Null when Jenkins is private."
+}
+
+output "jenkins_private_ip" {
+  value       = module.jenkins_infrastructure.jenkins_private_ip
+  description = "Jenkins instance private IP"
+}
+
+output "jenkins_alb_dns_name" {
+  value       = module.jenkins_infrastructure.jenkins_alb_dns_name
+  description = "Jenkins ALB DNS name"
+}
+
+output "jenkins_waf_web_acl_arn" {
+  value       = module.jenkins_infrastructure.jenkins_waf_web_acl_arn
+  description = "Jenkins WAF Web ACL ARN"
 }
 
 output "security_group_ids" {

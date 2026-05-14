@@ -23,3 +23,9 @@ variable "allowed_jenkins_cidr_blocks" {
   type        = list(string)
   default     = [] # Empty by default, must be specified in terraform.tfvars
 }
+
+variable "alb_sg_name" {
+  description = "Name for the public ALB security group"
+  type        = string
+  default     = "Allow HTTP and HTTPS to Jenkins ALB"
+}
