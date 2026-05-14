@@ -4,7 +4,8 @@ locals {
 
 resource "aws_lb" "jenkins" {
   name               = "${var.name_prefix}-alb"
-  #tfsec:ignore:aws-elb-alb-not-public Public ALB is the intentional WAF-protected entry point; Jenkins itself remains private.
+  # Public ALB is the intentional WAF-protected entry point; Jenkins itself remains private.
+  #tfsec:ignore:aws-elb-alb-not-public
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.alb_security_group_id]
@@ -64,7 +65,8 @@ resource "aws_lb_target_group_attachment" "jenkins" {
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.jenkins.arn
   port              = 80
-  #tfsec:ignore:aws-elb-http-not-used HTTP is used only as the public redirect listener when alb_certificate_arn enables HTTPS.
+  # HTTP is used only as the public redirect listener when alb_certificate_arn enables HTTPS.
+  #tfsec:ignore:aws-elb-http-not-used
   protocol          = "HTTP"
 
   default_action {
