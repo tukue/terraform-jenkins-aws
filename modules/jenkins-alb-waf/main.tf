@@ -3,12 +3,14 @@ locals {
 }
 
 resource "aws_lb" "jenkins" {
+  #tfsec:ignore:aws-elb-alb-not-public Public ALB is the intentional WAF-protected entry point; Jenkins itself remains private.
   name               = "${var.name_prefix}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.alb_security_group_id]
   subnets            = var.public_subnet_ids
 
+  drop_invalid_header_fields = true
   enable_deletion_protection = false
 
   tags = merge(

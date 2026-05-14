@@ -50,8 +50,8 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
   }
 
   egress {
-    description = "Allow outbound traffic"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow Jenkins outbound traffic to approved CIDR blocks"
+    cidr_blocks = var.allowed_jenkins_egress_cidr_blocks
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -71,25 +71,31 @@ resource "aws_security_group" "alb_http_https" {
   description = "Allow public HTTP and HTTPS access to the Jenkins ALB"
   vpc_id      = var.vpc_id
 
-  ingress {
-    description = "Allow public HTTP"
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
+  dynamic "ingress" {
+    for_each = length(var.allowed_alb_cidr_blocks) > 0 ? [1] : []
+    content {
+      description = "Allow HTTP from approved CIDR blocks"
+      cidr_blocks = var.allowed_alb_cidr_blocks
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+    }
   }
 
-  ingress {
-    description = "Allow public HTTPS"
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
+  dynamic "ingress" {
+    for_each = length(var.allowed_alb_cidr_blocks) > 0 ? [1] : []
+    content {
+      description = "Allow HTTPS from approved CIDR blocks"
+      cidr_blocks = var.allowed_alb_cidr_blocks
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+    }
   }
 
   egress {
-    description = "Allow outbound traffic to Jenkins targets"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow outbound traffic to Jenkins targets inside the VPC"
+    cidr_blocks = [var.vpc_cidr]
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -130,8 +136,8 @@ resource "aws_security_group" "ec2_jenkins_port_8080" {
   }
 
   egress {
-    description = "Allow outbound traffic"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow outbound traffic inside the VPC"
+    cidr_blocks = [var.vpc_cidr]
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

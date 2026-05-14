@@ -45,9 +45,9 @@ Think of the Jenkins platform path as three separate planes:
 
 - The entry plane is public. Users reach Jenkins through an internet-facing Application Load Balancer. AWS WAF is attached to that ALB, so common application-layer threats and abusive request rates are handled before traffic reaches the VPC workload.
 - The runtime plane is private. The Jenkins EC2 instance lives in private subnets, has no public IP address, and only accepts port `8080` from the ALB security group.
-- The egress plane is outbound-only. Jenkins can use NAT gateway egress for package installation, updates, and plugin bootstrap, but the internet cannot initiate traffic directly to the Jenkins instance.
+- The egress plane is outbound-only and explicit. By default, Jenkins security group egress is VPC-only for tfsec compliance. If bootstrap needs public package or plugin endpoints, operators must intentionally set `allowed_jenkins_egress_cidr_blocks` or use private mirrors and VPC endpoints.
 
-This means the public surface is the ALB plus WAF, not the Jenkins server. Security groups express that boundary: public HTTP/HTTPS is allowed to the ALB, and Jenkins application traffic is allowed only from the ALB to the private instance.
+This means the public surface is the ALB plus WAF, not the Jenkins server. Security groups express that boundary: HTTP/HTTPS is allowed to the ALB only from approved CIDR blocks, and Jenkins application traffic is allowed only from the ALB to the private instance.
 
 #### Infrastructure Diagram
 
@@ -72,10 +72,10 @@ flowchart LR
   end
 
   alb -- "HTTP 8080 target group" --> jenkins
-  jenkins -- "outbound package/plugin access" --> nat
+  jenkins -- "explicit outbound bootstrap egress" --> nat
   nat --> igw
 
-  albsg["ALB Security Group\ninbound 80/443 from internet"]
+  albsg["ALB Security Group\ninbound 80/443 from approved CIDRs"]
   jenkinssg["Jenkins Security Group\ninbound 8080 from ALB SG only"]
 
   albsg -. attached to .-> alb

@@ -29,12 +29,15 @@ module "networking" {
 }
 
 module "security_group" {
-  source              = "./security-groups"
-  ec2_sg_name         = "SG for EC2 to enable SSH(22), HTTPS(443) and HTTP(80)"
-  vpc_id              = module.networking.dev_proj_1_vpc_id
-  ec2_jenkins_sg_name = "Allow port 8080 for jenkins"
-  alb_sg_name         = "Allow HTTP and HTTPS for Jenkins ALB"
-  environment         = var.environment
+  source                              = "./security-groups"
+  ec2_sg_name                         = "SG for EC2 to enable SSH(22), HTTPS(443) and HTTP(80)"
+  vpc_id                              = module.networking.dev_proj_1_vpc_id
+  vpc_cidr                            = var.vpc_cidr
+  ec2_jenkins_sg_name                 = "Allow port 8080 for jenkins"
+  alb_sg_name                         = "Allow HTTP and HTTPS for Jenkins ALB"
+  allowed_alb_cidr_blocks             = var.allowed_alb_cidr_blocks
+  allowed_jenkins_egress_cidr_blocks = length(var.allowed_jenkins_egress_cidr_blocks) > 0 ? var.allowed_jenkins_egress_cidr_blocks : [var.vpc_cidr]
+  environment                         = var.environment
 }
 
 module "jenkins" {

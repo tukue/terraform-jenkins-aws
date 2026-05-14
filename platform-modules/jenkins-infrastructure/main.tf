@@ -54,9 +54,11 @@ module "jenkins_infrastructure" {
   instance_type       = local.instance_type
   public_key          = var.public_key
   run_ansible         = var.ansible_enabled
-  alb_certificate_arn = var.alb_certificate_arn
-  enable_waf          = var.enable_waf
-  waf_rate_limit      = var.waf_rate_limit
+  alb_certificate_arn                 = var.alb_certificate_arn
+  allowed_alb_cidr_blocks            = var.allowed_alb_cidr_blocks
+  allowed_jenkins_egress_cidr_blocks = var.allowed_jenkins_egress_cidr_blocks
+  enable_waf                          = var.enable_waf
+  waf_rate_limit                      = var.waf_rate_limit
 
   # Tagging
   tags = local.common_tags

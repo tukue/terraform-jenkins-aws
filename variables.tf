@@ -96,6 +96,18 @@ variable "alb_certificate_arn" {
   default     = ""
 }
 
+variable "allowed_alb_cidr_blocks" {
+  description = "CIDR blocks allowed to reach the public Jenkins ALB on HTTP and HTTPS"
+  type        = list(string)
+  default     = []
+}
+
+variable "allowed_jenkins_egress_cidr_blocks" {
+  description = "CIDR blocks Jenkins can reach outbound. Defaults to VPC-only when empty."
+  type        = list(string)
+  default     = []
+}
+
 variable "enable_waf" {
   description = "Attach a regional AWS WAFv2 Web ACL to the Jenkins ALB"
   type        = bool

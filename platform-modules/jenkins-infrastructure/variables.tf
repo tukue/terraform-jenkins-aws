@@ -85,6 +85,18 @@ variable "alb_certificate_arn" {
   description = "Optional ACM certificate ARN for HTTPS on the Jenkins ALB"
 }
 
+variable "allowed_alb_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "CIDR blocks allowed to reach the public Jenkins ALB on HTTP and HTTPS"
+}
+
+variable "allowed_jenkins_egress_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "CIDR blocks Jenkins can reach outbound. Defaults to VPC-only when empty."
+}
+
 variable "enable_waf" {
   type        = bool
   default     = true
