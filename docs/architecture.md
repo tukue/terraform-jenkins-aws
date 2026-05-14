@@ -34,9 +34,56 @@ At a high level it combines:
 - networking
 - security groups
 - load balancing
+- WAF protection for the public entry point
 - certificates and DNS
 - Jenkins compute and supporting configuration
 - environment-specific Terraform inputs and backend configuration
+
+#### Mental Model
+
+Think of the Jenkins platform path as three separate planes:
+
+- The entry plane is public. Users reach Jenkins through an internet-facing Application Load Balancer. AWS WAF is attached to that ALB, so common application-layer threats and abusive request rates are handled before traffic reaches the VPC workload.
+- The runtime plane is private. The Jenkins EC2 instance lives in private subnets, has no public IP address, and only accepts port `8080` from the ALB security group.
+- The egress plane is outbound-only. Jenkins can use NAT gateway egress for package installation, updates, and plugin bootstrap, but the internet cannot initiate traffic directly to the Jenkins instance.
+
+This means the public surface is the ALB plus WAF, not the Jenkins server. Security groups express that boundary: public HTTP/HTTPS is allowed to the ALB, and Jenkins application traffic is allowed only from the ALB to the private instance.
+
+#### Infrastructure Diagram
+
+```mermaid
+flowchart LR
+  user["User / Browser"] --> waf["AWS WAFv2 Web ACL"]
+  waf --> alb["Public Application Load Balancer"]
+
+  subgraph aws["AWS Account / Region"]
+    subgraph vpc["VPC"]
+      subgraph public["Public Subnets"]
+        alb
+        nat["NAT Gateway"]
+      end
+
+      subgraph private["Private Subnets"]
+        jenkins["Jenkins EC2\nno public IP\nport 8080"]
+      end
+
+      igw["Internet Gateway"]
+    end
+  end
+
+  alb -- "HTTP 8080 target group" --> jenkins
+  jenkins -- "outbound package/plugin access" --> nat
+  nat --> igw
+
+  albsg["ALB Security Group\ninbound 80/443 from internet"]
+  jenkinssg["Jenkins Security Group\ninbound 8080 from ALB SG only"]
+
+  albsg -. attached to .-> alb
+  jenkinssg -. attached to .-> jenkins
+  albsg -. allowed source .-> jenkinssg
+```
+
+The optional HTTPS path depends on `alb_certificate_arn`. When a certificate ARN is provided, the ALB redirects HTTP to HTTPS and forwards HTTPS traffic to Jenkins over HTTP on port `8080` inside the VPC. Without a certificate ARN, the ALB serves HTTP and still keeps Jenkins private.
 
 ### Customer ECS Runtime
 
