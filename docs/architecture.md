@@ -39,7 +39,7 @@ At a high level it combines:
 - Jenkins compute and supporting configuration
 - environment-specific Terraform inputs and backend configuration
 
-#### Mental Model
+#### Adding private subnet, ALB, WAF 
 
 Think of the Jenkins platform path as three separate planes:
 
