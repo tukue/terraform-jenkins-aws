@@ -161,6 +161,10 @@ The repository structure itself reflects the platform architecture.
 | Path | Architectural Role |
 |---|---|
 | `platform-modules/` | Reusable shared platform building blocks |
+| `platform-modules/network/` | Jenkins VPC, subnets, routing, NAT, flow logs, and network ACLs |
+| `platform-modules/security/` | Jenkins and ALB security group boundaries |
+| `platform-modules/compute/` | Jenkins EC2 compute and bootstrap boundary |
+| `platform-modules/edge/` | Jenkins ALB, target group, listeners, and WAF boundary |
 | `platform-examples/` | Example product-aligned implementations |
 | `templates/` | Self-service entry points and standard product inputs |
 | `jenkins/` | Jenkins-specific infrastructure product path |

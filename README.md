@@ -46,6 +46,10 @@ We don't just "provide infrastructure"; we build **Products** for internal devel
 ```bash
 ├── docs/                # 📖 Product docs, architecture, and runbooks
 ├── platform-modules/    # 🧱 Reusable infrastructure building blocks
+│   ├── network/         # Jenkins VPC, subnets, routing, NAT, and flow logs
+│   ├── security/        # Jenkins and ALB security groups
+│   ├── compute/         # Jenkins EC2 compute module
+│   └── edge/            # Jenkins ALB, listeners, target group, and WAF
 ├── platform-examples/   # 💡 Example consumption patterns
 ├── templates/           # 📝 Backstage Scaffolder templates
 ├── backstage-app/       # 🖥️ Local Backstage portal assets

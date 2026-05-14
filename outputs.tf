@@ -55,12 +55,12 @@ output "jenkins_waf_web_acl_arn" {
 
 output "vpc_id" {
   description = "Jenkins VPC ID"
-  value       = module.networking.dev_proj_1_vpc_id
+  value       = module.networking.vpc_id
 }
 
 output "jenkins_instance_id" {
   description = "Jenkins EC2 instance ID"
-  value       = module.jenkins.jenkins_ec2_instance_ip
+  value       = module.jenkins.jenkins_instance_id
 }
 
 output "jenkins_private_ip" {
