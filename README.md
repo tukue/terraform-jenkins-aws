@@ -16,7 +16,6 @@ We don't just "provide infrastructure"; we build **Products** for internal devel
 | Persona | Start Here | Why? |
 | :--- | :--- | :--- |
 | **Execs / Stakeholders** | [Platform Implementation Status](docs/platform-as-product-implementation-status.md) | ROI, maturity, and roadmap. |
-| **Consulting / Portfolio Reviewers** | [Platform Consulting Profile](docs/platform-consulting-profile.md) | Product narrative, consulting value, and maturity boundaries. |
 | **Platform Engineers** | [Architecture Guide](docs/architecture.md) | Deep dive into the modules, networking, and security. |
 | **Developers / Users** | [Getting Started](docs/getting-started.md) | Onboarding to "Golden Paths" and self-service. |
 | **Operations / SRE** | [Deployment Guide](DEPLOYMENT-GUIDE.md) | Day 2 ops, scaling, and environment management. |
