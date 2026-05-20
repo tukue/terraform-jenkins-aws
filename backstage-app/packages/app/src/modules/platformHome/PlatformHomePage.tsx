@@ -143,11 +143,19 @@ export const PlatformHomePage = () => {
             stay on the supported golden paths.
           </Typography>
           <div className={classes.heroActions}>
-            <Link to="/create" className={classes.actionLink}>
+            <Link to="/shop" className={classes.actionLink}>
               <Button
                 variant="contained"
                 color="secondary"
                 endIcon={<ArrowForwardIcon />}
+              >
+                Open Shop
+              </Button>
+            </Link>
+            <Link to="/create" className={classes.actionLink}>
+              <Button
+                variant="outlined"
+                style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.45)' }}
               >
                 Start Self-Service
               </Button>
