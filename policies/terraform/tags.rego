@@ -10,7 +10,7 @@ deny[msg] {
     resource := tfplan.resource_changes[_]
     resource.mode == "managed"
     
-    tags := resource.change.after.tags
+    tags := object.get(resource.change.after, "tags", {})
     
     missing := required_tags - {tag | tags[tag]}
     count(missing) > 0
@@ -24,7 +24,9 @@ deny[msg] {
     resource := tfplan.resource_changes[_]
     resource.mode == "managed"
     
-    env := resource.change.after.tags.Environment
+    tags := object.get(resource.change.after, "tags", {})
+    env := object.get(tags, "Environment", "")
+    env != ""
     not valid_environments[env]
     
     msg := sprintf("Resource '%s' has invalid Environment tag: '%s'. Must be one of: %s", [resource.address, env, valid_environments])
