@@ -6,17 +6,13 @@ import input as tfplan
 sensitive_ports = {22, 3389, 5432, 27017, 6379}
 
 deny[msg] {
-    some resource
     resource := tfplan.resource_changes[_]
     resource.type == "aws_security_group_rule"
     resource.change.after.type == "ingress"
     
-    # Check if the port is sensitive
     port := resource.change.after.from_port
     sensitive_ports[port]
     
-    # Check if cidr_blocks includes 0.0.0.0/0
-    some cidr
     cidr := resource.change.after.cidr_blocks[_]
     cidr == "0.0.0.0/0"
     
@@ -25,12 +21,11 @@ deny[msg] {
 
 # Ensure security group has a non-default description
 deny[msg] {
-    some resource
     resource := tfplan.resource_changes[_]
     resource.type == "aws_security_group"
     
     desc := resource.change.after.description
-    (desc == "Managed by Terraform") # Terraform's default description
+    (desc == "Managed by Terraform")
     
     msg := sprintf("Security group '%s' must have a descriptive, non-default description", [resource.address])
 }

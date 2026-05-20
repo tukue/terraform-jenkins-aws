@@ -19,6 +19,12 @@ Enforces cost-effective choices and basic security hygiene.
 - **Instance Types:** Restricts `dev` environment instances to `t3.micro`, `t3.small`, and `t3.medium`.
 - **Encryption:** Mandates encrypted root volumes for all EC2 instances.
 
+### 4. S3 Security (`terraform/s3.rego`)
+Enforces security best practices for S3 buckets.
+- **Encryption:** All S3 buckets must have server-side encryption enabled via `aws_s3_bucket_server_side_encryption_configuration`.
+- **Public Access:** All S3 buckets must block public access via `aws_s3_bucket_public_access_block`.
+- **Versioning:** All S3 buckets must have versioning enabled via `aws_s3_bucket_versioning`.
+
 ## How to Test Policies Locally
 
 You can use `conftest` or `opa` to test these policies against a Terraform plan JSON.
@@ -45,6 +51,5 @@ These policies are designed to be part of the pull request validation workflow. 
 
 ## Future Policies
 
-- S3 bucket versioning and encryption requirements.
 - IAM least privilege (blocking `*` permissions).
 - Multi-AZ requirements for production environments.

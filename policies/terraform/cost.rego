@@ -6,7 +6,6 @@ import input as tfplan
 allowed_instance_types = {"t3.micro", "t3.small", "t3.medium"}
 
 deny[msg] {
-    some resource
     resource := tfplan.resource_changes[_]
     resource.type == "aws_instance"
     resource.change.after.tags.Environment == "dev"
@@ -19,7 +18,6 @@ deny[msg] {
 
 # Require encrypted root volumes for all instances
 deny[msg] {
-    some resource
     resource := tfplan.resource_changes[_]
     resource.type == "aws_instance"
     
