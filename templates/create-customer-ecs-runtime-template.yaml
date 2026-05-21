@@ -14,7 +14,7 @@ metadata:
     - security
   links:
     - title: ECS Runtime Documentation
-      url: https://your-backstage-instance/docs/platforms/customer-ecs-runtime
+      url: /docs/default/component/customer-ecs-runtime
 
 spec:
   owner: platform-team
@@ -324,9 +324,9 @@ spec:
       - title: Repository
         url: ${{ steps.publish.output.remoteUrl }}
       - title: Catalog Entry
-        url: https://your-backstage-instance/catalog/default/component/${{ parameters.customer_name }}-ecs-runtime
+        url: /catalog/default/component/${{ parameters.customer_name }}-ecs-runtime
       - title: Security Notes
-        url: https://your-backstage-instance/docs/platforms/customer-ecs-runtime#devsecops-principles
+        url: /docs/default/component/customer-ecs-runtime#devsecops-principles
     text:
       - title: Next Steps
         content: |
