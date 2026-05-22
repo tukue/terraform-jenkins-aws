@@ -1,73 +1,187 @@
-# 🏗️ Platform-as-Product: AWS Infrastructure
+# Platform Engineering on AWS
 
-This repository is a **Platform Engineering showcase**. It demonstrates how to transform raw Terraform into **Platform Products** that are discoverable, self-serviceable, and production-ready.
+![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
----
+Self-service developer platform built with Terraform, Jenkins, AWS, Docker, and Infrastructure as Code practices.
 
-## 🎯 The Core Philosophy
-We don't just "provide infrastructure"; we build **Products** for internal developers. This repo focuses on two main product tracks:
-1.  **Jenkins on AWS**: Standardized CI/CD infrastructure.
-2.  **Customer ECS Runtime**: Repeatable, multi-tenant container runtimes.
-
----
-
-## 🧭 Navigate by Persona
-
-| Persona | Start Here | Why? |
-| :--- | :--- | :--- |
-| **Execs / Stakeholders** | [Platform Implementation Status](docs/platform-as-product-implementation-status.md) | ROI, maturity, and roadmap. |
-| **Platform Engineers** | [Architecture Guide](docs/architecture.md) | Deep dive into the modules, networking, and security. |
-| **Developers / Users** | [Getting Started](docs/getting-started.md) | Onboarding to "Golden Paths" and self-service. |
-| **Operations / SRE** | [Deployment Guide](DEPLOYMENT-GUIDE.md) | Day 2 ops, scaling, and environment management. |
+[![Terraform Security Scan](https://img.shields.io/github/actions/workflow/status/tukue/terraform-jenkins-aws/terraform-scan.yml?label=Terraform%20Security%20Scan&logo=terraform)](https://github.com/tukue/terraform-jenkins-aws/actions/workflows/terraform-scan.yml)
+[![CI/CD Pipeline](https://img.shields.io/github/actions/workflow/status/tukue/terraform-jenkins-aws/jenkins-platform-delivery.yml?label=CI%2FCD%20Pipeline&logo=githubactions)](https://github.com/tukue/terraform-jenkins-aws/actions/workflows/jenkins-platform-delivery.yml)
+[![Catalog Validation](https://img.shields.io/github/actions/workflow/status/tukue/terraform-jenkins-aws/backstage-catalog-validation.yml?label=Catalog%20Validation&logo=backstage)](https://github.com/tukue/terraform-jenkins-aws/actions/workflows/backstage-catalog-validation.yml)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## 🚀 Key Features
+## Architecture
 
-### 🛠️ Self-Service (The "Frontend")
-- **Backstage Integration**: All infra is registered in the [Backstage Catalog](catalog-info.yaml).
-- **Golden Path Templates**: Scaffolder templates in `/templates` for one-click provisioning.
-- **Local Portal**: Run a developer portal locally via [BACKSTAGE-QUICKSTART.md](BACKSTAGE-QUICKSTART.md).
-
-### 📦 Productized Modules (The "Backend")
-- **Environment-Aware**: Native support for `dev`, `qa`, and `prod` with dedicated configs.
-- **Reusable Building Blocks**: Located in `platform-modules/` for consistent consumption.
-- **Observability**: Integrated Prometheus, Grafana, and CloudWatch in `observability-service/`.
-
-### 🛡️ Governance & Standards
-- **Policy-as-Code**: OPA policies for tags, cost, and security in `policies/`.
-- **Operating Model**: Defined [SLAs, Support, and Tiers](docs/platform-service-tiers.md).
-- **Security Baseline**: Scoped IAM, WAF integration, and ECR scanning.
-
----
-
-## 📂 Repository Structure
-
-```bash
-├── docs/                # 📖 Product docs, architecture, and runbooks
-├── platform-modules/    # 🧱 Reusable infrastructure building blocks
-│   ├── network/         # Jenkins VPC, subnets, routing, NAT, and flow logs
-│   ├── security/        # Jenkins and ALB security groups
-│   ├── compute/         # Jenkins EC2 compute module
-│   └── edge/            # Jenkins ALB, listeners, target group, and WAF
-├── platform-examples/   # 💡 Example consumption patterns
-├── templates/           # 📝 Backstage Scaffolder templates
-├── backstage-app/       # 🖥️ Local Backstage portal assets
-├── jenkins/             # 🏗️ Jenkins product implementation
-├── networking/          # 🌐 Shared VPC and networking modules
-└── observability/       # 📊 Metrics, logs, and dashboards
+```
+┌─────────────┐     ┌──────────┐     ┌──────────┐     ┌───────────┐
+│  Developer  │────>│  GitHub  │────>│  Jenkins │────>│  Terraform │
+└─────────────┘     └──────────┘     └──────────┘     └───────────┘
+                                                            │
+                                                   ┌────────┴────────┐
+                                                   │                 │
+                                            ┌──────▼──────┐  ┌──────▼──────┐
+                                            │    EC2      │  │    EKS      │
+                                            │  Compute    │  │ Container   │
+                                            └──────┬──────┘  └──────┬──────┘
+                                                   │                 │
+                                            ┌──────┴─────────────────┴──────┐
+                                            │         Monitoring            │
+                                            │  ┌─────┐  ┌──────┐  ┌───────┐│
+                                            │  │Prom │  │Graf  │  │CWatch ││
+                                            │  └─────┘  └──────┘  └───────┘│
+                                            └──────────────────────────────┘
 ```
 
 ---
 
-## 🛠️ Quick Actions
-- **View Roadmap**: [IMPLEMENTATION-BACKLOG.md](IMPLEMENTATION-BACKLOG.md)
-- **Improvement Status**: [Platform Improvement Plan Status](docs/platform-improvement-plan-status.md)
-- **Check Standards**: [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Run Quality Gate**: `make quality`
-- **Follow Delivery Runbook**: [Terraform Delivery](docs/runbooks/terraform-delivery.md)
-- **Local Test**: `make local-up` (Requires Docker)
+## Features
+
+- **Reusable Terraform modules** — Productized building blocks in `platform-modules/`
+- **Automated Jenkins provisioning** — Standardized CI/CD infrastructure
+- **CI/CD pipelines** — GitHub Actions + Jenkins for end-to-end automation
+- **Infrastructure automation** — Terraform with remote state, environments, and modules
+- **Environment standardization** — Dev, QA, Prod with consistent configs
+- **Observability & monitoring** — Prometheus, Grafana, CloudWatch integration
+- **Secure cloud architecture** — IAM least privilege, WAF, VPC isolation
+- **GitOps-ready workflows** — Backstage catalog integration with scaffolder templates
 
 ---
 
-> **Note**: This is a **Showcase Repository**. It is designed to demonstrate platform engineering maturity, not as a 1:1 "copy-paste" for any production environment without proper hardening.
+## Platform Engineering Capabilities
+
+| Capability | Implementation |
+| :--- | :--- |
+| **Infrastructure as Code** | Terraform modules, remote state, environment-specific configs |
+| **CI/CD Automation** | GitHub Actions + Jenkins pipeline orchestration |
+| **Developer Self-Service** | Backstage portal with golden path templates |
+| **Standardized Deployments** | Reusable platform-modules with versioning |
+| **Cloud Governance** | OPA policy-as-code for tags, cost, security |
+| **Secure Secrets Management** | Vault integration, scoped IAM roles |
+| **Environment Provisioning** | Dev/QA/Prod with isolated accounts and VPCs |
+| **Observability** | Prometheus + Grafana dashboards + CloudWatch alarms |
+
+---
+
+## Architecture Overview
+
+The platform is structured around productized infrastructure modules:
+
+| Layer | Components |
+| :--- | :--- |
+| **Network** | VPC, subnets, NAT gateways, flow logs, transit gateway |
+| **Security** | Security groups, WAF, IAM policies, KMS encryption |
+| **Compute** | EC2 (Jenkins), EKS (containers), Auto Scaling |
+| **Edge** | ALB, target groups, listeners, SSL termination |
+| **Observability** | Prometheus, Grafana, CloudWatch metrics & alarms |
+| **CI/CD** | Jenkins server, GitHub Actions, pipeline as code |
+
+---
+
+## Deployment Workflow
+
+1. **Developer** pushes code to GitHub
+2. **GitHub Actions** triggers validation (lint, format, security scan)
+3. **Jenkins** picks up the validated change
+4. **Terraform** plans and applies infrastructure changes
+5. **AWS** resources are provisioned (EC2, EKS, networking)
+6. **Monitoring** stack is configured with alerts and dashboards
+7. **Backstage** catalog is updated with new component metadata
+
+---
+
+## Security
+
+- **IAM least privilege** — Scoped roles per service, no wildcard permissions
+- **Secrets management** — HashiCorp Vault integration for sensitive data
+- **CI/CD pipeline scanning** — Security scans in GitHub Actions + Jenkins
+- **Infrastructure validation** — `terraform validate`, `tflint`, `checkov`, OPA policies
+- **Network isolation** — VPC segmentation, private subnets, security groups
+- **Encryption** — KMS for EBS, S3, and RDS encryption at rest
+
+---
+
+## Monitoring
+
+| Tool | Purpose |
+| :--- | :--- |
+| **Prometheus** | Metrics collection and alerting rules |
+| **Grafana** | Dashboards for infrastructure and application metrics |
+| **CloudWatch** | Log aggregation, metric filters, and alarms |
+| **AlertManager** | Incident notification routing |
+
+---
+
+## Reliability
+
+- **Automated deployments** — Fully automated provisioning via CI/CD pipelines
+- **Repeatable infrastructure** — Terraform modules with deterministic state management
+- **Immutable infrastructure** — No manual server changes; rebuild from code
+- **Rollback-ready** — Terraform state versioning in S3 with DynamoDB locking
+- **Multi-AZ** — Resources distributed across availability zones
+- **Health checks** — ALB target group health checks with auto-remediation
+
+---
+
+## Disaster Recovery
+
+| Scenario | Strategy |
+| :--- | :--- |
+| **State loss** | Remote state in S3 with versioning + DynamoDB locking |
+| **Region failure** | Multi-region capability via Terraform workspaces |
+| **Data loss** | RDS automated backups, S3 versioning, EBS snapshots |
+| **Jenkins failure** | AMI-backed EC2 with startup provisioning script |
+| **Credential compromise** | Vault dynamic secrets with automatic rotation |
+
+---
+
+## Scaling Strategy
+
+- **Horizontal scaling** — Auto Scaling Groups for EC2, EKS node groups for containers
+- **Vertical scaling** — Instance type selection based on workload profiling
+- **State scaling** — Terraform workspaces for environment isolation
+- **Pipeline scaling** — Jenkins controller/agent architecture with dynamic agents
+- **Observability scaling** — Prometheus federation for multi-cluster monitoring
+
+---
+
+## Repository Structure
+
+```bash
+├── docs/                  # Product docs, architecture, and runbooks
+├── platform-modules/      # Reusable infrastructure building blocks
+│   ├── network/           # VPC, subnets, routing, NAT, flow logs
+│   ├── security/          # Security groups, IAM, WAF
+│   ├── compute/           # EC2, EKS compute modules
+│   └── edge/              # ALB, listeners, target groups, WAF
+├── platform-examples/     # Example consumption patterns
+├── templates/             # Backstage Scaffolder templates
+├── backstage-app/         # Local Backstage portal assets
+├── jenkins/               # Jenkins product implementation
+├── networking/            # Shared VPC and networking
+├── observability-service/ # Metrics, logs, and dashboards
+├── policies/              # OPA policy-as-code rules
+├── vault-service/         # Vault integration for secrets
+└── grafana/               # Grafana dashboards and datasources
+```
+
+---
+
+## Quick Actions
+
+| Action | Link |
+| :--- | :--- |
+| View Roadmap | [Implementation Backlog](IMPLEMENTATION-BACKLOG.md) |
+| Getting Started | [Platform Onboarding Guide](docs/getting-started.md) |
+| Architecture Deep Dive | [Architecture Guide](docs/architecture.md) |
+| Deployment Guide | [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md) |
+| Contribution Standards | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Quality Gate | `make quality` |
+| Local Portal | `make local-up` (requires Docker) |
+
+---
+
+> **Note**: This is a showcase repository demonstrating platform engineering maturity. It is designed for reference and learning — not as a 1:1 copy-paste for production without proper hardening.
