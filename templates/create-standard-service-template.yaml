@@ -13,7 +13,7 @@ metadata:
     - standardized
   links:
     - title: Service Tiers Documentation
-      url: https://your-backstage-instance/docs/platforms/service-tiers
+      url: /docs/default/component/service-tier-wrapper
 
 spec:
   owner: platform-team
@@ -76,6 +76,11 @@ spec:
           ui:options:
             allowedHosts:
               - github.com
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+              additionalScopes:
+                github:
+                  - workflow
 
   steps:
     - id: fetch-base
@@ -114,7 +119,7 @@ spec:
       - title: Repository
         url: ${{ steps.publish.output.remoteUrl }}
       - title: Catalog Entry
-        url: https://your-backstage-instance/catalog/default/component/${{ parameters.service_name }}
+        url: /catalog/default/component/${{ parameters.service_name }}
     text:
       - title: Next Steps
         content: |

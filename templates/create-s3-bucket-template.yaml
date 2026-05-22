@@ -119,7 +119,7 @@ spec:
       - title: Repository
         url: ${{ steps.publish.output.remoteUrl }}
       - title: Catalog Entry
-        url: https://your-backstage-instance/catalog/default/resource/${{ parameters.bucket_name }}
+        url: /catalog/default/resource/${{ parameters.bucket_name }}
     text:
       - title: Next Steps
         content: |

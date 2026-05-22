@@ -5,8 +5,18 @@ metadata:
   title: Platform Product Foundation
   description: Platform-as-product foundation for Jenkins infrastructure, customer ECS runtimes, and Backstage self-service workflows on AWS
   tags:
+    - platform-engineering
     - terraform
     - aws
+    - jenkins
+    - devops
+    - infrastructure-as-code
+    - ci-cd
+    - docker
+    - cloud-engineering
+    - observability
+    - automation
+    - developer-platform
     - backstage
     - platform
     - idp

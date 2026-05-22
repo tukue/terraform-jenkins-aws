@@ -4,95 +4,20 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-console.log('🚀 Backstage Local Catalog Test');
-console.log('================================\n');
+const repoRoot = path.join(__dirname, '..');
+const errors = [];
 
-// Test catalog-info.yaml
-try {
-  const catalogPath = path.join(__dirname, '..', 'catalog-info.yaml');
-  const catalogContent = fs.readFileSync(catalogPath, 'utf8');
-  const catalog = yaml.load(catalogContent);
+const catalogFiles = [
+  'catalog-info.yaml',
+  '.backstage/system-and-components.yaml',
+  '.backstage/platform-resources.yaml',
+  '.backstage/groups-and-users.yaml',
+  'platform-modules/customer-ecs-runtime/catalog-info.yaml',
+  'platform-modules/jenkins-infrastructure/catalog-info.yaml',
+  'platform-modules/service-tier-wrapper/catalog-info.yaml',
+];
 
-  console.log('✅ catalog-info.yaml loaded successfully');
-  console.log(`   Type: ${catalog.kind}`);
-  console.log(`   Name: ${catalog.metadata.name}`);
-  console.log(`   System: ${catalog.spec.system}`);
-  console.log('');
-} catch (error) {
-  console.log('❌ Error loading catalog-info.yaml:', error.message);
-  console.log('');
-}
-
-// Test system-and-components.yaml
-try {
-  const systemPath = path.join(__dirname, '..', '.backstage', 'system-and-components.yaml');
-  const systemContent = fs.readFileSync(systemPath, 'utf8');
-  const docs = yaml.loadAll(systemContent);
-
-  console.log('✅ system-and-components.yaml loaded successfully');
-  let componentCount = 0;
-  let apiCount = 0;
-
-  docs.forEach(doc => {
-    if (doc.kind === 'System') {
-      console.log(`   System: ${doc.metadata.name} - ${doc.metadata.title}`);
-    } else if (doc.kind === 'Component') {
-      componentCount++;
-    } else if (doc.kind === 'API') {
-      apiCount++;
-    }
-  });
-
-  console.log(`   Components: ${componentCount}`);
-  console.log(`   APIs: ${apiCount}`);
-  console.log('');
-} catch (error) {
-  console.log('❌ Error loading system-and-components.yaml:', error.message);
-  console.log('');
-}
-
-// Test groups-and-users.yaml
-try {
-  const groupsPath = path.join(__dirname, '..', '.backstage', 'groups-and-users.yaml');
-  const groupsContent = fs.readFileSync(groupsPath, 'utf8');
-  const docs = yaml.loadAll(groupsContent);
-
-  console.log('✅ groups-and-users.yaml loaded successfully');
-  let groupCount = 0;
-  let userCount = 0;
-
-  docs.forEach(doc => {
-    if (doc.kind === 'Group') {
-      groupCount++;
-    } else if (doc.kind === 'User') {
-      userCount++;
-    }
-  });
-
-  console.log(`   Groups: ${groupCount}`);
-  console.log(`   Users: ${userCount}`);
-  console.log('');
-} catch (error) {
-  console.log('❌ Error loading groups-and-users.yaml:', error.message);
-  console.log('');
-}
-
-// Test platform-resources.yaml
-try {
-  const resourcesPath = path.join(__dirname, '..', '.backstage', 'platform-resources.yaml');
-  const resourcesContent = fs.readFileSync(resourcesPath, 'utf8');
-  const docs = yaml.loadAll(resourcesContent);
-
-  console.log('✅ platform-resources.yaml loaded successfully');
-  console.log(`   Resources: ${docs.filter(doc => doc.kind === 'Resource').length}`);
-  console.log('');
-} catch (error) {
-  console.log('❌ Error loading platform-resources.yaml:', error.message);
-  console.log('');
-}
-
-// Test Templates
-const templates = [
+const templateFiles = [
   'templates/create-jenkins-ec2-template.yaml',
   'templates/create-customer-ecs-runtime-template.yaml',
   'templates/create-standard-service-template.yaml',
@@ -103,31 +28,151 @@ const templates = [
   'templates/create-security-group-template.yaml',
 ];
 
-templates.forEach(templatePath => {
-  try {
-    const fullPath = path.join(__dirname, '..', templatePath);
-    const content = fs.readFileSync(fullPath, 'utf8');
-    const doc = yaml.load(content);
+const generatedCatalogTemplates = [
+  'templates/customer-ecs-runtime/catalog-info.yaml.njk',
+  'templates/jenkins-ec2/catalog-info.yaml.njk',
+  'templates/standard-service/catalog-info.yaml.njk',
+  'templates/s3-bucket/catalog-info.yaml.njk',
+  'templates/vpc-setup/catalog-info.yaml.njk',
+  'templates/rds-database/catalog-info.yaml.njk',
+  'templates/ec2-instance/main.tf.njk',
+  'templates/security-group-setup/catalog-info.yaml.njk',
+];
 
-    console.log(`✅ ${templatePath} loaded successfully`);
-    console.log(`   Kind: ${doc.kind}`);
-    console.log(`   Name: ${doc.metadata.name}`);
-    console.log(`   Title: ${doc.metadata.title}`);
-    console.log('');
+function read(file) {
+  return fs.readFileSync(path.join(repoRoot, file), 'utf8');
+}
+
+function loadAll(file) {
+  try {
+    return yaml.loadAll(read(file)).filter(Boolean);
   } catch (error) {
-    console.log(`❌ Error loading ${templatePath}:`, error.message);
-    console.log('');
+    errors.push(`${file}: invalid YAML - ${error.message}`);
+    return [];
   }
+}
+
+function hasPlaceholderUrl(value) {
+  return typeof value === 'string' && (
+    value.includes('your-backstage-instance') ||
+    value.includes('localhost:7000')
+  );
+}
+
+function walk(value, visitor) {
+  visitor(value);
+  if (Array.isArray(value)) {
+    value.forEach(item => walk(item, visitor));
+  } else if (value && typeof value === 'object') {
+    Object.values(value).forEach(item => walk(item, visitor));
+  }
+}
+
+function collectSystems(docs) {
+  return new Set(
+    docs
+      .filter(doc => doc.kind === 'System')
+      .map(doc => doc.metadata && doc.metadata.name)
+      .filter(Boolean),
+  );
+}
+
+function validateEntity(file, doc, systems) {
+  if (!doc.apiVersion || !doc.kind || !doc.metadata || !doc.metadata.name) {
+    errors.push(`${file}: entity must include apiVersion, kind, metadata.name`);
+  }
+
+  const system = doc.spec && doc.spec.system;
+  if (system && !systems.has(system)) {
+    errors.push(`${file}: references unknown system "${system}"`);
+  }
+
+  walk(doc, value => {
+    if (hasPlaceholderUrl(value)) {
+      errors.push(`${file}: contains placeholder Backstage URL "${value}"`);
+    }
+  });
+}
+
+function validateTemplate(file, doc) {
+  if (doc.kind !== 'Template') {
+    errors.push(`${file}: expected kind Template`);
+  }
+
+  const serialized = JSON.stringify(doc);
+  const usesUserToken = serialized.includes('secrets.USER_OAUTH_TOKEN');
+  const requestsUserToken = serialized.includes('requestUserCredentials') &&
+    serialized.includes('USER_OAUTH_TOKEN');
+
+  if (usesUserToken && !requestsUserToken) {
+    errors.push(`${file}: uses secrets.USER_OAUTH_TOKEN but does not request user credentials`);
+  }
+
+  walk(doc, value => {
+    if (hasPlaceholderUrl(value)) {
+      errors.push(`${file}: contains placeholder Backstage URL "${value}"`);
+    }
+  });
+
+  const templateDir = path.dirname(path.join(repoRoot, file));
+  const steps = (doc.spec && doc.spec.steps) || [];
+  steps
+    .filter(step => step.action === 'fetch:template')
+    .forEach(step => {
+      const url = step.input && step.input.url;
+      if (typeof url === 'string' && url.startsWith('./')) {
+        const resolved = path.resolve(templateDir, url);
+        if (!fs.existsSync(resolved)) {
+          errors.push(`${file}: fetch:template url does not exist: ${url}`);
+        }
+      }
+    });
+}
+
+function validateGeneratedCatalogTemplate(file, systems) {
+  if (!fs.existsSync(path.join(repoRoot, file))) {
+    return;
+  }
+
+  const content = read(file);
+  const match = content.match(/^\s*system:\s*([A-Za-z0-9_.-]+)\s*$/m);
+  if (match && !systems.has(match[1])) {
+    errors.push(`${file}: generated catalog references unknown system "${match[1]}"`);
+  }
+
+  if (hasPlaceholderUrl(content)) {
+    errors.push(`${file}: contains placeholder Backstage URL`);
+  }
+}
+
+console.log('Backstage catalog validation');
+console.log('============================');
+
+const catalogDocs = catalogFiles.flatMap(loadAll);
+const systems = collectSystems(catalogDocs);
+
+catalogFiles.forEach(file => {
+  loadAll(file).forEach(doc => validateEntity(file, doc, systems));
+  console.log(`OK catalog: ${file}`);
 });
 
-console.log('🎯 Catalog Summary:');
-console.log('- Internal developer platform system with infrastructure components');
-console.log('- AWS platform resources and reusable Terraform modules');
-console.log('- Platform Engineering teams and users');
-console.log('- Jenkins, ECS runtime, standard service, S3 bucket, and security group templates');
-console.log('- Ready for local Backstage loading');
-console.log('');
-console.log('📋 Next Steps:');
-console.log('1. Start locally: make local-up');
-console.log('2. Or run on host: make backstage-start');
-console.log('3. Access at: http://localhost:7000');
+templateFiles.forEach(file => {
+  const docs = loadAll(file);
+  docs.forEach(validateTemplate.bind(null, file));
+  console.log(`OK template: ${file}`);
+});
+
+generatedCatalogTemplates.forEach(file => {
+  validateGeneratedCatalogTemplate(file, systems);
+});
+
+if (errors.length > 0) {
+  console.error('\nValidation failed:');
+  errors.forEach(error => console.error(`- ${error}`));
+  process.exit(1);
+}
+
+console.log('\nValidation passed.');
+console.log(`Systems: ${systems.size}`);
+console.log(`Catalog files: ${catalogFiles.length}`);
+console.log(`Templates: ${templateFiles.length}`);

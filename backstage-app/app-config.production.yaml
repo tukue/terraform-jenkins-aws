@@ -1,26 +1,37 @@
 app:
-  # Should be the same as backend.baseUrl when using the `app-backend` plugin.
-  baseUrl: http://localhost:7007
+  title: Platform Product Portal
+  baseUrl: ${APP_BASE_URL}
 
 backend:
-  # Note that the baseUrl should be the URL that the browser and other clients
-  # should use when communicating with the backend, i.e. it needs to be
-  # reachable not just from within the backend host, but from all of your
-  # callers. When its value is "http://localhost:7007", it's strictly private
-  # and can't be reached by others.
-  baseUrl: http://localhost:7007
-  # The listener can also be expressed as a single <host>:<port> string. In this case we bind to
-  # all interfaces, the most permissive setting. The right value depends on your specific deployment.
-  listen: ':7007'
+  baseUrl: ${BACKEND_BASE_URL}
+  listen:
+    port: ${BACKEND_PORT}
+  auth:
+    keys:
+      - secret: ${BACKEND_SECRET}
 
-  # config options: https://node-postgres.com/apis/client
   database:
-    client: better-sqlite3
-    connection: ':memory:'
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DATABASE}
+      ssl:
+        rejectUnauthorized: false
+
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
 
 auth:
   providers:
-    guest: {}
+    github:
+      production:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
 
 catalog:
   rules:
@@ -56,3 +67,32 @@ catalog:
       target: ${REPO_ROOT}/templates/create-s3-bucket-template.yaml
       rules:
         - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-vpc-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-rds-database-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-ec2-instance-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-security-group-template.yaml
+      rules:
+        - allow: [Template]
+
+techdocs:
+  builder: external
+  generator:
+    runIn: local
+  publisher:
+    type: awsS3
+    awsS3:
+      bucketName: ${TECHDOCS_S3_BUCKET}
+      region: ${TECHDOCS_S3_REGION}
+
+permission:
+  enabled: true
