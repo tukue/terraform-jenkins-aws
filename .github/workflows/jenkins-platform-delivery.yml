@@ -94,11 +94,12 @@ jobs:
           framework: terraform
           soft_fail: false
 
-  plan:
+  plan-all:
     name: Plan ${{ matrix.environment }}
     runs-on: ubuntu-latest
     needs: quality-gate
     timeout-minutes: 30
+    if: github.event_name != 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -112,7 +113,6 @@ jobs:
           - environment: prod
             aws_region: eu-north-1
             aws_account_id: "333333333333"
-    if: github.event_name != 'workflow_dispatch' || (inputs.action == 'plan' && matrix.environment == inputs.environment)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -149,27 +149,14 @@ jobs:
           name: tfplan-${{ matrix.environment }}
           path: tfplan-${{ matrix.environment }}
 
-  apply:
-    name: Apply ${{ matrix.environment }}
+  plan-selected:
+    name: Plan ${{ inputs.environment }}
     runs-on: ubuntu-latest
     needs: quality-gate
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - environment: dev
-            aws_region: eu-north-1
-            aws_account_id: "111111111111"
-          - environment: qa
-            aws_region: eu-north-1
-            aws_account_id: "222222222222"
-          - environment: prod
-            aws_region: eu-north-1
-            aws_account_id: "333333333333"
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply' && matrix.environment == inputs.environment
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'plan'
     environment:
-      name: ${{ matrix.environment }}
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -183,13 +170,66 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ matrix.aws_region }}
+          aws-region: eu-north-1
 
       - name: Terraform init
-        run: terraform init -backend-config=backend-config-${{ matrix.environment }}.hcl
+        run: terraform init -backend-config=backend-config-${{ inputs.environment }}.hcl
 
       - name: Terraform plan
-        run: terraform plan -var-file=terraform.${{ matrix.environment }}.tfvars -out=tfplan
+        run: terraform plan -var-file=terraform.${{ inputs.environment }}.tfvars -out=tfplan-${{ inputs.environment }}
+
+      - name: Terraform show (JSON)
+        run: terraform show -json tfplan-${{ inputs.environment }} > tfplan-${{ inputs.environment }}.json
+
+      - name: Setup Conftest
+        uses: open-policy-agent/conftest-action@v1
+
+      - name: Run OPA Policy Check (Conftest)
+        run: conftest test tfplan-${{ inputs.environment }}.json --policy policies/terraform
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: tfplan-${{ inputs.environment }}
+
+  apply:
+    name: Apply ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: quality-gate
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: Terraform init
+        run: terraform init -backend-config=backend-config-${{ inputs.environment }}.hcl
+
+      - name: Terraform plan
+        run: terraform plan -var-file=terraform.${{ inputs.environment }}.tfvars -out=tfplan
+
+      - name: Terraform show (JSON)
+        run: terraform show -json tfplan > tfplan-${{ inputs.environment }}.json
+
+      - name: Setup Conftest
+        uses: open-policy-agent/conftest-action@v1
+
+      - name: Run OPA Policy Check (Conftest)
+        run: conftest test tfplan-${{ inputs.environment }}.json --policy policies/terraform
 
       - name: Terraform apply
         run: terraform apply -auto-approve tfplan

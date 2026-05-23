@@ -8,7 +8,9 @@
 Self-service developer platform built with Terraform, Jenkins, AWS, Docker, and Infrastructure as Code practices.
 
 [![Terraform Security Scan](https://img.shields.io/github/actions/workflow/status/tukue/terraform-jenkins-aws/terraform-scan.yml?label=Terraform%20Security%20Scan&logo=terraform)](https://github.com/tukue/terraform-jenkins-aws/actions/workflows/terraform-scan.yml)
-[![CI/CD Pipeline](https://img.shields.io/github/actions/workflow/status/tukue/terraform-jenkins-aws/jenkins-platform-delivery.yml?label=CI%2FCD%20Pipeline&logo=githubactions)](https://github.com/tukue/terraform-jenkins-aws/actions/workflows/jenkins-platform-delivery.yml)
+[![CI Quality Gate](https://img.shields.io/github/actions/workflow/status/tukue/terraform-jenkins-aws/jenkins-platform-delivery.yml?label=CI%20Quality%20Gate&logo=githubactions)](https://github.com/tukue/terraform-jenkins-aws/actions/workflows/jenkins-platform-delivery.yml)
+![CD Plan](https://img.shields.io/badge/CD%20Plan-dev%20%7C%20qa%20%7C%20prod-blue)
+![CD Apply](https://img.shields.io/badge/CD%20Apply-manual%20approval-orange)
 [![Catalog Validation](https://img.shields.io/github/actions/workflow/status/tukue/terraform-jenkins-aws/backstage-catalog-validation.yml?label=Catalog%20Validation&logo=backstage)](https://github.com/tukue/terraform-jenkins-aws/actions/workflows/backstage-catalog-validation.yml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
