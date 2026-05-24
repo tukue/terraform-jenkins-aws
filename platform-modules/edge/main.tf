@@ -3,7 +3,7 @@ locals {
 }
 
 resource "aws_lb" "jenkins" {
-  name               = "${var.name_prefix}-alb"
+  name = "${var.name_prefix}-alb"
   # Public ALB is the intentional WAF-protected entry point; Jenkins itself remains private.
   #tfsec:ignore:aws-elb-alb-not-public
   internal           = false
@@ -67,7 +67,7 @@ resource "aws_lb_listener" "http" {
   port              = 80
   # HTTP is used only as the public redirect listener when alb_certificate_arn enables HTTPS.
   #tfsec:ignore:aws-elb-http-not-used
-  protocol          = "HTTP"
+  protocol = "HTTP"
 
   dynamic "default_action" {
     for_each = local.has_certificate ? [1] : []

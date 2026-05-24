@@ -5,14 +5,14 @@ output "service_tier" {
 
 output "product_contract" {
   value = {
-    module_surface = "service-tier-wrapper"
+    module_surface    = "service-tier-wrapper"
     consumption_model = "opinionated"
-    service_name = var.service_name
-    tenant_name  = var.tenant_name != "" ? var.tenant_name : var.service_name
-    environment  = var.environment
-    aws_region   = var.aws_region
-    network_profile = var.network_profile
-    dns_enabled  = var.dns_name != ""
+    service_name      = var.service_name
+    tenant_name       = var.tenant_name != "" ? var.tenant_name : var.service_name
+    environment       = var.environment
+    aws_region        = var.aws_region
+    network_profile   = var.network_profile
+    dns_enabled       = var.dns_name != ""
   }
   description = "High-level product contract for callers, docs, and automation layers"
 }

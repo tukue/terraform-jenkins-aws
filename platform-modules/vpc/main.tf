@@ -164,7 +164,7 @@ resource "aws_route_table_association" "public" {
 resource "aws_eip" "nat" {
   count  = local.create_nat_gateway ? 1 : 0
   domain = "vpc"
-  tags  = local.common_tags
+  tags   = local.common_tags
 }
 
 resource "aws_nat_gateway" "this" {
