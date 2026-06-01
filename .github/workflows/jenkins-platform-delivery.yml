@@ -59,6 +59,35 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Initialize TFLint
+        run: tflint --init
+
+      - name: Run TFLint
+        run: tflint --recursive
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: terraform
+          soft_fail: false
+
       - name: Download tfsec
         run: |
           wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 -O /usr/local/bin/tfsec
