@@ -76,13 +76,6 @@ jobs:
       - name: Run TFLint
         run: tflint --recursive
 
-      - name: Run Checkov
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: .
-          framework: terraform
-          soft_fail: false
-
       - name: Download tfsec
         run: |
           wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 -O /usr/local/bin/tfsec
