@@ -31,10 +31,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
-        env:
-          TF_SIGNOMSKIP: 1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
-          working_directory: .
-          additional_args: --exclude-downloaded-modules
+          terraform_version: 1.11.2
+
+      - name: Terraform init
+        run: terraform init -backend=false
+
+      - name: Download tfsec
+        run: |
+          wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 -O /usr/local/bin/tfsec
+          chmod +x /usr/local/bin/tfsec
+
+      - name: Run tfsec
+        run: tfsec . --exclude-downloaded-modules
