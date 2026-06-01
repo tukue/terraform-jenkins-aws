@@ -8,9 +8,12 @@ resource "aws_kms_key" "terraform_encryption_key" {
   deletion_window_in_days = 7
   enable_key_rotation     = true
 
-  tags = {
-    Name = "terraform-encryption-key"
-  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "terraform-encryption-key"
+    }
+  )
 }
 
 resource "aws_kms_alias" "terraform_encryption_key" {
@@ -21,6 +24,13 @@ resource "aws_kms_alias" "terraform_encryption_key" {
 resource "aws_s3_bucket" "terraform_state" {
   bucket = var.bucket_name
 
+  tags = merge(
+    local.common_tags,
+    {
+      Name = var.bucket_name
+    }
+  )
+
   lifecycle {
     prevent_destroy = true
   }
@@ -30,6 +40,13 @@ resource "aws_s3_bucket" "terraform_state" {
 # tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "terraform_state_logs" {
   bucket = "${var.bucket_name}-logs"
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.bucket_name}-logs"
+    }
+  )
 
   lifecycle {
     prevent_destroy = true
@@ -119,7 +136,10 @@ resource "aws_dynamodb_table" "terraform_locks" {
     kms_key_arn = aws_kms_key.terraform_encryption_key.arn
   }
 
-  tags = {
-    Name = "Terraform State Lock Table"
-  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "Terraform State Lock Table"
+    }
+  )
 }

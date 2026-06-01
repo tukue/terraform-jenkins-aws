@@ -29,15 +29,15 @@ module "networking" {
 }
 
 module "security_group" {
-  source                              = "./platform-modules/security"
-  ec2_sg_name                         = "SG for EC2 to enable SSH(22), HTTPS(443) and HTTP(80)"
-  vpc_id                              = module.networking.vpc_id
-  vpc_cidr                            = var.vpc_cidr
-  ec2_jenkins_sg_name                 = "Allow port 8080 for jenkins"
-  alb_sg_name                         = "Allow HTTP and HTTPS for Jenkins ALB"
-  allowed_alb_cidr_blocks             = var.allowed_alb_cidr_blocks
+  source                             = "./platform-modules/security"
+  ec2_sg_name                        = "SG for EC2 to enable SSH(22), HTTPS(443) and HTTP(80)"
+  vpc_id                             = module.networking.vpc_id
+  vpc_cidr                           = var.vpc_cidr
+  ec2_jenkins_sg_name                = "Allow port 8080 for jenkins"
+  alb_sg_name                        = "Allow HTTP and HTTPS for Jenkins ALB"
+  allowed_alb_cidr_blocks            = var.allowed_alb_cidr_blocks
   allowed_jenkins_egress_cidr_blocks = length(var.allowed_jenkins_egress_cidr_blocks) > 0 ? var.allowed_jenkins_egress_cidr_blocks : [var.vpc_cidr]
-  environment                         = var.environment
+  environment                        = var.environment
 }
 
 module "jenkins" {
@@ -49,7 +49,7 @@ module "jenkins" {
   subnet_id                 = tolist(module.networking.private_subnet_ids)[0]
   sg_for_jenkins            = [module.security_group.sg_ec2_jenkins_port_8080]
   enable_public_ip_address  = false
-  user_data_install_jenkins = templatefile("./jenkins-runner-script/jenkins-installer.sh", {})
+  user_data_install_jenkins = templatefile("${path.module}/jenkins-runner-script/jenkins-installer.sh", {})
   environment               = var.environment
   run_ansible               = var.run_ansible
 }
@@ -128,7 +128,7 @@ module "alb" {
   dev_proj_1_acm_arn        = module.aws_ceritification_manager.dev_proj_1_acm_arn
   lb_target_group_attachment_port = 8080
   environment               = var.environment
-} 
+}
 
 module "hosted_zone" {
   source          = "./hosted-zone"

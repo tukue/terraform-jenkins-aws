@@ -31,8 +31,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download tfsec
+        run: |
+          wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 -O /usr/local/bin/tfsec
+          chmod +x /usr/local/bin/tfsec
+
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
-        with:
-          working_directory: .
-          additional_args: --exclude-downloaded-modules
+        run: tfsec . --exclude-downloaded-modules

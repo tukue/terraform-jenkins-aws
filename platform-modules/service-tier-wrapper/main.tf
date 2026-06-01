@@ -1,6 +1,6 @@
 locals {
   tier_configs = {
-    small = { cpu = 256, memory = 512,  desired = 1, waf = 1000 }
+    small = { cpu = 256, memory = 512, desired = 1, waf = 1000 }
     med   = { cpu = 512, memory = 1024, desired = 2, waf = 2000 }
     large = { cpu = 1024, memory = 2048, desired = 3, waf = 5000 }
   }

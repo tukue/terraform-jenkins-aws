@@ -12,7 +12,7 @@ locals {
 # tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/flow-logs/${var.environment}"
-  retention_in_days = 30 # Adjust retention period as needed
+  retention_in_days = var.flow_logs_retention_days
 
   tags = merge(
     local.common_tags,

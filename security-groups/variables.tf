@@ -1,10 +1,17 @@
-variable "ec2_sg_name" {}
-variable "vpc_id" {}
+variable "ec2_sg_name" {
+  type = string
+}
+
+variable "vpc_id" {
+  type = string
+}
 variable "vpc_cidr" {
   description = "CIDR block for private egress inside the VPC"
   type        = string
 }
-variable "ec2_jenkins_sg_name" {}
+variable "ec2_jenkins_sg_name" {
+  type = string
+}
 variable "environment" {
   description = "Environment for the resources (e.g., dev, qa, prod)"
   type        = string
