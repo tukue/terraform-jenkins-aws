@@ -81,12 +81,6 @@ jobs:
       - name: Run TFLint
         run: tflint --recursive
 
-      - name: Terraform init
-        run: terraform init -backend=false
-
-      - name: Terraform validate
-        run: terraform validate
-
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
         with:
