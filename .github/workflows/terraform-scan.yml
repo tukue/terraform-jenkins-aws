@@ -31,11 +31,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: "1.15.5"
-          terraform_wrapper: false
+      - name: Setup Terraform 1.11.2
+        run: |
+          wget -q https://releases.hashicorp.com/terraform/1.11.2/terraform_1.11.2_linux_amd64.zip
+          unzip -q terraform_1.11.2_linux_amd64.zip
+          rm -f terraform_1.11.2_linux_amd64.zip
+          chmod +x terraform
+          sudo mv terraform /usr/local/bin/
+
+      - name: Terraform version
+        run: terraform --version
 
       - name: Terraform init
         run: terraform init -backend=false
