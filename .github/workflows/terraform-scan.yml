@@ -37,12 +37,7 @@ jobs:
           terraform_version: "1.15.5"
           terraform_wrapper: false
 
-      - name: Terraform version
-        run: terraform --version
-
       - name: Terraform init
-        env:
-          TF_SIGNOMSKIP: 1
         run: terraform init -backend=false
 
       - name: Download tfsec
