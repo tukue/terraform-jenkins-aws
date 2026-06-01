@@ -49,7 +49,7 @@ module "jenkins" {
   subnet_id                 = tolist(module.networking.private_subnet_ids)[0]
   sg_for_jenkins            = [module.security_group.sg_ec2_jenkins_port_8080]
   enable_public_ip_address  = false
-  user_data_install_jenkins = templatefile("./jenkins-runner-script/jenkins-installer.sh", {})
+  user_data_install_jenkins = templatefile("${path.module}/jenkins-runner-script/jenkins-installer.sh", {})
   environment               = var.environment
   run_ansible               = var.run_ansible
 }

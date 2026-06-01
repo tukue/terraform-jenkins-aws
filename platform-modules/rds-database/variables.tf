@@ -58,13 +58,13 @@ variable "kms_key_id" {
 
 variable "skip_final_snapshot" {
   description = "Determines whether a final DB snapshot is created before the DB instance is deleted. If true is specified, no DBSnapshot is created"
-  type        = boolean
+  type        = bool
   default     = true
 }
 
 variable "publicly_accessible" {
   description = "Bool to control if instance is publicly accessible"
-  type        = boolean
+  type        = bool
   default     = false
 }
 
@@ -82,7 +82,7 @@ variable "db_subnet_group_name" {
 
 variable "create_db_subnet_group" {
   description = "Whether to create a database subnet group"
-  type        = boolean
+  type        = bool
   default     = false
 }
 
