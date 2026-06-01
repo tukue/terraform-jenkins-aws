@@ -27,22 +27,22 @@ jobs:
     name: Terraform Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      TF_SIGNOMSKIP: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: 1.11.2
+          terraform_version: "1.15.5"
           terraform_wrapper: false
 
-      - name: Debug terraform version
+      - name: Terraform version
         run: terraform --version
 
       - name: Terraform init
+        env:
+          TF_SIGNOMSKIP: 1
         run: terraform init -backend=false
 
       - name: Download tfsec
