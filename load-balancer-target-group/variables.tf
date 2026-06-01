@@ -36,15 +36,3 @@ variable "health_check_protocol" {
   type        = string
   default     = "HTTPS" # Default to HTTPS for health checks
 }
-
-variable "certificate_arn" {
-  description = "ARN of the SSL certificate to use for HTTPS"
-  type        = string
-  default     = "dummy-arn" # Default placeholder value
-}
-
-variable "load_balancer_arn" {
-  description = "ARN of the load balancer"
-  type        = string
-  default     = "" # Default empty value
-}
