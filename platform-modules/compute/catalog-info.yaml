@@ -15,5 +15,5 @@ spec:
   owner: platform-team
   system: internal-developer-platform
   dependsOn:
-    - resource:default/aws-network
-    - resource:default/jenkins-security-group
+    - resource:default/aws-vpc-network
+    - component:default/terraform-security-groups

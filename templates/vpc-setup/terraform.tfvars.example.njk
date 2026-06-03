@@ -1,0 +1,12 @@
+vpc_name             = "{{ vpc_name }}"
+vpc_cidr             = "{{ vpc_cidr }}"
+public_subnet_cidrs  = {{ public_subnet_cidrs | dump }}
+private_subnet_cidrs = {{ private_subnet_cidrs | dump }}
+availability_zones   = {{ availability_zones | dump }}
+enable_nat_gateway   = {{ enable_nat_gateway }}
+enable_flow_logs     = {{ enable_flow_logs }}
+environment          = "{{ environment }}"
+owner                = "{{ owner }}"
+project              = "{{ project }}"
+cost_center          = "{{ cost_center }}"
+aws_region           = "{{ aws_region }}"
