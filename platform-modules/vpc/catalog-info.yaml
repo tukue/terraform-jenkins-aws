@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: vpc
+  description: Standalone VPC module with public/private subnets, NAT gateway, VPC endpoints, and flow logs
+  tags:
+    - terraform
+    - aws
+    - vpc
+    - networking
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform

@@ -1,0 +1,9 @@
+output "jenkins_url" {
+  description = "Public Jenkins URL"
+  value       = module.jenkins_infrastructure.jenkins_url
+}
+
+output "jenkins_instance_id" {
+  description = "Jenkins EC2 instance ID"
+  value       = module.jenkins_infrastructure.instance_id
+}

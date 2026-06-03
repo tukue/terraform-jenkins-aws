@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: {{ name }}
+  description: EC2 instance for {{ project }}
+  tags:
+    - aws
+    - ec2
+    - terraform
+spec:
+  type: compute
+  owner: {{ owner }}
+  system: internal-developer-platform

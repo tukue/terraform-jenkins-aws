@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: compute
+  description: Jenkins EC2 compute instance with Ansible provisioning
+  tags:
+    - terraform
+    - aws
+    - ec2
+    - jenkins
+    - compute
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/aws-vpc-network
+    - component:default/terraform-security-groups

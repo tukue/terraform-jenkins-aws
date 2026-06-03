@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: security
+  description: Security groups for the Jenkins platform — ALB ingress, Jenkins port 8080, and optional SSH/HTTP/HTTPS groups
+  tags:
+    - terraform
+    - aws
+    - security
+    - security-group
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/aws-vpc-network

@@ -1,0 +1,14 @@
+output "db_instance_id" {
+  description = "RDS instance identifier"
+  value       = module.rds.id
+}
+
+output "db_endpoint" {
+  description = "RDS endpoint address"
+  value       = module.rds.endpoint
+}
+
+output "db_secret_arn" {
+  description = "Secrets Manager ARN for the master password"
+  value       = module.rds.master_password_secret_arn
+}

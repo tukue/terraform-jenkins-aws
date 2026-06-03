@@ -1,0 +1,17 @@
+# ${{ values.service_name }}
+
+Standard service deployed via the platform service-tier wrapper.
+
+## Details
+
+- **Tier:** ${{ values.tier }}
+- **Container Image:** ${{ values.container_image }}
+- **Environment:** ${{ values.environment }}
+
+## Usage
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
