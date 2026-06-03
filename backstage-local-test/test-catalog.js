@@ -15,6 +15,14 @@ const catalogFiles = [
   'platform-modules/customer-ecs-runtime/catalog-info.yaml',
   'platform-modules/jenkins-infrastructure/catalog-info.yaml',
   'platform-modules/service-tier-wrapper/catalog-info.yaml',
+  'platform-modules/compute/catalog-info.yaml',
+  'platform-modules/ec2-instance/catalog-info.yaml',
+  'platform-modules/edge/catalog-info.yaml',
+  'platform-modules/network/catalog-info.yaml',
+  'platform-modules/rds-database/catalog-info.yaml',
+  'platform-modules/security/catalog-info.yaml',
+  'platform-modules/security-group/catalog-info.yaml',
+  'platform-modules/vpc/catalog-info.yaml',
 ];
 
 const templateFiles = [

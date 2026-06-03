@@ -79,6 +79,14 @@ catalog:
       - target: ../../platform-modules/customer-ecs-runtime/catalog-info.yaml
       - target: ../../platform-modules/jenkins-infrastructure/catalog-info.yaml
       - target: ../../platform-modules/service-tier-wrapper/catalog-info.yaml
+      - target: ../../platform-modules/compute/catalog-info.yaml
+      - target: ../../platform-modules/ec2-instance/catalog-info.yaml
+      - target: ../../platform-modules/edge/catalog-info.yaml
+      - target: ../../platform-modules/network/catalog-info.yaml
+      - target: ../../platform-modules/rds-database/catalog-info.yaml
+      - target: ../../platform-modules/security/catalog-info.yaml
+      - target: ../../platform-modules/security-group/catalog-info.yaml
+      - target: ../../platform-modules/vpc/catalog-info.yaml
       - target: ../../templates/create-jenkins-ec2-template.yaml
       - target: ../../templates/create-customer-ecs-runtime-template.yaml
       - target: ../../templates/create-standard-service-template.yaml

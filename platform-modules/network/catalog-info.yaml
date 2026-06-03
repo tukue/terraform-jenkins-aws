@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: network
+  description: VPC network foundation — VPC, public/private subnets, IGW, NAT gateway, flow logs, and route tables
+  tags:
+    - terraform
+    - aws
+    - vpc
+    - networking
+    - subnet
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform

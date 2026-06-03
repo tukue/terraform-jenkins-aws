@@ -1,16 +1,21 @@
 variable "ec2_sg_name" {
-  type = string
+  description = "Name tag for the main EC2 security group that enables SSH, HTTPS, and HTTP"
+  type        = string
 }
 
 variable "vpc_id" {
-  type = string
+  description = "VPC ID where security groups will be created"
+  type        = string
 }
+
 variable "vpc_cidr" {
   description = "CIDR block for private egress inside the VPC"
   type        = string
 }
+
 variable "ec2_jenkins_sg_name" {
-  type = string
+  description = "Name tag for the Jenkins-specific security group that allows port 8080"
+  type        = string
 }
 variable "environment" {
   description = "Environment for the resources (e.g., dev, qa, prod)"

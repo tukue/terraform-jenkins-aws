@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: security-group
+  description: Reusable security group module with dynamic ingress/egress rules and CIDR-based access control
+  tags:
+    - terraform
+    - aws
+    - security
+    - security-group
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform

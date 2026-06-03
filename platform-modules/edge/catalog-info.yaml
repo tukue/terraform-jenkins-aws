@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: edge
+  description: Public entry layer — internet-facing ALB, WAFv2 Web ACL, HTTP/HTTPS listeners, and target group
+  tags:
+    - terraform
+    - aws
+    - alb
+    - waf
+    - networking
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/aws-network
