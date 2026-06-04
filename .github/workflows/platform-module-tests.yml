@@ -1,0 +1,110 @@
+name: Platform Module Tests
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-module-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    paths:
+      - 'platform-modules/**'
+      - '.github/workflows/platform-module-tests.yml'
+  pull_request:
+    paths:
+      - 'platform-modules/**'
+      - '.github/workflows/platform-module-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  detect-modules:
+    name: Detect changed modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      modules: ${{ steps.modules.outputs.modules }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed platform modules
+        id: modules
+        run: |
+          MODULES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- platform-modules/ \
+            | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          if [ "$MODULES" = "[]" ] || [ -z "$MODULES" ]; then
+            MODULES=$(ls -d platform-modules/*/ | xargs -n1 basename | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          fi
+          echo "modules=$MODULES" >> $GITHUB_OUTPUT
+
+  validate-module:
+    name: Validate ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    needs: detect-modules
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.detect-modules.outputs.modules) }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.11.2
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Terraform fmt
+        working-directory: platform-modules/${{ matrix.module }}
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform init
+        working-directory: platform-modules/${{ matrix.module }}
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        working-directory: platform-modules/${{ matrix.module }}
+        run: terraform validate
+
+      - name: TFLint
+        working-directory: platform-modules/${{ matrix.module }}
+        run: tflint --init && tflint
+
+  module-metadata:
+    name: Validate ${{ matrix.module }} metadata
+    runs-on: ubuntu-latest
+    needs: detect-modules
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.detect-modules.outputs.modules) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check catalog-info.yaml exists
+        run: |
+          if [ ! -f "platform-modules/${{ matrix.module }}/catalog-info.yaml" ]; then
+            echo "WARNING: platform-modules/${{ matrix.module }}/catalog-info.yaml is missing"
+            exit 0
+          fi
+
+      - name: Check README.md exists
+        run: |
+          if [ ! -f "platform-modules/${{ matrix.module }}/README.md" ]; then
+            echo "WARNING: platform-modules/${{ matrix.module }}/README.md is missing"
+            exit 0
+          fi
