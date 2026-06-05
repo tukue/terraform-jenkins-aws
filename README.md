@@ -25,55 +25,26 @@ Organizations struggle with slow, inconsistent infrastructure delivery — teams
 
 ---
 
-## System Architecture
+## Architecture
 
-![Platform Architecture](terraform-jenkins-aws.png)
-
-```mermaid
-flowchart TB
-    subgraph Developer["Developer Experience"]
-        DEV["Developer"] --> GH["GitHub Repository"]
-        GH --> ACTIONS["GitHub Actions\nLint / Format / Security Scan"]
-    end
-
-    subgraph CI["CI/CD Layer"]
-        ACTIONS --> JENKINS["Jenkins\nPipeline Orchestrator"]
-        JENKINS --> TF["Terraform\nPlan & Apply"]
-    end
-
-    subgraph IaC["Infrastructure as Code"]
-        TF --> PLATFORM_MODS["Platform Modules\nnetwork / security / compute / edge"]
-        TF --> STATE["Remote State\nS3 + DynamoDB Locking"]
-        TF --> POLICIES["OPA Policies\nTags / Cost / Security"]
-    end
-
-    subgraph AWS["AWS Cloud"]
-        subgraph Network["Networking"]
-            VPC["VPC\nSubnets / NAT / Flow Logs"]
-            ALB["Application Load Balancer\nSSL / WAF"]
-        end
-        subgraph Compute["Compute"]
-            EC2["EC2\nJenkins / Bastion"]
-        end
-        subgraph Observability["Observability"]
-            PROM["Prometheus\nMetrics"]
-            GRAF["Grafana\nDashboards"]
-            CW["CloudWatch\nLogs & Alarms"]
-        end
-    end
-
-    subgraph Portal["Developer Portal"]
-        BACKSTAGE["Backstage\nService Catalog & Templates"]
-    end
-
-    TF --> VPC
-    TF --> ALB
-    TF --> EC2
-    TF --> PROM
-    TF --> GRAF
-    TF --> CW
-    PLATFORM_MODS --> TF
-    BACKSTAGE -.-> DEV
+```
+┌─────────────┐     ┌──────────┐     ┌──────────┐     ┌───────────┐
+│  Developer  │────>│  GitHub  │────>│  Jenkins │────>│  Terraform │
+└─────────────┘     └──────────┘     └──────────┘     └───────────┘
+                                                            │
+                                                    ┌────────┴────────┐
+                                                    │                 │
+                                             ┌──────▼──────┐  ┌──────▼──────┐
+                                             │    EC2      │  │    EKS      │
+                                             │  Compute    │  │ Container   │
+                                             └──────┬──────┘  └──────┬──────┘
+                                                    │                 │
+                                             ┌──────┴─────────────────┴──────┐
+                                             │         Monitoring            │
+                                             │  ┌─────┐  ┌──────┐  ┌───────┐│
+                                             │  │Prom │  │Graf  │  │CWatch ││
+                                             │  └─────┘  └──────┘  └───────┘│
+                                             └──────────────────────────────┘
 ```
 
 ---
