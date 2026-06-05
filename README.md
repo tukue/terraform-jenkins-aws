@@ -14,27 +14,82 @@ Self-service developer platform built with Terraform, Jenkins, AWS, Docker, and 
 
 ---
 
-## Architecture
+## Business Problem
 
+Organizations struggle with slow, inconsistent infrastructure delivery — teams wait days or weeks for environments, manual configurations drift from production, and siloed tooling prevents reuse. This repository solves that by providing a **self-service platform engineering foundation** that enables:
+
+- **Speed** — Developers provision infrastructure in minutes via Backstage self-service templates
+- **Consistency** — Reusable Terraform modules enforce standardized, compliant infrastructure
+- **Reliability** — Automated CI/CD pipelines with security scanning and policy-as-code guardrails
+- **Visibility** — Centralized catalog, monitoring, and documentation across all environments
+
+---
+
+## System Architecture
+
+![Platform Architecture](terraform-jenkins-aws.png)
+
+```mermaid
+flowchart TB
+    subgraph Developer["Developer Experience"]
+        DEV["Developer"] --> GH["GitHub Repository"]
+        GH --> ACTIONS["GitHub Actions\nLint / Format / Security Scan"]
+    end
+
+    subgraph CI["CI/CD Layer"]
+        ACTIONS --> JENKINS["Jenkins\nPipeline Orchestrator"]
+        JENKINS --> TF["Terraform\nPlan & Apply"]
+    end
+
+    subgraph IaC["Infrastructure as Code"]
+        TF --> PLATFORM_MODS["Platform Modules\nnetwork / security / compute / edge"]
+        TF --> STATE["Remote State\nS3 + DynamoDB Locking"]
+        TF --> POLICIES["OPA Policies\nTags / Cost / Security"]
+    end
+
+    subgraph AWS["AWS Cloud"]
+        subgraph Network["Networking"]
+            VPC["VPC\nSubnets / NAT / Flow Logs"]
+            ALB["Application Load Balancer\nSSL / WAF"]
+        end
+        subgraph Compute["Compute"]
+            EC2["EC2\nJenkins / Bastion"]
+        end
+        subgraph Observability["Observability"]
+            PROM["Prometheus\nMetrics"]
+            GRAF["Grafana\nDashboards"]
+            CW["CloudWatch\nLogs & Alarms"]
+        end
+    end
+
+    subgraph Portal["Developer Portal"]
+        BACKSTAGE["Backstage\nService Catalog & Templates"]
+    end
+
+    TF --> VPC
+    TF --> ALB
+    TF --> EC2
+    TF --> PROM
+    TF --> GRAF
+    TF --> CW
+    PLATFORM_MODS --> TF
+    BACKSTAGE -.-> DEV
 ```
-┌─────────────┐     ┌──────────┐     ┌──────────┐     ┌───────────┐
-│  Developer  │────>│  GitHub  │────>│  Jenkins │────>│  Terraform │
-└─────────────┘     └──────────┘     └──────────┘     └───────────┘
-                                                            │
-                                                   ┌────────┴────────┐
-                                                   │                 │
-                                            ┌──────▼──────┐  ┌──────▼──────┐
-                                            │    EC2      │  │    EKS      │
-                                            │  Compute    │  │ Container   │
-                                            └──────┬──────┘  └──────┬──────┘
-                                                   │                 │
-                                            ┌──────┴─────────────────┴──────┐
-                                            │         Monitoring            │
-                                            │  ┌─────┐  ┌──────┐  ┌───────┐│
-                                            │  │Prom │  │Graf  │  │CWatch ││
-                                            │  └─────┘  └──────┘  └───────┘│
-                                            └──────────────────────────────┘
-```
+
+---
+
+## Design Considerations
+
+| Principle | Decision | Trade-off |
+|:---|:---|:---|
+| **IaC Tooling** | Terraform over CloudFormation/CDK | Larger state management overhead, but broader multi-provider support and stronger community module ecosystem |
+| **CI/CD Orchestrator** | Jenkins + GitHub Actions dual pipeline | More moving parts to maintain, but enables complex pipeline orchestration with Jenkins while keeping lightweight validation in GitHub Actions |
+| **Module Architecture** | Productized platform modules over monolithic stacks | Higher initial abstraction cost, but enables reuse across teams and consistent golden path deployments |
+| **Security Posture** | Private subnets + WAF + IAM least privilege by default | Increased networking complexity (NAT gateways, VPC endpoints), but reduces attack surface and meets compliance requirements |
+| **Environment Isolation** | Separate tfvars/backend per environment (dev/qa/prod) | Configuration duplication, but clear promotion path and blast radius containment |
+| **State Management** | Remote S3 + DynamoDB locking | Dependency on additional AWS infrastructure, but prevents concurrent corruption and enables team collaboration |
+| **Developer Portal** | Backstage over custom portal | Requires Backstage deployment and maintenance, but provides rich plugin ecosystem and industry-standard developer experience |
+| **Policy Enforcement** | OPA/Conftest shift-left validation | Gate policy at plan-time only (not runtime), but catches violations before resources are provisioned |
 
 ---
 
