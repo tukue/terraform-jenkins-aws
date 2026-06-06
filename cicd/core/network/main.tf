@@ -39,7 +39,7 @@ resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
 
 resource "aws_iam_role" "vpc_flow_logs" {
   count = var.enable_flow_logs ? 1 : 0
-  name  = "${var.vpc_name}-vpc-flow-logs"
+  name  = "${var.vpc_name}-${var.environment}-vpc-flow-logs"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -58,9 +58,10 @@ resource "aws_iam_role" "vpc_flow_logs" {
 }
 
 resource "aws_iam_role_policy" "vpc_flow_logs" {
-  count = var.enable_flow_logs ? 1 : 0
-  name  = "${var.vpc_name}-vpc-flow-logs"
-  role  = aws_iam_role.vpc_flow_logs[0].id
+  count      = var.enable_flow_logs ? 1 : 0
+  name       = "${var.vpc_name}-${var.environment}-vpc-flow-logs"
+  role       = aws_iam_role.vpc_flow_logs[0].id
+  depends_on = [aws_cloudwatch_log_group.vpc_flow_logs]
 
   # The `:*` suffix is the standard AWS pattern for "any log stream within
   # this log group" — required by VPC Flow Logs. tfsec:ignore:aws-iam-no-policy-wildcards
