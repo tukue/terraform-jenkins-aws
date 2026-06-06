@@ -23,9 +23,7 @@ metadata:
 spec:
   type: terraform-module
   lifecycle: production
-  owner: platform-engineering
-  system: cicd-core
-  consumesApis:
-    - aws-vpc
-  providesApis:
-    - cicd-network
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - component:default/terraform-networking

@@ -27,6 +27,7 @@ resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   count             = var.enable_flow_logs ? 1 : 0
   name              = "/aws/vpc-flow-logs/${var.vpc_name}"
   retention_in_days = var.flow_log_retention_in_days
+  kms_key_id        = var.flow_log_kms_key_id != "" ? var.flow_log_kms_key_id : null
 
   tags = merge(
     local.common_tags,
@@ -61,6 +62,8 @@ resource "aws_iam_role_policy" "vpc_flow_logs" {
   name  = "${var.vpc_name}-vpc-flow-logs"
   role  = aws_iam_role.vpc_flow_logs[0].id
 
+  # The `:*` suffix is the standard AWS pattern for "any log stream within
+  # this log group" — required by VPC Flow Logs. tfsec:ignore:aws-iam-no-policy-wildcards
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

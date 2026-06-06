@@ -68,6 +68,12 @@ variable "flow_log_traffic_type" {
   }
 }
 
+variable "flow_log_kms_key_id" {
+  description = "KMS key ARN for CloudWatch Log Group encryption. Defaults to aws/logs managed key if empty."
+  type        = string
+  default     = ""
+}
+
 variable "enable_network_acl" {
   description = "Enable Network ACL for additional subnet-level security"
   type        = bool
