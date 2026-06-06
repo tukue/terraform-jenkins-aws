@@ -1,0 +1,31 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: cicd-core-network
+  title: CICD Core Network Module
+  description: >
+    Reusable VPC networking module for CI/CD as a Service.
+    Creates VPC, public/private subnets, NAT Gateway, Internet Gateway,
+    route tables, VPC Flow Logs, and optional Network ACLs.
+  annotations:
+    github.com/project-slug: tukue/terraform-jenkins-aws
+    backstage.io/terraform-module: cicd/core/network
+  tags:
+    - terraform
+    - vpc
+    - networking
+    - cicd
+    - infrastructure
+  links:
+    - url: https://github.com/tukue/terraform-jenkins-aws/tree/main/cicd/core/network
+      title: Source
+      icon: github
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-engineering
+  system: cicd-core
+  consumesApis:
+    - aws-vpc
+  providesApis:
+    - cicd-network

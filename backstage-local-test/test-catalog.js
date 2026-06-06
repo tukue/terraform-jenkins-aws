@@ -18,6 +18,7 @@ const catalogFiles = [
   'platform-modules/compute/catalog-info.yaml',
   'platform-modules/ec2-instance/catalog-info.yaml',
   'platform-modules/edge/catalog-info.yaml',
+  'cicd/core/network/catalog-info.yaml',
   'platform-modules/network/catalog-info.yaml',
   'platform-modules/rds-database/catalog-info.yaml',
   'platform-modules/security/catalog-info.yaml',

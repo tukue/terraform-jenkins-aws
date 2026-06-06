@@ -82,6 +82,7 @@ catalog:
       - target: ../../platform-modules/compute/catalog-info.yaml
       - target: ../../platform-modules/ec2-instance/catalog-info.yaml
       - target: ../../platform-modules/edge/catalog-info.yaml
+      - target: ../../cicd/core/network/catalog-info.yaml
       - target: ../../platform-modules/network/catalog-info.yaml
       - target: ../../platform-modules/rds-database/catalog-info.yaml
       - target: ../../platform-modules/security/catalog-info.yaml
