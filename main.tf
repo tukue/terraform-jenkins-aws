@@ -18,14 +18,18 @@ locals {
 }
 
 module "networking" {
-  source               = "./platform-modules/network"
-  vpc_cidr             = var.vpc_cidr
+  source = "./cicd/core/network"
+
   vpc_name             = var.vpc_name
-  cidr_public_subnet   = var.cidr_public_subnet
-  eu_availability_zone = var.eu_availability_zone
-  cidr_private_subnet  = var.cidr_private_subnet
+  vpc_cidr             = var.vpc_cidr
+  public_subnet_cidrs  = var.cidr_public_subnet
+  private_subnet_cidrs = var.cidr_private_subnet
+  availability_zones   = var.eu_availability_zone
   environment          = var.environment
   enable_nat_gateway   = var.enable_nat_gateway
+  enable_flow_logs     = var.enable_vpc_flow_logs
+  enable_network_acl   = var.enable_network_acl
+  tags                 = local.common_tags
 }
 
 module "security_group" {
