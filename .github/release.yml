@@ -1,0 +1,39 @@
+changelog:
+  categories:
+    - title: Platform Modules
+      labels:
+        - platform-modules
+        - compute
+        - network
+        - security
+        - edge
+    - title: CI/CD
+      labels:
+        - ci/cd
+        - github-actions
+        - jenkins
+    - title: Documentation
+      labels:
+        - documentation
+        - docs
+    - title: Backstage Integration
+      labels:
+        - backstage
+        - catalog
+    - title: Policies & Governance
+      labels:
+        - policies
+        - governance
+        - opa
+    - title: Observability
+      labels:
+        - monitoring
+        - prometheus
+        - grafana
+        - cloudwatch
+    - title: Dependencies
+      labels:
+        - dependencies
+    - title: Other Changes
+      labels:
+        - "*"
