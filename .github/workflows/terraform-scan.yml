@@ -2,6 +2,7 @@ name: Terraform Security Scan
 
 permissions:
   contents: read
+  security-events: write
 
 concurrency:
   group: terraform-security-scan-${{ github.ref }}
@@ -24,12 +25,17 @@ on:
 
 jobs:
   security-scan:
-    name: Terraform Security Scan
+    name: Terraform Security and Policy Scan
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download tfsec
         run: |
@@ -38,3 +44,17 @@ jobs:
 
       - name: Run tfsec
         run: tfsec . --exclude-downloaded-modules
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          quiet: true
+          soft_fail: false
+
+      - name: Setup OPA
+        uses: open-policy-agent/setup-opa@v2
+
+      - name: Test policy as code
+        run: opa test policies/terraform --verbose

@@ -5,7 +5,7 @@ import input as tfplan
 # Allowed instance types for development
 allowed_instance_types = {"t3.micro", "t3.small", "t3.medium"}
 
-deny[msg] {
+deny contains msg if {
     resource := tfplan.resource_changes[_]
     resource.type == "aws_instance"
     
@@ -19,7 +19,7 @@ deny[msg] {
 }
 
 # Require encrypted root volumes for all instances
-deny[msg] {
+deny contains msg if {
     resource := tfplan.resource_changes[_]
     resource.type == "aws_instance"
     

@@ -6,7 +6,7 @@ import input as tfplan
 required_tags = {"Environment", "Project", "Owner"}
 
 # Check if resource has all required tags
-deny[msg] {
+deny contains msg if {
     resource := tfplan.resource_changes[_]
     resource.mode == "managed"
     
@@ -20,7 +20,7 @@ deny[msg] {
 
 # Check if Environment tag is valid
 valid_environments = {"dev", "qa", "prod"}
-deny[msg] {
+deny contains msg if {
     resource := tfplan.resource_changes[_]
     resource.mode == "managed"
     
