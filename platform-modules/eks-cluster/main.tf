@@ -20,13 +20,16 @@ locals {
 
   addon_defaults = {
     vpc-cni = {
-      addon_version = var.kubernetes_version >= "1.31" ? "v1.19.3eksbuild.1" : "v1.18.3eksbuild.2"
+      addon_version = var.kubernetes_version >= "1.32" ? "v1.19.6eksbuild.1" : var.kubernetes_version >= "1.31" ? "v1.19.3eksbuild.1" : "v1.18.3eksbuild.2"
     }
     coredns = {
-      addon_version = var.kubernetes_version >= "1.31" ? "v1.11.4eksbuild.1" : "v1.11.3eksbuild.1"
+      addon_version = var.kubernetes_version >= "1.32" ? "v1.11.4eksbuild.2" : var.kubernetes_version >= "1.31" ? "v1.11.4eksbuild.1" : "v1.11.3eksbuild.1"
     }
     kube-proxy = {
-      addon_version = var.kubernetes_version >= "1.31" ? "v1.31.2eksbuild.1" : "v1.30.6eksbuild.1"
+      addon_version = var.kubernetes_version >= "1.32" ? "v1.32.1eksbuild.1" : var.kubernetes_version >= "1.31" ? "v1.31.2eksbuild.1" : "v1.30.6eksbuild.1"
+    }
+    pod-identity-agent = {
+      addon_version = ""
     }
   }
 }
@@ -52,7 +55,8 @@ resource "aws_cloudwatch_log_group" "eks" {
   count = var.enable_cluster_logging ? 1 : 0
 
   name              = "/aws/eks/${local.full_name}/cluster"
-  retention_in_days = var.environment == "prod" ? 90 : 30
+  retention_in_days = var.environment == "prod" ? 365 : 90
+  kms_key_id        = var.kms_key_arn
   tags              = local.common_tags
 }
 
@@ -89,6 +93,7 @@ resource "aws_eks_cluster" "this" {
   name     = local.full_name
   role_arn = aws_iam_role.cluster.arn
   version  = var.kubernetes_version
+  tags     = local.common_tags
 
   vpc_config {
     subnet_ids              = local.resolved_subnet_ids
@@ -96,6 +101,18 @@ resource "aws_eks_cluster" "this" {
     endpoint_public_access  = var.endpoint_public_access
     public_access_cidrs     = var.endpoint_public_access_cidrs
     security_group_ids      = [aws_security_group.cluster.id]
+  }
+
+  access_config {
+    authentication_mode                         = var.authentication_mode
+    bootstrap_cluster_creator_admin_permissions = var.bootstrap_cluster_creator_admin_permissions
+  }
+
+  dynamic "upgrade_policy" {
+    for_each = var.upgrade_support_type != null ? [1] : []
+    content {
+      support_type = var.upgrade_support_type
+    }
   }
 
   dynamic "encryption_config" {
@@ -109,6 +126,12 @@ resource "aws_eks_cluster" "this" {
   }
 
   enabled_cluster_log_types = var.enable_cluster_logging ? var.cluster_log_types : []
+
+  timeouts {
+    create = var.cluster_timeout_create
+    update = var.cluster_timeout_update
+    delete = var.cluster_timeout_delete
+  }
 
   depends_on = [
     aws_iam_role_policy_attachment.cluster_policy,
@@ -132,8 +155,6 @@ resource "aws_eks_cluster" "this" {
       error_message = "At least 2 subnets must be provided for the EKS cluster (multi-AZ requirement)."
     }
   }
-
-  tags = local.common_tags
 }
 
 resource "aws_kms_key" "eks" {
@@ -142,6 +163,21 @@ resource "aws_kms_key" "eks" {
   description             = "EKS cluster encryption key for ${local.full_name}"
   deletion_window_in_days = 7
   enable_key_rotation     = true
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "EnableRootAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      }
+    ]
+  })
 
   tags = merge(local.common_tags, { Purpose = "EKSEncryption" })
 }
@@ -166,6 +202,10 @@ resource "aws_security_group" "cluster" {
   }
 
   tags = merge(local.common_tags, { Role = "EKSClusterSG" })
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_security_group_rule" "cluster_ingress_node" {
@@ -188,6 +228,42 @@ resource "aws_security_group_rule" "cluster_ingress_https" {
   protocol          = "tcp"
   cidr_blocks       = var.endpoint_public_access_cidrs
   description       = "Allow public HTTPS access to the API server"
+}
+
+resource "aws_security_group_rule" "cluster_ingress_ext_cluster" {
+  count = length(var.cluster_additional_security_group_ids) > 0 ? 1 : 0
+
+  security_group_id        = aws_security_group.cluster.id
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  source_security_group_id = var.cluster_additional_security_group_ids[0]
+  description              = "Allow additional security group to access API"
+}
+
+resource "aws_eks_access_entry" "this" {
+  for_each = var.access_entries
+
+  cluster_name      = aws_eks_cluster.this.name
+  principal_arn     = each.value.principal_arn
+  kubernetes_groups = each.value.kubernetes_groups
+  type              = each.value.type
+  user_name         = each.value.user_name
+
+  tags = local.common_tags
+}
+
+resource "aws_eks_access_policy_association" "this" {
+  for_each = var.access_policy_associations
+
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = each.value.principal_arn
+  policy_arn    = each.value.policy_arn
+  access_scope {
+    type       = each.value.access_scope_type
+    namespaces = each.value.access_scope_type == "namespace" ? each.value.namespaces : null
+  }
 }
 
 resource "aws_iam_role" "node" {
@@ -252,6 +328,14 @@ resource "aws_eks_node_group" "this" {
     }
   }
 
+  dynamic "launch_template" {
+    for_each = each.value.launch_template_name != null ? [1] : []
+    content {
+      name    = each.value.launch_template_name
+      version = each.value.launch_template_version
+    }
+  }
+
   labels = merge(
     each.value.labels,
     {
@@ -299,6 +383,13 @@ resource "aws_eks_addon" "this" {
   resolve_conflicts_on_update = each.value.resolve_conflicts
 
   service_account_role_arn = each.value.service_account_role_arn != "" ? each.value.service_account_role_arn : null
+
+  dynamic "pod_identity_association" {
+    for_each = each.value.pod_identity_role_arn != "" ? [1] : []
+    content {
+      role_arn = each.value.pod_identity_role_arn
+    }
+  }
 
   depends_on = [aws_eks_cluster.this]
 
@@ -388,7 +479,6 @@ data "aws_iam_policy_document" "lb_controller" {
       "elasticloadbalancing:DescribeTargetGroupAttributes",
       "elasticloadbalancing:DescribeTargetHealth",
       "elasticloadbalancing:DescribeLoadBalancers",
-      "elasticloadbalancing:DescribeLoadBalancerAttributes",
       "elasticloadbalancing:DescribeLoadBalancerAttributes",
       "elasticloadbalancing:CreateListener",
       "elasticloadbalancing:CreateRule",

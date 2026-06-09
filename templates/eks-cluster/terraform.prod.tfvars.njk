@@ -1,10 +1,26 @@
-aws_region              = "${{ values.aws_region }}"
-aws_account_id          = "${{ values.aws_account_id }}"
-cluster_name            = "${{ values.cluster_name }}"
-environment             = "prod"
-kubernetes_version      = "${{ values.kubernetes_version }}"
-enable_lb_controller    = ${{ values.enable_lb_controller }}
-endpoint_public_access  = false
+aws_region                              = "${{ values.aws_region }}"
+aws_account_id                          = "${{ values.aws_account_id }}"
+cluster_name                            = "${{ values.cluster_name }}"
+environment                             = "prod"
+kubernetes_version                      = "${{ values.kubernetes_version }}"
+authentication_mode                     = "${{ values.authentication_mode }}"
+enable_lb_controller                    = ${{ values.enable_lb_controller }}
+endpoint_public_access                  = false
+
+access_entries = {
+  admin = {
+    principal_arn     = "${{ values.admin_iam_role_arn }}"
+    kubernetes_groups = ["system:masters"]
+  }
+}
+
+access_policy_associations = {
+  admin-cluster = {
+    principal_arn     = "${{ values.admin_iam_role_arn }}"
+    policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+    access_scope_type = "cluster"
+  }
+}
 
 tags = {
   Environment = "prod"

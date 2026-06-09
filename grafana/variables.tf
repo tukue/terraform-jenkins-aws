@@ -42,6 +42,12 @@ variable "admin_user" {
   default     = "admin"
 }
 
+variable "iam_instance_profile" {
+  description = "IAM instance profile to attach to Grafana EC2"
+  type        = string
+  default     = null
+}
+
 variable "admin_password" {
   description = "Grafana admin password"
   type        = string

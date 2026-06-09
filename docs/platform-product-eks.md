@@ -60,6 +60,10 @@ The platform resolves:
 | IRSA support | Implemented |
 | LB Controller integration | Implemented |
 | Add-on management | Implemented |
+| EKS Access Entries (IAM auth) | Implemented |
+| AL2023 default AMI | Implemented |
+| Pod Identity Agent add-on | Implemented |
+| Upgrade policy (EXTENDED support) | Implemented |
 | Karpenter support | Not yet implemented |
 | Fargate profiles | Not yet implemented |
 | Cluster auto-scaler | Not yet implemented |

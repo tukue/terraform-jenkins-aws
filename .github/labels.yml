@@ -1,0 +1,33 @@
+- name: platform-modules
+  color: "5319e7"
+  description: Changes to platform modules
+- name: ci/cd
+  color: "0e8a16"
+  description: CI/CD pipeline changes
+- name: documentation
+  color: "0075ca"
+  description: Documentation improvements
+- name: backstage
+  color: "bfdadc"
+  description: Backstage integration changes
+- name: policies
+  color: "fbca04"
+  description: Policy and governance changes
+- name: monitoring
+  color: "5319e7"
+  description: Observability and monitoring
+- name: dependencies
+  color: "0025ff"
+  description: Dependency updates
+- name: security
+  color: "b60205"
+  description: Security-related changes
+- name: enhancement
+  color: "a2eeef"
+  description: New feature or enhancement
+- name: bug
+  color: "d73a4a"
+  description: Bug fixes
+- name: release
+  color: "32a852"
+  description: Release tracking

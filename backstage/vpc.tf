@@ -1,3 +1,15 @@
+# Restrict default security group
+resource "aws_default_security_group" "backstage" {
+  vpc_id = module.vpc.vpc_id
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.environment}-backstage-default-sg"
+    }
+  )
+}
+
 # VPC and Networking
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -30,6 +42,7 @@ resource "aws_security_group" "backstage_db" {
   vpc_id      = module.vpc.vpc_id
 
   ingress {
+    description     = "PostgreSQL from Backstage EC2"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
@@ -37,6 +50,7 @@ resource "aws_security_group" "backstage_db" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -59,6 +73,7 @@ resource "aws_security_group" "backstage" {
 
   # HTTP
   ingress {
+    description = "HTTP from anywhere"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -67,6 +82,7 @@ resource "aws_security_group" "backstage" {
 
   # HTTPS
   ingress {
+    description = "HTTPS from anywhere"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -75,6 +91,7 @@ resource "aws_security_group" "backstage" {
 
   # Backstage application
   ingress {
+    description = "Backstage app from anywhere"
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
@@ -83,13 +100,15 @@ resource "aws_security_group" "backstage" {
 
   # SSH
   ingress {
+    description = "SSH from anywhere (restrict in production)"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Restrict in production
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -161,7 +180,7 @@ resource "aws_iam_role_policy" "backstage_ecr" {
           "ecr:BatchGetImage",
           "ecr:GetDownloadUrlForLayer"
         ]
-        Resource = "*"
+        Resource = "arn:aws:ecr:${var.aws_region}:*:repository/*"
       }
     ]
   })

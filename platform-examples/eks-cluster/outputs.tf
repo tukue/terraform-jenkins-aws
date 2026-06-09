@@ -14,8 +14,20 @@ output "cluster_version" {
   value = module.eks.cluster_version
 }
 
+output "cluster_iam_role_arn" {
+  value = module.eks.cluster_iam_role_arn
+}
+
+output "authentication_mode" {
+  value = module.eks.authentication_mode
+}
+
 output "node_group_roles" {
   value = module.eks.node_group_roles
+}
+
+output "node_group_statuses" {
+  value = module.eks.node_group_statuses
 }
 
 output "oidc_provider_url" {
@@ -44,6 +56,14 @@ output "vpc_id" {
 
 output "node_instance_role_arn" {
   value = module.eks.node_instance_role_arn
+}
+
+output "kms_key_arn" {
+  value = module.eks.kms_key_arn
+}
+
+output "access_entry_arns" {
+  value = module.eks.access_entry_arns
 }
 
 output "kubeconfig" {

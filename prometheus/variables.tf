@@ -1,6 +1,12 @@
 variable "environment" {
-  description = "Deployment environment name (dev, qa, prod)"
+  description = "Environment name (dev, qa, prod)"
   type        = string
+}
+
+variable "kms_key_id" {
+  description = "KMS key ARN for CloudWatch log group encryption"
+  type        = string
+  default     = null
 }
 
 variable "workspace_alias" {

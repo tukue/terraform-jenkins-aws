@@ -336,6 +336,18 @@ variable "waf_rate_limit" {
   description = "Request rate limit per 5-minute window for the WAF rule"
 }
 
+variable "kms_key_id" {
+  description = "KMS key ARN for CW Logs and ECR encryption"
+  type        = string
+  default     = null
+}
+
+variable "access_logs_bucket" {
+  description = "S3 bucket for ALB access logs"
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}

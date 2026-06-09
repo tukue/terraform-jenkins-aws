@@ -12,7 +12,8 @@ locals {
 # tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/flow-logs/${var.environment}"
-  retention_in_days = var.flow_logs_retention_days
+  retention_in_days = max(var.flow_logs_retention_days, 365)
+  kms_key_id        = var.kms_key_id
 
   tags = merge(
     local.common_tags,
@@ -70,6 +71,18 @@ resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
       }
     ]
   })
+}
+
+# Restrict default security group
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.dev_proj_1_vpc_eu_north_1.id
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-default-sg"
+    }
+  )
 }
 
 # Setup VPC

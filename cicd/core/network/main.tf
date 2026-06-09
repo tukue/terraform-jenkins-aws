@@ -23,10 +23,21 @@ resource "aws_vpc" "this" {
   )
 }
 
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.this.id
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.vpc_name}-default-sg"
+    }
+  )
+}
+
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   count             = var.enable_flow_logs ? 1 : 0
   name              = "/aws/vpc-flow-logs/${var.vpc_name}"
-  retention_in_days = var.flow_log_retention_in_days
+  retention_in_days = max(var.flow_log_retention_in_days, 365)
   kms_key_id        = var.flow_log_kms_key_id != "" ? var.flow_log_kms_key_id : null
 
   tags = merge(

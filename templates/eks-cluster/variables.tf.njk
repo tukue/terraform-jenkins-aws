@@ -4,14 +4,10 @@ variable "aws_region" {
 
   validation {
     condition = contains([
-      "us-east-1",
-      "us-east-2",
-      "us-west-2",
-      "eu-north-1",
-      "eu-west-1",
+      "us-east-1", "us-east-2", "us-west-2",
+      "eu-north-1", "eu-west-1",
       "me-south-1",
-      "ap-southeast-1",
-      "ap-southeast-2",
+      "ap-southeast-1", "ap-southeast-2",
       "sa-east-1"
     ], var.aws_region)
     error_message = "aws_region must be one of the approved platform regions."
@@ -52,6 +48,12 @@ variable "kubernetes_version" {
   description = "Kubernetes version"
 }
 
+variable "authentication_mode" {
+  type        = string
+  default     = "${{ values.authentication_mode }}"
+  description = "EKS authentication mode"
+}
+
 variable "enable_lb_controller" {
   type        = bool
   default     = ${{ values.enable_lb_controller }}
@@ -62,6 +64,34 @@ variable "endpoint_public_access" {
   type        = bool
   default     = ${{ values.endpoint_public_access }}
   description = "Enable public API server endpoint"
+}
+
+variable "endpoint_public_access_cidrs" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  description = "CIDR blocks for public API server endpoint access"
+}
+
+variable "access_entries" {
+  type = map(object({
+    principal_arn     = string
+    kubernetes_groups = optional(list(string), [])
+    type              = optional(string, "STANDARD")
+    user_name         = optional(string, "")
+  }))
+  default     = {}
+  description = "EKS access entries for IAM principals"
+}
+
+variable "access_policy_associations" {
+  type = map(object({
+    principal_arn     = string
+    policy_arn        = string
+    access_scope_type = string
+    namespaces        = optional(list(string), [])
+  }))
+  default     = {}
+  description = "EKS access policy associations for access entries"
 }
 
 variable "tags" {

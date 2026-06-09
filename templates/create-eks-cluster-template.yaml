@@ -4,7 +4,7 @@ kind: Template
 metadata:
   name: create-eks-cluster
   title: Create EKS Cluster
-  description: Provision a shared EKS cluster on AWS for developer workloads
+  description: Provision a shared EKS cluster on AWS for developer workloads with best practices
   tags:
     - eks
     - kubernetes
@@ -96,7 +96,17 @@ spec:
             - "1.29"
             - "1.30"
             - "1.31"
-          description: EKS Kubernetes version
+            - "1.32"
+          description: EKS Kubernetes version (1.31+ recommended)
+
+        authentication_mode:
+          title: Authentication Mode
+          type: string
+          default: API_AND_CONFIG_MAP
+          enum:
+            - API_AND_CONFIG_MAP
+            - API
+          description: Use API-based authentication (modern) or API_AND_CONFIG_MAP (transitional)
 
         enable_lb_controller:
           title: Enable AWS Load Balancer Controller
@@ -109,6 +119,12 @@ spec:
           type: boolean
           description: Allow public access to the Kubernetes API server
           default: true
+
+        admin_iam_role_arn:
+          title: Admin IAM Role ARN
+          type: string
+          description: IAM role ARN to grant cluster admin access (access entry)
+          pattern: '^arn:aws:iam::\d{12}:role/[\w+=,.@-]+$'
 
     - title: Review and notes
       properties:
@@ -130,10 +146,12 @@ spec:
           environment: ${{ parameters.environment }}
           owner: ${{ parameters.owner }}
           kubernetes_version: ${{ parameters.kubernetes_version }}
+          authentication_mode: ${{ parameters.authentication_mode }}
           enable_lb_controller: ${{ parameters.enable_lb_controller }}
           endpoint_public_access: ${{ parameters.endpoint_public_access }}
           aws_region: ${{ parameters.aws_region }}
           aws_account_id: ${{ parameters.aws_account_id }}
+          admin_iam_role_arn: ${{ parameters.admin_iam_role_arn }}
 
     - id: publish
       name: Publish to GitHub

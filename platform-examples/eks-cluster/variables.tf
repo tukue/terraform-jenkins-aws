@@ -52,16 +52,62 @@ variable "kubernetes_version" {
   description = "Kubernetes version"
 }
 
-variable "enable_lb_controller" {
+variable "authentication_mode" {
+  type        = string
+  default     = "API_AND_CONFIG_MAP"
+  description = "EKS authentication mode: CONFIG_MAP, API, or API_AND_CONFIG_MAP"
+}
+
+variable "bootstrap_cluster_creator_admin_permissions" {
   type        = bool
   default     = true
-  description = "Create IRSA role for AWS Load Balancer Controller"
+  description = "Grant the cluster creator admin permissions via access entries"
+}
+
+variable "endpoint_private_access" {
+  type        = bool
+  default     = true
+  description = "Enable private API server endpoint"
 }
 
 variable "endpoint_public_access" {
   type        = bool
   default     = true
   description = "Enable public API server endpoint"
+}
+
+variable "endpoint_public_access_cidrs" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  description = "CIDR blocks for public API server endpoint access"
+}
+
+variable "enable_lb_controller" {
+  type        = bool
+  default     = true
+  description = "Create IRSA role for AWS Load Balancer Controller"
+}
+
+variable "access_entries" {
+  type = map(object({
+    principal_arn     = string
+    kubernetes_groups = optional(list(string), [])
+    type              = optional(string, "STANDARD")
+    user_name         = optional(string, "")
+  }))
+  default     = {}
+  description = "EKS access entries for IAM principals"
+}
+
+variable "access_policy_associations" {
+  type = map(object({
+    principal_arn     = string
+    policy_arn        = string
+    access_scope_type = string
+    namespaces        = optional(list(string), [])
+  }))
+  default     = {}
+  description = "EKS access policy associations for access entries"
 }
 
 variable "tags" {

@@ -16,6 +16,16 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids      = var.vpc_security_group_ids
   db_subnet_group_name        = var.db_subnet_group_name
 
+  deletion_protection                   = var.deletion_protection
+  auto_minor_version_upgrade            = true
+  copy_tags_to_snapshot                 = true
+  multi_az                              = var.multi_az
+  monitoring_interval                   = var.monitoring_interval
+  monitoring_role_arn                   = var.monitoring_role_arn
+  enabled_cloudwatch_logs_exports       = var.enabled_cloudwatch_logs_exports
+  performance_insights_enabled          = var.performance_insights_enabled
+  performance_insights_retention_period = var.performance_insights_retention_period
+
   tags = merge(
     var.tags,
     {

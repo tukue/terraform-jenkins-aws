@@ -174,13 +174,15 @@ resource "aws_ecs_cluster" "customer" {
 
 resource "aws_cloudwatch_log_group" "customer" {
   name              = local.log_group_name
-  retention_in_days = 30
+  retention_in_days = var.environment == "prod" ? 365 : 90
+  kms_key_id        = var.kms_key_id
   tags              = local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "exec" {
   name              = local.exec_log_group_name
-  retention_in_days = 30
+  retention_in_days = var.environment == "prod" ? 365 : 90
+  kms_key_id        = var.kms_key_id
   tags              = local.common_tags
 }
 
@@ -195,7 +197,8 @@ resource "aws_ecr_repository" "customer" {
   }
 
   encryption_configuration {
-    encryption_type = "AES256"
+    encryption_type = "KMS"
+    kms_key_id      = var.kms_key_id
   }
 
   tags = local.common_tags
@@ -324,6 +327,7 @@ resource "aws_security_group" "alb" {
     for_each = var.alb_ingress_cidr_blocks
 
     content {
+      description = "HTTP from ${ingress.value}"
       from_port   = 80
       to_port     = 80
       protocol    = "tcp"
@@ -335,6 +339,7 @@ resource "aws_security_group" "alb" {
     for_each = var.alb_ingress_cidr_blocks
 
     content {
+      description = "HTTPS from ${ingress.value}"
       from_port   = 443
       to_port     = 443
       protocol    = "tcp"
@@ -343,6 +348,7 @@ resource "aws_security_group" "alb" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -358,6 +364,7 @@ resource "aws_security_group" "service" {
   vpc_id      = local.resolved_vpc_id
 
   ingress {
+    description     = "App traffic from ALB"
     from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
@@ -365,6 +372,7 @@ resource "aws_security_group" "service" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -375,11 +383,19 @@ resource "aws_security_group" "service" {
 }
 
 resource "aws_lb" "customer" {
-  name               = local.alb_name
-  internal           = var.alb_internal
-  load_balancer_type = "application"
-  subnets            = local.alb_subnet_ids
-  security_groups    = [aws_security_group.alb.id]
+  name                       = local.alb_name
+  internal                   = var.alb_internal
+  load_balancer_type         = "application"
+  subnets                    = local.alb_subnet_ids
+  security_groups            = [aws_security_group.alb.id]
+  enable_deletion_protection = true
+  drop_invalid_header_fields = true
+
+  access_logs {
+    bucket  = var.access_logs_bucket
+    prefix  = "alb-logs"
+    enabled = var.access_logs_bucket != null
+  }
 
   tags = local.common_tags
 }

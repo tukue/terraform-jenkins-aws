@@ -86,10 +86,52 @@ variable "create_db_subnet_group" {
   default     = false
 }
 
+variable "deletion_protection" {
+  description = "Enable deletion protection for the RDS instance"
+  type        = bool
+  default     = true
+}
+
+variable "multi_az" {
+  description = "Enable Multi-AZ deployment for the RDS instance"
+  type        = bool
+  default     = true
+}
+
 variable "subnet_ids" {
   description = "A list of VPC subnet IDs"
   type        = list(string)
   default     = []
+}
+
+variable "monitoring_interval" {
+  description = "Interval in seconds for enhanced monitoring"
+  type        = number
+  default     = 0
+}
+
+variable "monitoring_role_arn" {
+  description = "ARN of the IAM role for enhanced monitoring"
+  type        = string
+  default     = null
+}
+
+variable "enabled_cloudwatch_logs_exports" {
+  description = "List of log types to export to CloudWatch"
+  type        = list(string)
+  default     = null
+}
+
+variable "performance_insights_enabled" {
+  description = "Enable Performance Insights"
+  type        = bool
+  default     = true
+}
+
+variable "performance_insights_retention_period" {
+  description = "Retention period for Performance Insights data"
+  type        = number
+  default     = 7
 }
 
 variable "environment" {

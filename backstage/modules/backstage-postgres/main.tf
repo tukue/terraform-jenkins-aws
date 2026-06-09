@@ -36,16 +36,20 @@ resource "aws_db_instance" "backstage" {
   maintenance_window      = "sun:04:00-sun:05:00"
 
   # Multi-AZ and scaling
-  multi_az            = var.multi_az
-  publicly_accessible = var.publicly_accessible
+  multi_az                            = var.multi_az
+  auto_minor_version_upgrade          = true
+  iam_database_authentication_enabled = true
+  publicly_accessible                 = var.publicly_accessible
 
   # Parameter group
   parameter_group_name = aws_db_parameter_group.backstage.name
 
   # Monitoring
-  enabled_cloudwatch_logs_exports = ["postgresql"]
-  monitoring_interval             = 60
-  monitoring_role_arn             = aws_iam_role.backstage_db_monitoring.arn
+  enabled_cloudwatch_logs_exports       = ["postgresql"]
+  monitoring_interval                   = 60
+  monitoring_role_arn                   = aws_iam_role.backstage_db_monitoring.arn
+  performance_insights_enabled          = true
+  performance_insights_retention_period = 7
 
   # Snapshot and final snapshot
   copy_tags_to_snapshot     = true
@@ -53,7 +57,7 @@ resource "aws_db_instance" "backstage" {
   final_snapshot_identifier = "${var.environment}-backstage-db-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 
   # Deletion protection
-  deletion_protection = var.environment == "production" ? true : false
+  deletion_protection = true
 
   tags = merge(
     var.tags,
@@ -96,6 +100,21 @@ resource "aws_kms_key" "backstage_db" {
   deletion_window_in_days = 10
   enable_key_rotation     = true
 
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "EnableRootAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      }
+    ]
+  })
+
   tags = merge(
     var.tags,
     {
@@ -103,6 +122,8 @@ resource "aws_kms_key" "backstage_db" {
     }
   )
 }
+
+data "aws_caller_identity" "current" {}
 
 resource "aws_kms_alias" "backstage_db" {
   name          = "alias/${var.environment}-backstage-db"
