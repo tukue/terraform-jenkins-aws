@@ -60,6 +60,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
     id     = "expire-old-versions"
     status = "Enabled"
 
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
     noncurrent_version_expiration {
       noncurrent_days = 90
     }
@@ -89,6 +93,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "terraform_state_logs" {
   rule {
     id     = "expire-old-logs"
     status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
 
     expiration {
       days = 365

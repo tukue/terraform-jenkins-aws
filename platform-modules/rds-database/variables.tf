@@ -134,6 +134,12 @@ variable "performance_insights_retention_period" {
   default     = 7
 }
 
+variable "performance_insights_kms_key_id" {
+  description = "KMS key ARN to encrypt Performance Insights data"
+  type        = string
+  default     = null
+}
+
 variable "environment" {
   description = "The environment for the resource"
   type        = string

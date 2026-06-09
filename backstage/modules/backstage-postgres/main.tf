@@ -50,6 +50,7 @@ resource "aws_db_instance" "backstage" {
   monitoring_role_arn                   = aws_iam_role.backstage_db_monitoring.arn
   performance_insights_enabled          = true
   performance_insights_retention_period = 7
+  performance_insights_kms_key_id       = aws_kms_key.backstage_db.arn
 
   # Snapshot and final snapshot
   copy_tags_to_snapshot     = true
