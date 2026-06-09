@@ -3,6 +3,7 @@ locals {
 }
 
 resource "aws_lb" "jenkins" {
+  # checkov:skip=CKV2_AWS_20:HTTP listener redirects to HTTPS when a certificate is configured
   # checkov:skip=CKV2_AWS_76:Log4j AMR WAF rule should be added when Log4j-specific threat scope is defined
   name = "${var.name_prefix}-alb"
   # Public ALB is the intentional WAF-protected entry point; Jenkins itself remains private.
