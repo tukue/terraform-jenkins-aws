@@ -148,12 +148,6 @@ variable "node_groups" {
   }
 }
 
-variable "enable_nodegroup_scaling" {
-  type        = bool
-  default     = true
-  description = "Enable autoscaling for node groups (requires cluster-autoscaler or Karpenter)"
-}
-
 variable "cluster_addons" {
   type = map(object({
     addon_version            = optional(string, "")
