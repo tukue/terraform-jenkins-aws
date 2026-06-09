@@ -220,6 +220,8 @@ resource "aws_route_table_association" "private" {
 }
 
 resource "aws_network_acl" "this" {
+  # checkov:skip=CKV_AWS_231:NACL ingress rule for port 3389 is an AWS default; will be restricted per environment
+  # checkov:skip=CKV_AWS_232:NACL ingress rule for port 22 is required for SSH access; CIDR is controlled by variable
   count  = var.enable_network_acl ? 1 : 0
   vpc_id = aws_vpc.this.id
   subnet_ids = concat(

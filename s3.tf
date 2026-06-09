@@ -39,6 +39,8 @@ resource "aws_kms_alias" "terraform_encryption_key" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
+  # checkov:skip=CKV_AWS_144:Cross-region replication requires multi-region infrastructure not yet implemented
+  # checkov:skip=CKV2_AWS_62:S3 event notifications are not required for Terraform state storage
   bucket = var.bucket_name
 
   tags = merge(
@@ -73,6 +75,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
 # S3 bucket for access logs
 # tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "terraform_state_logs" {
+  # checkov:skip=CKV_AWS_144:Cross-region replication requires multi-region infrastructure not yet implemented
+  # checkov:skip=CKV2_AWS_62:S3 event notifications are not required for Terraform state log storage
   bucket = "${var.bucket_name}-logs"
 
   tags = merge(

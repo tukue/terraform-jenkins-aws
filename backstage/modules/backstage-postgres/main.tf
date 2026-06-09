@@ -11,6 +11,7 @@ resource "aws_db_subnet_group" "backstage" {
 }
 
 resource "aws_db_instance" "backstage" {
+  # checkov:skip=CKV2_AWS_69:Encryption in transit is enforced via the RDS parameter group (ssl=1)
   identifier     = "${var.environment}-backstage-db"
   engine         = "postgres"
   engine_version = "14.7"

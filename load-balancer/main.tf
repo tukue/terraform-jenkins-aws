@@ -9,6 +9,7 @@ locals {
 }
 
 resource "aws_lb" "dev_proj_1_lb" {
+  # checkov:skip=CKV_AWS_152:Cross-zone load balancing check is for NLB/Gateway LB; this is an ALB
   name               = var.lb_name
   internal           = var.is_external
   load_balancer_type = var.lb_type

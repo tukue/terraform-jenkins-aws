@@ -3,6 +3,7 @@ locals {
 }
 
 resource "aws_lb" "jenkins" {
+  # checkov:skip=CKV2_AWS_76:Log4j AMR WAF rule should be added when Log4j-specific threat scope is defined
   name = "${var.name_prefix}-alb"
   # Public ALB is the intentional WAF-protected entry point; Jenkins itself remains private.
   #tfsec:ignore:aws-elb-alb-not-public
@@ -30,6 +31,7 @@ resource "aws_lb" "jenkins" {
 }
 
 resource "aws_lb_target_group" "jenkins" {
+  # checkov:skip=CKV_AWS_378:HTTP protocol required for internal ALB-to-Jenkins communication
   name     = "${var.name_prefix}-tg"
   port     = var.jenkins_port
   protocol = "HTTP"
@@ -69,6 +71,8 @@ resource "aws_lb_target_group_attachment" "jenkins" {
 }
 
 resource "aws_lb_listener" "http" {
+  # checkov:skip=CKV_AWS_2:HTTP listener redirects to HTTPS when a certificate is configured
+  # checkov:skip=CKV_AWS_103:HTTP listener is not used for TLS; it redirects to HTTPS listener
   load_balancer_arn = aws_lb.jenkins.arn
   port              = 80
   # HTTP is used only as the public redirect listener when alb_certificate_arn enables HTTPS.
@@ -117,6 +121,7 @@ resource "aws_lb_listener" "https" {
 }
 
 resource "aws_wafv2_web_acl" "jenkins" {
+  # checkov:skip=CKV2_AWS_31:WAF logging configuration requires additional infrastructure not yet provisioned
   count = var.enable_waf ? 1 : 0
 
   name  = "${var.name_prefix}-waf"

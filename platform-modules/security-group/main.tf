@@ -9,6 +9,7 @@ locals {
 }
 
 resource "aws_security_group" "this" {
+  # checkov:skip=CKV2_AWS_5:Security groups are referenced by compute resources in the calling module
   name        = var.name
   description = var.description
   vpc_id      = var.vpc_id

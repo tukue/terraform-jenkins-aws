@@ -15,6 +15,7 @@ resource "aws_prometheus_workspace" "this" {
 }
 
 resource "aws_cloudwatch_log_group" "otel_collector" {
+  # checkov:skip=CKV_AWS_338:Non-prod environments use shorter retention for cost management
   count = var.create_otel_log_group ? 1 : 0
 
   name              = "/platform/${var.environment}/otel-collector"

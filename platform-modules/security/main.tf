@@ -9,6 +9,7 @@ locals {
 }
 
 resource "aws_security_group" "ec2_sg_ssh_http" {
+  # checkov:skip=CKV2_AWS_5:Security groups are referenced by EC2 and ALB resources in the calling module
   name        = var.ec2_sg_name
   description = "Enable the Port 22(SSH) & Port 80(http)"
   vpc_id      = var.vpc_id
@@ -67,6 +68,7 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
 }
 
 resource "aws_security_group" "alb_http_https" {
+  # checkov:skip=CKV2_AWS_5:Security groups are referenced by ALB resources in the calling module
   name        = var.alb_sg_name
   description = "Allow public HTTP and HTTPS access to the Jenkins ALB"
   vpc_id      = var.vpc_id
@@ -111,6 +113,7 @@ resource "aws_security_group" "alb_http_https" {
 }
 
 resource "aws_security_group" "ec2_jenkins_port_8080" {
+  # checkov:skip=CKV2_AWS_5:Security groups are referenced by EC2 and ALB resources in the calling module
   name        = var.ec2_jenkins_sg_name
   description = "Enable the Port 8080 for jenkins"
   vpc_id      = var.vpc_id

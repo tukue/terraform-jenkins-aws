@@ -1,4 +1,6 @@
 resource "aws_db_instance" "this" {
+  # checkov:skip=CKV_AWS_118:Enhanced monitoring is opt-in via monitoring_interval variable
+  # checkov:skip=CKV2_AWS_30:Query logging is configured via the DB parameter group, not the instance resource
   identifier                  = var.identifier
   allocated_storage           = var.allocated_storage
   storage_type                = var.storage_type

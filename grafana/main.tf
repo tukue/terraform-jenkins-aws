@@ -1,4 +1,5 @@
 resource "aws_security_group" "grafana" {
+  # checkov:skip=CKV_AWS_382:Permissive egress required for Grafana to reach internet resources
   name        = "${var.environment}-grafana-sg"
   description = "Security group for Grafana"
   vpc_id      = var.vpc_id
@@ -31,6 +32,7 @@ resource "aws_security_group" "grafana" {
 }
 
 resource "aws_instance" "grafana" {
+  # checkov:skip=CKV_AWS_88:Public IP required for Grafana UI access
   ami                         = var.ami_id
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
