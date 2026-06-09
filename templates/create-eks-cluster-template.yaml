@@ -1,0 +1,173 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-eks-cluster
+  title: Create EKS Cluster
+  description: Provision a shared EKS cluster on AWS for developer workloads
+  tags:
+    - eks
+    - kubernetes
+    - aws
+    - infrastructure
+    - platform
+  links:
+    - title: EKS Platform Documentation
+      url: /docs/default/component/eks-platform
+
+spec:
+  owner: platform-team
+  type: infrastructure
+
+  parameters:
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Target Repository
+          type: string
+          description: Repository that will store the generated EKS cluster configuration
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+              additionalScopes:
+                github:
+                  - workflow
+
+    - title: Cluster details
+      required:
+        - cluster_name
+        - environment
+        - aws_region
+        - aws_account_id
+        - owner
+      properties:
+        cluster_name:
+          title: Cluster Name
+          type: string
+          description: Cluster name prefix
+          pattern: '^[a-z0-9-]{3,48}$'
+
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - qa
+            - prod
+          description: Target deployment environment
+
+        owner:
+          title: Owner Email
+          type: string
+          description: Team or person responsible for the cluster
+          pattern: '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+
+        aws_region:
+          title: AWS Region
+          type: string
+          enum:
+            - us-east-1
+            - us-east-2
+            - us-west-2
+            - eu-north-1
+            - eu-west-1
+            - me-south-1
+            - ap-southeast-1
+            - ap-southeast-2
+            - sa-east-1
+          description: AWS region selected by the developer during Backstage scaffolding
+
+        aws_account_id:
+          title: AWS Account ID
+          type: string
+          description: AWS account ID entered by the developer during Backstage scaffolding
+          pattern: '^[0-9]{12}$'
+
+        kubernetes_version:
+          title: Kubernetes Version
+          type: string
+          default: "1.31"
+          enum:
+            - "1.29"
+            - "1.30"
+            - "1.31"
+          description: EKS Kubernetes version
+
+        enable_lb_controller:
+          title: Enable AWS Load Balancer Controller
+          type: boolean
+          default: true
+          description: Create IRSA IAM role for AWS Load Balancer Controller
+
+        endpoint_public_access:
+          title: Public API Endpoint
+          type: boolean
+          description: Allow public access to the Kubernetes API server
+          default: true
+
+    - title: Review and notes
+      properties:
+        message:
+          title: Deployment Notes
+          type: string
+          description: Optional notes for platform reviewers
+          maxLength: 500
+
+  steps:
+    - id: fetch-base
+      name: Fetch EKS cluster template
+      action: fetch:template
+      input:
+        url: ./eks-cluster
+        targetPath: ./
+        values:
+          cluster_name: ${{ parameters.cluster_name }}
+          environment: ${{ parameters.environment }}
+          owner: ${{ parameters.owner }}
+          kubernetes_version: ${{ parameters.kubernetes_version }}
+          enable_lb_controller: ${{ parameters.enable_lb_controller }}
+          endpoint_public_access: ${{ parameters.endpoint_public_access }}
+          aws_region: ${{ parameters.aws_region }}
+          aws_account_id: ${{ parameters.aws_account_id }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+        defaultBranch: main
+        description: |
+          EKS cluster for ${{ parameters.cluster_name }} in ${{ parameters.environment }}.
+          ${{ parameters.message }}
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Catalog Entry
+        url: /catalog/default/component/${{ parameters.cluster_name }}-eks-cluster
+    text:
+      - title: Next Steps
+        content: |
+          Your EKS cluster repository has been created.
+
+          1. Review the generated repository.
+          2. Confirm the AWS account and region.
+          3. Run `terraform init` and `terraform plan` for the target environment.
+          4. Apply the infrastructure change.
+          5. Configure `kubectl` using `aws eks update-kubeconfig`.
+          6. Deploy AWS Load Balancer Controller using Helm (if enabled).
+          7. Deploy workloads to the cluster.

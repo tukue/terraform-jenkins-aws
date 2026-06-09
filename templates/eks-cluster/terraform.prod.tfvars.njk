@@ -1,0 +1,13 @@
+aws_region              = "${{ values.aws_region }}"
+aws_account_id          = "${{ values.aws_account_id }}"
+cluster_name            = "${{ values.cluster_name }}"
+environment             = "prod"
+kubernetes_version      = "${{ values.kubernetes_version }}"
+enable_lb_controller    = ${{ values.enable_lb_controller }}
+endpoint_public_access  = false
+
+tags = {
+  Environment = "prod"
+  Owner       = "${{ values.owner }}"
+  Tier        = "production"
+}
