@@ -119,7 +119,7 @@ variable "monitoring_role_arn" {
 variable "enabled_cloudwatch_logs_exports" {
   description = "List of log types to export to CloudWatch"
   type        = list(string)
-  default     = null
+  default     = ["postgresql"]
 }
 
 variable "performance_insights_enabled" {
