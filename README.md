@@ -49,6 +49,30 @@ Organizations struggle with slow, inconsistent infrastructure delivery — teams
 
 ---
 
+## Developer Experience (DevX)
+
+The platform provides a self-service Kubernetes experience so developers can focus on applications, not cluster operations.
+
+### EKS Self-Service Flow
+
+1. **Discover** — Browse the EKS product in the Backstage catalog
+2. **Request** — Fill a short scaffolder template (cluster name, region, environment)
+3. **Provision** — Terraform creates the cluster with encryption, logging, node groups, and OIDC
+4. **Connect** — Run `aws eks update-kubeconfig` or use the `kubeconfig` Terraform output
+5. **Deploy** — Use IRSA roles for workload identity — no static credentials needed
+6. **Extend** — Add-ons like AWS Load Balancer Controller, cert-manager, and ExternalDNS deploy via IRSA roles the module creates
+
+### What developers get out of the box
+
+- **Managed control plane** — No master node management, automatic patching
+- **Encrypted at rest** — KMS-backed envelope encryption for all Kubernetes secrets
+- **Audit logging** — CloudWatch log group with 30–90 day retention by environment
+- **Workload identity** — OIDC provider + IRSA roles for service accounts
+- **Environment-aware sizing** — Spot instances in dev, on-demand in prod, right-sized node groups
+- **Cluster add-ons** — VPC CNI, CoreDNS, kube-proxy managed through Terraform
+
+---
+
 ## Design Considerations
 
 | Principle | Decision | Trade-off |
@@ -74,6 +98,7 @@ Organizations struggle with slow, inconsistent infrastructure delivery — teams
 - **Observability & monitoring** — Prometheus, Grafana, CloudWatch integration
 - **Secure cloud architecture** — IAM least privilege, WAF, VPC isolation
 - **GitOps-ready workflows** — Backstage catalog integration with scaffolder templates
+- **EKS cluster provisioning** — Managed Kubernetes with node groups, IRSA, encryption, and add-ons
 
 ---
 
@@ -88,6 +113,8 @@ Organizations struggle with slow, inconsistent infrastructure delivery — teams
 | **Cloud Governance** | OPA policy-as-code for tags, cost, security |
 | **Secure Secrets Management** | Vault integration, scoped IAM roles |
 | **Environment Provisioning** | Dev/QA/Prod with isolated accounts and VPCs |
+| **Kubernetes Runtime** | EKS cluster with managed node groups, IRSA, KMS encryption, and cluster add-ons |
+| **Developer Self-Service for K8s** | Backstage scaffolder template creates a fully-configured EKS cluster with RBAC-ready IRSA roles |
 | **Observability** | Prometheus + Grafana dashboards + CloudWatch alarms |
 
 ---
@@ -182,6 +209,7 @@ The platform is structured around productized infrastructure modules:
 │   ├── network/           # VPC, subnets, routing, NAT, flow logs
 │   ├── security/          # Security groups, IAM, WAF
 │   ├── compute/           # EC2, EKS compute modules
+│   ├── eks-cluster/       # EKS cluster, node groups, IRSA, OIDC, add-ons
 │   └── edge/              # ALB, listeners, target groups, WAF
 ├── platform-examples/     # Example consumption patterns
 ├── templates/             # Backstage Scaffolder templates
