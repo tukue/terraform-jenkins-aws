@@ -56,7 +56,7 @@ jobs:
           soft_fail: false
 
       - name: Setup OPA
-        uses: open-policy-agent/setup-opa@34a30e8a924d1b03ce2cf7abe97250bbb1f332b5 # v2.2.0
+        uses: open-policy-agent/setup-opa@b2b258e089860efaadaaf71bf6e3aecb4a3eeff1 # v2.4.0
 
       - name: Test policy as code
         run: opa test policies/terraform --verbose
