@@ -8,6 +8,21 @@ resource "aws_kms_key" "terraform_encryption_key" {
   deletion_window_in_days = 7
   enable_key_rotation     = true
 
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "EnableRootAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      }
+    ]
+  })
+
   tags = merge(
     local.common_tags,
     {
@@ -16,12 +31,16 @@ resource "aws_kms_key" "terraform_encryption_key" {
   )
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_kms_alias" "terraform_encryption_key" {
   name          = "alias/terraform-encryption-key"
   target_key_id = aws_kms_key.terraform_encryption_key.key_id
 }
 
 resource "aws_s3_bucket" "terraform_state" {
+  # checkov:skip=CKV_AWS_144:Cross-region replication requires multi-region infrastructure not yet implemented
+  # checkov:skip=CKV2_AWS_62:S3 event notifications are not required for Terraform state storage
   bucket = var.bucket_name
 
   tags = merge(
@@ -36,9 +55,28 @@ resource "aws_s3_bucket" "terraform_state" {
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  rule {
+    id     = "expire-old-versions"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+  }
+}
+
 # S3 bucket for access logs
 # tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "terraform_state_logs" {
+  # checkov:skip=CKV_AWS_144:Cross-region replication requires multi-region infrastructure not yet implemented
+  # checkov:skip=CKV2_AWS_62:S3 event notifications are not required for Terraform state log storage
   bucket = "${var.bucket_name}-logs"
 
   tags = merge(
@@ -50,6 +88,23 @@ resource "aws_s3_bucket" "terraform_state_logs" {
 
   lifecycle {
     prevent_destroy = true
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "terraform_state_logs" {
+  bucket = aws_s3_bucket.terraform_state_logs.id
+
+  rule {
+    id     = "expire-old-logs"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
+    expiration {
+      days = 365
+    }
   }
 }
 

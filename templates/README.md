@@ -30,6 +30,22 @@ Creates a Jenkins EC2 environment with networking, load balancing, TLS, and moni
 
 Use this when you need a standardized Jenkins runtime for delivery workflows.
 
+### EKS Cluster
+
+**File**: `create-eks-cluster-template.yaml`
+
+Creates a shared EKS cluster for developer workloads on AWS.
+
+Use this when a team needs a Kubernetes runtime with managed node groups, IRSA, cluster encryption, and integrated IAM.
+
+The EKS cluster module provisions:
+- EKS control plane with encryption and audit logging
+- Managed node groups with environment-appropriate sizing
+- IAM OIDC provider for IRSA
+- Cluster add-ons (VPC CNI, CoreDNS, kube-proxy)
+- Optional AWS Load Balancer Controller IRSA role
+- Environment-specific configurations for dev, qa, and prod
+
 ### Customer ECS Runtime
 
 **File**: `create-customer-ecs-runtime-template.yaml`
@@ -67,6 +83,13 @@ Use this when a team needs reusable network access control without bypassing pla
 - prefer sensible defaults
 - separate advanced overrides from the standard path
 - register generated runtime repos in Backstage
+
+## EKS Cluster Inputs
+
+The EKS cluster template collects:
+
+- platform placement: AWS account, AWS region, cluster name, environment
+- cluster configuration: Kubernetes version, public endpoint access, load balancer controller
 
 ## ECS Runtime Inputs
 

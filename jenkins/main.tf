@@ -9,6 +9,7 @@ locals {
 }
 
 resource "aws_instance" "jenkins_ec2_instance_ip" {
+  # checkov:skip=CKV2_AWS_41:Standalone jenkins module is superseded by platform-modules/compute with IAM profile support
   ami           = var.ami_id
   instance_type = var.instance_type
   tags = merge(

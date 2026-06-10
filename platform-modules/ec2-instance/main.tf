@@ -5,6 +5,9 @@ resource "aws_instance" "this" {
   vpc_security_group_ids = var.vpc_security_group_ids
   key_name               = var.key_name
   user_data              = var.user_data
+  ebs_optimized          = true
+  monitoring             = true
+  iam_instance_profile   = var.iam_instance_profile
 
   metadata_options {
     http_endpoint               = "enabled"

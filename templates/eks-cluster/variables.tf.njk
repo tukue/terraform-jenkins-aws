@@ -1,0 +1,101 @@
+variable "aws_region" {
+  type        = string
+  description = "AWS region"
+
+  validation {
+    condition = contains([
+      "us-east-1", "us-east-2", "us-west-2",
+      "eu-north-1", "eu-west-1",
+      "me-south-1",
+      "ap-southeast-1", "ap-southeast-2",
+      "sa-east-1"
+    ], var.aws_region)
+    error_message = "aws_region must be one of the approved platform regions."
+  }
+}
+
+variable "aws_profile" {
+  type        = string
+  default     = null
+  description = "Optional AWS CLI profile for the target account"
+}
+
+variable "aws_account_id" {
+  type        = string
+  description = "AWS account ID"
+
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.aws_account_id))
+    error_message = "aws_account_id must be a 12-digit AWS account ID."
+  }
+}
+
+variable "cluster_name" {
+  type        = string
+  default     = "${{ values.cluster_name }}"
+  description = "Cluster name prefix"
+}
+
+variable "environment" {
+  type        = string
+  default     = "${{ values.environment }}"
+  description = "Environment name"
+}
+
+variable "kubernetes_version" {
+  type        = string
+  default     = "${{ values.kubernetes_version }}"
+  description = "Kubernetes version"
+}
+
+variable "authentication_mode" {
+  type        = string
+  default     = "${{ values.authentication_mode }}"
+  description = "EKS authentication mode"
+}
+
+variable "enable_lb_controller" {
+  type        = bool
+  default     = ${{ values.enable_lb_controller }}
+  description = "Create IRSA role for AWS Load Balancer Controller"
+}
+
+variable "endpoint_public_access" {
+  type        = bool
+  default     = ${{ values.endpoint_public_access }}
+  description = "Enable public API server endpoint"
+}
+
+variable "endpoint_public_access_cidrs" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  description = "CIDR blocks for public API server endpoint access"
+}
+
+variable "access_entries" {
+  type = map(object({
+    principal_arn     = string
+    kubernetes_groups = optional(list(string), [])
+    type              = optional(string, "STANDARD")
+    user_name         = optional(string, "")
+  }))
+  default     = {}
+  description = "EKS access entries for IAM principals"
+}
+
+variable "access_policy_associations" {
+  type = map(object({
+    principal_arn     = string
+    policy_arn        = string
+    access_scope_type = string
+    namespaces        = optional(list(string), [])
+  }))
+  default     = {}
+  description = "EKS access policy associations for access entries"
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Additional tags"
+}

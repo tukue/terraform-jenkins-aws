@@ -12,11 +12,12 @@ The platform is structured in four layers to enable scale and developer experien
 High-level "Capabilities" designed for developer consumption.
 *   **[Jenkins on AWS](docs/platform-product-jenkins.md)**: Repeatable, scalable, and secure CI/CD foundations.
 *   **[Customer ECS Runtime](docs/platform-product-ecs-runtime.md)**: Multi-tenant, secure container runtime with built-in networking and observability.
+*   **[EKS Cluster](docs/platform-product-eks.md)**: Shared Kubernetes cluster with managed node groups, IRSA, and add-on automation.
 
 ### 2. Self-Service Layer (Backstage)
 The developer portal provides a "Marketplace" for the platform products.
 *   **[Backstage Catalog](catalog-info.yaml)**: All resources are registered and discoverable.
-*   **[Scaffolder Templates](templates/README.md)**: One-click creation of new Jenkins or ECS environments.
+*   **[Scaffolder Templates](templates/README.md)**: One-click creation of new Jenkins, ECS, or EKS environments.
 
 ### 3. Implementation Foundation (Terraform)
 Reusable, environment-aware building blocks.

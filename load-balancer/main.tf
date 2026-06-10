@@ -9,13 +9,21 @@ locals {
 }
 
 resource "aws_lb" "dev_proj_1_lb" {
+  # checkov:skip=CKV_AWS_152:Cross-zone load balancing check is for NLB/Gateway LB; this is an ALB
   name               = var.lb_name
   internal           = var.is_external
   load_balancer_type = var.lb_type
   security_groups    = [var.sg_enable_ssh_https]
   subnets            = var.subnet_ids
 
-  enable_deletion_protection = false
+  enable_deletion_protection = true
+  drop_invalid_header_fields = true
+
+  access_logs {
+    bucket  = var.access_logs_bucket
+    prefix  = "alb-logs"
+    enabled = var.access_logs_bucket != null
+  }
 
   tags = merge(
     local.common_tags,

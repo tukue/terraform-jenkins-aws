@@ -1,4 +1,6 @@
 resource "aws_db_instance" "this" {
+  # checkov:skip=CKV_AWS_118:Enhanced monitoring is opt-in via monitoring_interval variable
+  # checkov:skip=CKV2_AWS_30:Query logging is configured via the DB parameter group, not the instance resource
   identifier                  = var.identifier
   allocated_storage           = var.allocated_storage
   storage_type                = var.storage_type
@@ -15,6 +17,17 @@ resource "aws_db_instance" "this" {
   kms_key_id                  = var.kms_key_id
   vpc_security_group_ids      = var.vpc_security_group_ids
   db_subnet_group_name        = var.db_subnet_group_name
+
+  deletion_protection                   = var.deletion_protection
+  auto_minor_version_upgrade            = true
+  copy_tags_to_snapshot                 = true
+  multi_az                              = var.multi_az
+  monitoring_interval                   = var.monitoring_interval
+  monitoring_role_arn                   = var.monitoring_role_arn
+  enabled_cloudwatch_logs_exports       = var.enabled_cloudwatch_logs_exports
+  performance_insights_enabled          = var.performance_insights_enabled
+  performance_insights_retention_period = var.performance_insights_retention_period
+  performance_insights_kms_key_id       = var.performance_insights_kms_key_id
 
   tags = merge(
     var.tags,

@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - security
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /backstage-app
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - backstage
+    open-pull-requests-limit: 5
+    groups:
+      backstage:
+        patterns:
+          - "@backstage/*"
+
+  - package-ecosystem: npm
+    directory: /backstage-local-test
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+    open-pull-requests-limit: 3

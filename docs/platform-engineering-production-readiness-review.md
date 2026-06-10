@@ -1,17 +1,39 @@
 # Platform Engineering and Production Readiness Review
 
 **Review date:** June 7, 2026  
+**Purpose:** Assess this repository as a platform engineering profile and reference implementation. This review is not production approval and must not be used as authorization to run `terraform apply` against a production environment.
+
 **Scope:** Terraform platform modules, Jenkins and ECS product paths, Backstage, CI/CD, policy as code, security, observability, operations, and platform governance.
+
+## Intended Use
+
+This repository is intended to demonstrate platform engineering practices, architecture decisions, reusable infrastructure patterns, and improvement priorities.
+
+It is suitable for:
+
+- portfolio and platform engineering capability demonstration
+- architecture and design review
+- local testing and controlled sandbox evaluation
+- discussion of golden paths, governance, observability, and DevSecOps practices
+
+It is not currently intended for:
+
+- direct production deployment
+- unattended or production `terraform apply`
+- use as an approved enterprise landing zone
+- handling production credentials, workloads, or customer data
+
+Any deployment should be limited to an isolated non-production sandbox with separate credentials, a reviewed cost boundary, and no sensitive data.
 
 ## Executive Summary
 
-This repository is a credible platform engineering foundation and portfolio implementation. It has reusable Terraform modules, self-service Backstage templates, environment-specific configuration, remote-state controls, private Jenkins networking, an ECS runtime product, CI validation, ownership metadata, and initial policy-as-code and observability assets.
+This repository is a credible platform engineering profile and reference implementation. It has reusable Terraform modules, self-service Backstage templates, environment-specific configuration, remote-state controls, private Jenkins networking, an ECS runtime product, CI validation, ownership metadata, and initial policy-as-code and observability assets.
 
-It is not yet production-ready as a shared enterprise platform. The largest gaps are deployment integrity, incomplete policy enforcement, insecure or demonstration-oriented defaults, shallow alerting, missing service-level objectives, limited recovery automation, no drift detection, and governance controls that are documented more strongly than they are enforced.
+It is not a production deployment baseline. The largest gaps are deployment integrity, incomplete policy enforcement, insecure or demonstration-oriented defaults, shallow alerting, missing service-level objectives, limited recovery automation, no drift detection, and governance controls that are documented more strongly than they are enforced.
 
-**Overall assessment: Developing / pre-production.**
+**Overall assessment: Platform engineering profile / non-production reference.**
 
-The platform is suitable for controlled development and demonstration environments. Production use should be conditional on closing the P0 findings and establishing account-level controls outside this repository, including branch protection, GitHub environment approvals, identity federation, centralized audit logging, and tested recovery procedures.
+The platform is suitable for code review, local evaluation, and controlled sandbox environments. Do not run `terraform apply` against production from the repository in its current state. Production adoption would require a separate hardening and assurance process that closes the P0 findings and establishes account-level controls outside this repository, including branch protection, GitHub environment approvals, identity federation, centralized audit logging, and tested recovery procedures.
 
 ## Assessment Scale
 
@@ -204,9 +226,9 @@ The repository has strong product-oriented documents, service tiers, support gui
 4. Instrument platform adoption and delivery performance.
 5. Productionize Backstage authorization, publishing, high availability, and software-template fulfillment.
 
-## Minimum Production Entry Criteria
+## Production Adoption Criteria
 
-The platform should not be described as production-ready until all of the following are evidenced:
+These criteria are a future hardening backlog, not deployment instructions. The repository should not be described or used as production-ready until all of the following are evidenced:
 
 - Every production apply uses the exact reviewed plan artifact.
 - Required branch checks and independent production approval are enabled.
@@ -221,4 +243,4 @@ The platform should not be described as production-ready until all of the follow
 
 ## Review Limitations
 
-This is a static repository review. It does not verify deployed AWS resources, GitHub branch protection, GitHub environment reviewers, organization policies, IAM role trust policies, live alert delivery, vulnerability findings, backup restoration, or operational response performance. Those controls require runtime evidence before production approval.
+This is a static repository review intended to support a platform engineering profile. It does not verify deployed AWS resources, GitHub branch protection, GitHub environment reviewers, organization policies, IAM role trust policies, live alert delivery, vulnerability findings, backup restoration, or operational response performance. No production approval is granted or implied.

@@ -1,0 +1,47 @@
+# ${{ values.cluster_name }} EKS Cluster
+
+This repository provisions an Amazon EKS cluster for the ${{ values.environment }} environment.
+
+## What it includes
+
+- EKS cluster with managed node groups (system + application roles)
+- KMS encryption for Kubernetes secrets
+- Control plane logging to CloudWatch
+- IAM OIDC provider for IRSA workload identity
+- AWS Load Balancer Controller IRSA role
+- EKS Access Entries for IAM-based cluster authentication
+- EKS Pod Identity Agent add-on
+- AL2023 (Amazon Linux 2023) node groups with environment-aware sizing
+- Environment-specific Terraform backend and variable files for `dev`, `qa`, and `prod`
+
+## Environment files
+
+- `backend-config-dev.hcl`
+- `backend-config-qa.hcl`
+- `backend-config-prod.hcl`
+- `terraform.dev.tfvars`
+- `terraform.qa.tfvars`
+- `terraform.prod.tfvars`
+
+Use the `dev` files first, then promote through `qa` and `prod`.
+
+## Quick start
+
+1. Confirm the AWS account and region chosen in Backstage.
+2. Review the environment-specific tfvars files.
+3. Run `terraform init` with the target backend config.
+4. Run `terraform plan` to review changes.
+5. Run `terraform apply` to provision the cluster.
+6. Configure `kubectl`:
+   ```bash
+   aws eks update-kubeconfig --region ${{ values.aws_region }} --name ${{ values.cluster_name }}-${{ values.environment }}-eks
+   ```
+
+## Node groups
+
+- **system**: Runs critical add-ons (CoreDNS, VPC CNI, metrics-server). Tainted in prod to prevent workload scheduling.
+- **application**: Runs developer workloads. Larger instances and sizes in prod.
+
+## Access
+
+Cluster access uses EKS Access Entries. The admin IAM role specified during scaffolding has `system:masters` permissions.

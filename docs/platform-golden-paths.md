@@ -8,10 +8,11 @@ The goal of a golden path is to make the default way of using the platform obvio
 
 The platform should be consumed through standard paths before any customization is introduced.
 
-In this repository, there are two primary golden paths:
+In this repository, there are three primary golden paths:
 
 - `Jenkins on AWS`
 - `Customer ECS Runtime`
+- `EKS Cluster`
 
 These are the product paths that should be used in demos, reviews, onboarding, and platform evolution work.
 
@@ -97,6 +98,45 @@ The ECS golden path stays healthy when:
 - teams prefer the reusable runtime structure over bespoke stacks
 - environment promotion remains visible and consistent
 - runtime-specific customization is kept separate from shared platform logic
+
+## Golden Path 3: EKS Cluster
+
+### When To Use It
+
+Use this path when a team needs:
+
+- a shared Kubernetes cluster on AWS
+- a managed control plane with minimal operational overhead
+- IRSA-based workload identity
+- a standardized, secure cluster baseline
+
+### Preferred Consumer Journey
+
+1. Read [EKS Cluster Platform Product](./platform-product-eks.md) to understand scope and responsibilities.
+2. Review the module in [platform-modules/eks-cluster/](../platform-modules/eks-cluster/).
+3. Start from the standard pattern in [platform-examples/eks-cluster/](../platform-examples/eks-cluster/).
+4. Use the existing environment-specific structure for `dev`, `qa`, and `prod`.
+5. Run `terraform init`, `terraform plan`, and `terraform apply` per environment.
+6. Configure `kubectl` using `aws eks update-kubeconfig`.
+7. Deploy add-ons (LB Controller, cert-manager, ExternalDNS) as needed.
+
+### Expected Outputs
+
+The consumer should end with:
+
+- a provisioned EKS cluster with managed node groups
+- an IAM OIDC provider for IRSA
+- cluster encryption and audit logging enabled
+- environment-aligned Terraform state and variables
+
+### Stay On The Path
+
+The EKS golden path stays healthy when:
+
+- node group sizing follows the environment defaults (spot in dev, on-demand in prod)
+- IRSA is used for workload identity instead of static credentials
+- cluster add-ons are managed through the module's add-on map
+- security groups and endpoint access follow the environment profile
 
 ## Local Evaluation Path
 

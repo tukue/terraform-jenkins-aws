@@ -44,6 +44,42 @@ module "security_group" {
   environment                        = var.environment
 }
 
+# IAM role and instance profile for Jenkins EC2
+resource "aws_iam_role" "jenkins_ec2" {
+  name = "${var.environment}-jenkins-ec2-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = merge(local.common_tags, {
+    Name = "${var.environment}-jenkins-ec2-role"
+  })
+}
+
+resource "aws_iam_instance_profile" "jenkins_ec2" {
+  name = "${var.environment}-jenkins-ec2-instance-profile"
+  role = aws_iam_role.jenkins_ec2.name
+
+  tags = merge(local.common_tags, {
+    Name = "${var.environment}-jenkins-ec2-instance-profile"
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "jenkins_ec2_cloudwatch" {
+  role       = aws_iam_role.jenkins_ec2.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
 module "jenkins" {
   source                    = "./platform-modules/compute"
   ami_id                    = local.effective_ec2_ami_id
@@ -56,6 +92,7 @@ module "jenkins" {
   user_data_install_jenkins = templatefile("${path.module}/jenkins-runner-script/jenkins-installer.sh", {})
   environment               = var.environment
   run_ansible               = var.run_ansible
+  iam_instance_profile      = aws_iam_instance_profile.jenkins_ec2.name
 }
 
 module "jenkins_alb_waf" {

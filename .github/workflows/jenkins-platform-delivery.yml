@@ -36,14 +36,6 @@ on:
           - dev
           - qa
           - prod
-      action:
-        description: Delivery action
-        required: true
-        type: choice
-        options:
-          - plan
-          - apply
-        default: plan
 
 jobs:
   quality-gate:
@@ -55,12 +47,12 @@ jobs:
         shell: bash
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
@@ -68,7 +60,7 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v4
+        uses: terraform-linters/setup-tflint@6e87008f9dd1fe3e34e66aca6c97b4a69f72a7f4 # v4
 
       - name: Initialize TFLint
         run: tflint --init
@@ -89,20 +81,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality-gate
     timeout-minutes: 30
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'plan'
+    if: github.event_name == 'workflow_dispatch'
     environment:
       name: ${{ inputs.environment }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c # v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: eu-north-1
@@ -117,54 +109,18 @@ jobs:
         run: terraform show -json tfplan-${{ inputs.environment }} > tfplan-${{ inputs.environment }}.json
 
       - name: Setup Conftest
-        uses: open-policy-agent/conftest-action@v1
+        run: |
+          curl -sL https://github.com/open-policy-agent/conftest/releases/download/v0.58.0/conftest_0.58.0_Linux_x86_64.tar.gz | tar xz
+          sudo mv conftest /usr/local/bin/
 
       - name: Run OPA Policy Check (Conftest)
         run: conftest test tfplan-${{ inputs.environment }}.json --policy policies/terraform
 
       - name: Upload plan artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: tfplan-${{ inputs.environment }}
-          path: tfplan-${{ inputs.environment }}
-
-  apply:
-    name: Apply ${{ inputs.environment }}
-    runs-on: ubuntu-latest
-    needs: quality-gate
-    timeout-minutes: 30
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
-    environment:
-      name: ${{ inputs.environment }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: eu-north-1
-
-      - name: Terraform init
-        run: terraform init -backend-config=backend-config-${{ inputs.environment }}.hcl
-
-      - name: Terraform plan
-        run: terraform plan -var-file=terraform.${{ inputs.environment }}.tfvars -out=tfplan
-
-      - name: Terraform show (JSON)
-        run: terraform show -json tfplan > tfplan-${{ inputs.environment }}.json
-
-      - name: Setup Conftest
-        uses: open-policy-agent/conftest-action@v1
-
-      - name: Run OPA Policy Check (Conftest)
-        run: conftest test tfplan-${{ inputs.environment }}.json --policy policies/terraform
-
-      - name: Terraform apply
-        run: terraform apply -auto-approve tfplan
+          path: |
+            tfplan-${{ inputs.environment }}
+            tfplan-${{ inputs.environment }}.json
+          retention-days: 7

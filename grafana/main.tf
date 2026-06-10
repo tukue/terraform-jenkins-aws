@@ -1,4 +1,5 @@
 resource "aws_security_group" "grafana" {
+  # checkov:skip=CKV_AWS_382:Permissive egress required for Grafana to reach internet resources
   name        = "${var.environment}-grafana-sg"
   description = "Security group for Grafana"
   vpc_id      = var.vpc_id
@@ -12,6 +13,7 @@ resource "aws_security_group" "grafana" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -30,11 +32,15 @@ resource "aws_security_group" "grafana" {
 }
 
 resource "aws_instance" "grafana" {
+  # checkov:skip=CKV_AWS_88:Public IP required for Grafana UI access
   ami                         = var.ami_id
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = [aws_security_group.grafana.id]
+  ebs_optimized               = true
   associate_public_ip_address = true
+  monitoring                  = true
+  iam_instance_profile        = var.iam_instance_profile
   user_data = templatefile("${path.module}/user_data.sh", {
     grafana_version = var.grafana_version
     admin_user      = var.admin_user
