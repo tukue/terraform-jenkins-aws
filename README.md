@@ -51,7 +51,7 @@ Organizations struggle with slow, inconsistent infrastructure delivery — teams
 
 ## Developer Experience (DevX)
 
-The platform provides a self-service Kubernetes experience so developers can focus on applications, not cluster operations.
+The platform provides a self-service Kubernetes experience so developers can focus on applications, not cluster operations. EKS clusters are provisioned through a reusable Terraform module at `platform-modules/eks-cluster/` with environment-aware defaults for dev, qa, and prod.
 
 ### EKS Self-Service Flow
 
@@ -64,12 +64,43 @@ The platform provides a self-service Kubernetes experience so developers can foc
 
 ### What developers get out of the box
 
-- **Managed control plane** — No master node management, automatic patching
+- **Managed control plane** — No master node management, automatic patching with EKS-managed updates
 - **Encrypted at rest** — KMS-backed envelope encryption for all Kubernetes secrets
-- **Audit logging** — CloudWatch log group with 30–90 day retention by environment
-- **Workload identity** — OIDC provider + IRSA roles for service accounts
-- **Environment-aware sizing** — Spot instances in dev, on-demand in prod, right-sized node groups
-- **Cluster add-ons** — VPC CNI, CoreDNS, kube-proxy managed through Terraform
+- **Audit logging** — CloudWatch log group with 30–90 day retention by environment (api, audit, authenticator, controllerManager, scheduler)
+- **Workload identity** — OIDC provider + IRSA roles for Kubernetes service accounts, EKS Pod Identity Agent add-on
+- **Environment-aware sizing** — SPOT instances in dev/qa, ON_DEMAND in prod, tainted system node groups in prod
+- **Cluster add-ons** — VPC CNI, CoreDNS, kube-proxy managed through Terraform with version control
+- **Modern auth** — EKS Access Entries with access policy associations (replaces legacy aws-auth ConfigMap)
+- **Private API endpoint** — Cluster API is private in qa/prod; public access restricted to trusted CIDRs in dev
+- **AL2023 node AMI** — Amazon Linux 2023 as the default AMI for all managed node groups
+- **Upgrade support** — EXTENDED support enabled for prod clusters
+
+### Platform module capabilities
+
+The `platform-modules/eks-cluster/` module (`platform-examples/eks-cluster/` for a working reference) provisions:
+
+| Component | Detail |
+| :--- | :--- |
+| **EKS cluster** | Configurable Kubernetes version, authentication mode, endpoint access, encryption config |
+| **Managed node groups** | System + application node pools with separate instance families, taints, and scaling limits |
+| **IRSA** | OIDC provider + IAM roles for Kubernetes service accounts |
+| **AWS Load Balancer Controller** | Optional IRSA role for ingress management |
+| **Access management** | EKS Access Entries + access policy associations (cluster/namespace scoped) |
+| **Cluster add-ons** | VPC CNI, CoreDNS, kube-proxy, Pod Identity Agent with configurable versions and conflict resolution |
+| **Control plane logging** | All log types with configurable CloudWatch retention |
+| **Security groups** | Additional security group IDs for cluster API access |
+| **Encryption** | KMS key ARN for envelope encryption of Kubernetes secrets |
+| **Upgrade support** | STANDARD or EXTENDED support type per environment |
+
+### Environment defaults
+
+| Setting | dev | qa | prod |
+| :--- | :--- | :--- | :--- |
+| Node capacity | SPOT | SPOT | ON_DEMAND |
+| API endpoint | Public (restricted CIDR) | Private | Private |
+| Upgrade support | STANDARD | STANDARD | EXTENDED |
+| Log retention | 30 days | 30 days | 90 days |
+| Node groups | system + application | system + application | system (tainted) + application |
 
 ---
 
