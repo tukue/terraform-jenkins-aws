@@ -28,6 +28,11 @@ output "cloudwatch_status_check_alarm_name" {
   value       = var.enable_observability ? module.cloudwatch_observability[0].status_check_alarm_name : null
 }
 
+output "cloudwatch_alarm_sns_topic_arns" {
+  description = "SNS topic ARNs configured to receive CloudWatch alarm notifications"
+  value       = var.observability_alarm_sns_topic_arns
+}
+
 output "grafana_url" {
   description = "Grafana service URL"
   value       = var.enable_grafana_service ? module.grafana[0].grafana_url : null

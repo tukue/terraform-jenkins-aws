@@ -132,6 +132,12 @@ variable "enable_observability" {
   default     = false
 }
 
+variable "observability_alarm_sns_topic_arns" {
+  description = "SNS topic ARNs to receive CloudWatch alarm notifications for Jenkins observability"
+  type        = list(string)
+  default     = []
+}
+
 variable "observability_workspace_alias" {
   description = "Workspace alias for the managed Prometheus observability module"
   type        = string
