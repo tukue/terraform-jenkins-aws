@@ -126,11 +126,12 @@ module "cloudwatch_observability" {
 
   source = "./cloudwatch-observability"
 
-  environment        = var.environment
-  instance_id        = module.jenkins.jenkins_instance_id
-  instance_name      = "Jenkins"
-  instance_public_ip = module.jenkins.dev_proj_1_ec2_instance_public_ip
-  tags               = var.tags
+  environment          = var.environment
+  instance_id          = module.jenkins.jenkins_instance_id
+  instance_name        = "Jenkins"
+  instance_public_ip   = module.jenkins.dev_proj_1_ec2_instance_public_ip
+  alarm_sns_topic_arns = var.observability_alarm_sns_topic_arns
+  tags                 = var.tags
 }
 
 module "grafana" {
