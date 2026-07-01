@@ -1,0 +1,70 @@
+name: Drift Detection
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+
+concurrency:
+  group: terraform-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift-check:
+    strategy:
+      matrix:
+        env: [dev, qa, prod]
+    name: Drift check ${{ matrix.env }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ matrix.env }}
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: 1.11.2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: Terraform init
+        run: terraform init -backend-config=backend-config-${{ matrix.env }}.hcl
+
+      - name: Terraform plan (drift check)
+        id: plan
+        run: terraform plan -no-color -detailed-exitcode
+        continue-on-error: true
+
+      - name: File drift issue
+        if: steps.plan.outputs.exitcode == 2
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'drift'
+            });
+            const exists = issues.some(i => i.title.includes('${{ matrix.env }}'));
+            if (!exists) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Drift detected in ${{ matrix.env }}',
+                body: 'Infrastructure drift was detected in the `${{ matrix.env }}` environment. Run `terraform plan` locally to see the full diff.',
+                labels: ['drift', 'automation']
+              });
+            }
