@@ -175,10 +175,9 @@ variable "grafana_admin_user" {
 }
 
 variable "grafana_admin_password" {
-  description = "Grafana admin password"
+  description = "Grafana admin password. Must be set explicitly; no default provided for security."
   type        = string
   sensitive   = true
-  default     = "change-me"
 }
 
 variable "grafana_allowed_cidrs" {

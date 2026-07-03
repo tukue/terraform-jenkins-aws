@@ -1,7 +1,3 @@
-output "debug_bucket_name" {
-  value = var.bucket_name
-}
-
 # KMS key for S3 and DynamoDB encryption
 resource "aws_kms_key" "terraform_encryption_key" {
   description             = "KMS key for Terraform state and DynamoDB encryption"

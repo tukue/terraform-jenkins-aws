@@ -261,6 +261,7 @@ The platform is structured around productized infrastructure modules:
 | :--- | :--- |
 | View Roadmap | [Implementation Backlog](IMPLEMENTATION-BACKLOG.md) |
 | Getting Started | [Platform Onboarding Guide](docs/getting-started.md) |
+| Architecture Decision Records | [ADRs](docs/adr/) |
 | Architecture Deep Dive | [Architecture Guide](docs/architecture.md) |
 | Deployment Guide | [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md) |
 | Contribution Standards | [CONTRIBUTING.md](CONTRIBUTING.md) |
