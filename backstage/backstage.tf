@@ -6,7 +6,7 @@ module "backstage_postgres" {
   allocated_storage     = var.db_allocated_storage
   instance_class        = var.db_instance_class
   backup_retention_days = var.db_backup_retention
-  multi_az              = var.environment == "prod" ? true : false
+  multi_az              = true
 
   db_name = "backstage"
   user    = "backstage_admin"

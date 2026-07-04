@@ -9,6 +9,8 @@ metadata:
     - terraform
     - aws
     - jenkins
+    - eks
+    - kubernetes
     - devops
     - infrastructure-as-code
     - ci-cd

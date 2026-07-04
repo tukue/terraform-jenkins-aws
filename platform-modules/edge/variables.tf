@@ -47,6 +47,12 @@ variable "waf_rate_limit" {
   default     = 2000
 }
 
+variable "access_logs_bucket" {
+  description = "S3 bucket for ALB access logs"
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "Tags applied to ALB and WAF resources"
   type        = map(string)

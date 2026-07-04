@@ -23,6 +23,12 @@ These are used by the multi-environment delivery workflow and by local Terraform
 
 This example shows the landing-zone aware ECS path where the customer selects AWS account and AWS region, and the platform resolves the rest.
 
+### EKS Cluster
+
+- `eks-cluster/`
+
+This example shows how to provision a shared EKS cluster with managed node groups, IRSA, and add-ons, following the landing-zone aware pattern.
+
 ### Standard Service Tier Wrapper
 
 - `service-tier-wrapper/`

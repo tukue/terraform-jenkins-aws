@@ -32,6 +32,12 @@ variable "status_check_threshold" {
   default     = 0
 }
 
+variable "alarm_sns_topic_arns" {
+  description = "SNS topic ARNs to notify when observability alarms are triggered"
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   description = "Tags applied to observability resources"
   type        = map(string)

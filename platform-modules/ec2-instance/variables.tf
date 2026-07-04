@@ -54,6 +54,12 @@ variable "environment" {
   type        = string
 }
 
+variable "iam_instance_profile" {
+  description = "IAM instance profile to attach to the instance"
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "A mapping of tags to assign to the resource"
   type        = map(string)

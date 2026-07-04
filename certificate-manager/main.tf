@@ -21,7 +21,7 @@ resource "aws_acm_certificate" "dev_proj_1_acm_arn" {
   )
 
   lifecycle {
-    create_before_destroy = false
+    create_before_destroy = true
   }
 }
 

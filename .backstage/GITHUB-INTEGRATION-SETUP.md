@@ -180,7 +180,7 @@ Check Backstage logs for catalog sync messages:
 **Solutions**:
 1. Verify GITHUB_TOKEN is valid and has correct permissions:
    ```bash
-   curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/user
+   gh api user
    ```
 
 2. Check Backstage logs for errors:

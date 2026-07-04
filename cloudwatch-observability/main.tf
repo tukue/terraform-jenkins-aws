@@ -27,6 +27,7 @@ locals {
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   alarm_name          = "${var.environment}-jenkins-cpu-high"
   alarm_description   = "${var.instance_name} CPU utilization is above the warning threshold"
+  alarm_actions       = var.alarm_sns_topic_arns
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
@@ -51,6 +52,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
 resource "aws_cloudwatch_metric_alarm" "status_check_failed" {
   alarm_name          = "${var.environment}-jenkins-status-check-failed"
   alarm_description   = "${var.instance_name} instance status checks are failing"
+  alarm_actions       = var.alarm_sns_topic_arns
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   metric_name         = "StatusCheckFailed"

@@ -59,7 +59,8 @@ resource "aws_instance" "backstage" {
   }
 
   # Monitoring
-  monitoring = true
+  ebs_optimized = true
+  monitoring    = true
 
   # Tags
   tags = merge(

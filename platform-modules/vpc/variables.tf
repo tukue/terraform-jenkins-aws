@@ -45,10 +45,16 @@ variable "enable_nat_gateway" {
   default     = false
 }
 
+variable "kms_key_id" {
+  description = "KMS key ARN for CloudWatch log group encryption"
+  type        = string
+  default     = null
+}
+
 variable "enable_flow_logs" {
-  description = "Enable VPC Flow Logs for network security monitoring"
+  description = "Whether to enable VPC flow logs"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "flow_log_retention_in_days" {

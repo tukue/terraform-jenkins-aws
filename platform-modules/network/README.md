@@ -1,6 +1,8 @@
-# Network Module
+# Network Module (Deprecated)
 
-Creates the Jenkins VPC network foundation:
+> **Deprecated**: Use `./cicd/core/network` instead. This module is preserved for backward compatibility only.
+
+Creates the VPC network foundation with:
 
 - VPC with DNS support
 - public and private subnets
@@ -16,6 +18,12 @@ This module owns network boundaries only. It does not create application securit
 
 Private subnet egress is optional through `enable_nat_gateway`. Security group egress still controls which destinations workloads can reach.
 
-## Compatibility
+## Migration
 
-The legacy top-level `networking/` folder is kept for compatibility. New root composition should use `platform-modules/network`.
+Replace with the CICDaaS network module:
+```hcl
+module "networking" {
+  source = "./cicd/core/network"
+  ...
+}
+```

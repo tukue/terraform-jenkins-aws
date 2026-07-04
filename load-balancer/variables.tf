@@ -55,6 +55,12 @@ variable "dev_proj_1_acm_arn" {
   type = string
 }
 
+variable "access_logs_bucket" {
+  description = "S3 bucket for ALB access logs"
+  type        = string
+  default     = null
+}
+
 variable "lb_target_group_attachment_port" {
   type = number
 }

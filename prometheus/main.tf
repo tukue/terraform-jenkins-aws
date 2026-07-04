@@ -15,10 +15,12 @@ resource "aws_prometheus_workspace" "this" {
 }
 
 resource "aws_cloudwatch_log_group" "otel_collector" {
+  # checkov:skip=CKV_AWS_338:Non-prod environments use shorter retention for cost management
   count = var.create_otel_log_group ? 1 : 0
 
   name              = "/platform/${var.environment}/otel-collector"
-  retention_in_days = var.otel_log_retention_in_days
+  retention_in_days = var.environment == "prod" ? 365 : var.otel_log_retention_in_days
+  kms_key_id        = var.kms_key_id
 
   tags = merge(
     var.tags,

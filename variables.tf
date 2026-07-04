@@ -32,7 +32,7 @@ variable "vpc_cidr" {
 
 variable "vpc_name" {
   type        = string
-  description = "DevOps Project 1 VPC 1"
+  description = "Name tag for the VPC"
 }
 
 variable "cidr_public_subnet" {
@@ -132,6 +132,12 @@ variable "enable_observability" {
   default     = false
 }
 
+variable "observability_alarm_sns_topic_arns" {
+  description = "SNS topic ARNs to receive CloudWatch alarm notifications for Jenkins observability"
+  type        = list(string)
+  default     = []
+}
+
 variable "observability_workspace_alias" {
   description = "Workspace alias for the managed Prometheus observability module"
   type        = string
@@ -179,6 +185,18 @@ variable "grafana_allowed_cidrs" {
   description = "CIDR blocks allowed to access Grafana"
   type        = list(string)
   default     = ["0.0.0.0/0"]
+}
+
+variable "enable_vpc_flow_logs" {
+  description = "Enable VPC Flow Logs for network traffic monitoring"
+  type        = bool
+  default     = true
+}
+
+variable "enable_network_acl" {
+  description = "Enable Network ACL for additional subnet-level security"
+  type        = bool
+  default     = true
 }
 
 variable "tags" {
