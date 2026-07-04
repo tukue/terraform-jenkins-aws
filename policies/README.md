@@ -25,6 +25,9 @@ Enforces security best practices for S3 buckets.
 - **Public Access:** All S3 buckets must block public access via `aws_s3_bucket_public_access_block`.
 - **Versioning:** All S3 buckets must have versioning enabled via `aws_s3_bucket_versioning`.
 
+### 5. IAM Least Privilege (`terraform/iam.rego`)
+Blocks inline and managed IAM policies that use wildcard `Action = "*"` or `Resource = "*"`. Exceptions should be avoided; if an AWS service truly requires wildcard resources, document the reason in the pull request and narrow the action list.
+
 ## How to Test Policies Locally
 
 You can use `conftest` or `opa` to test these policies against a Terraform plan JSON.
@@ -51,5 +54,4 @@ These policies are designed to be part of the pull request validation workflow. 
 
 ## Future Policies
 
-- IAM least privilege (blocking `*` permissions).
 - Multi-AZ requirements for production environments.

@@ -2,54 +2,57 @@ package terraform.iam
 
 import input as tfplan
 
-policy_document(resource) := document if {
+iam_policy_types = {
+    "aws_iam_policy",
+    "aws_iam_role_policy",
+    "aws_iam_user_policy",
+    "aws_iam_group_policy",
+}
+
+policy_document(resource) = document {
     raw := object.get(resource.change.after, "policy", "")
     raw != ""
     document := json.unmarshal(raw)
 }
 
-deny contains msg if {
-    resource := tfplan.resource_changes[_]
-    resource.type in {"aws_iam_policy", "aws_iam_role_policy"}
-    document := policy_document(resource)
-    statement := document.Statement[_]
-    statement.Effect == "Allow"
+statement_action(statement, action) {
+    is_string(statement.Action)
     action := statement.Action
-    is_string(action)
-    action == "*"
-    msg := sprintf("IAM policy '%s' must not allow wildcard actions", [resource.address])
 }
 
-deny contains msg if {
-    resource := tfplan.resource_changes[_]
-    resource.type in {"aws_iam_policy", "aws_iam_role_policy"}
-    document := policy_document(resource)
-    statement := document.Statement[_]
-    statement.Effect == "Allow"
+statement_action(statement, action) {
+    is_array(statement.Action)
     action := statement.Action[_]
+}
+
+statement_resource(statement, resource_arn) {
+    is_string(statement.Resource)
+    resource_arn := statement.Resource
+}
+
+statement_resource(statement, resource_arn) {
+    is_array(statement.Resource)
+    resource_arn := statement.Resource[_]
+}
+
+deny[msg] {
+    resource := tfplan.resource_changes[_]
+    iam_policy_types[resource.type]
+    policy := policy_document(resource)
+    statement := policy.Statement[_]
+    statement_action(statement, action)
     action == "*"
-    msg := sprintf("IAM policy '%s' must not allow wildcard actions", [resource.address])
+
+    msg := sprintf("IAM policy '%s' allows Action='*'. Scope actions to the minimum required permissions.", [resource.address])
 }
 
-deny contains msg if {
+deny[msg] {
     resource := tfplan.resource_changes[_]
-    resource.type in {"aws_iam_policy", "aws_iam_role_policy"}
-    document := policy_document(resource)
-    statement := document.Statement[_]
-    statement.Effect == "Allow"
-    resource_value := statement.Resource
-    is_string(resource_value)
-    resource_value == "*"
-    msg := sprintf("IAM policy '%s' must scope resources instead of using '*'", [resource.address])
-}
+    iam_policy_types[resource.type]
+    policy := policy_document(resource)
+    statement := policy.Statement[_]
+    statement_resource(statement, resource_arn)
+    resource_arn == "*"
 
-deny contains msg if {
-    resource := tfplan.resource_changes[_]
-    resource.type in {"aws_iam_policy", "aws_iam_role_policy"}
-    document := policy_document(resource)
-    statement := document.Statement[_]
-    statement.Effect == "Allow"
-    resource_value := statement.Resource[_]
-    resource_value == "*"
-    msg := sprintf("IAM policy '%s' must scope resources instead of using '*'", [resource.address])
+    msg := sprintf("IAM policy '%s' allows Resource='*'. Scope resources to specific ARNs where the AWS service supports it.", [resource.address])
 }

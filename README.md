@@ -133,6 +133,16 @@ The `platform-modules/eks-cluster/` module (`platform-examples/eks-cluster/` for
 
 ---
 
+## Terraform Operating Model
+
+- `bootstrap/remote-state/` creates the shared S3, KMS, and DynamoDB backend foundation.
+- `live/dev`, `live/qa`, and `live/prod` are explicit environment roots with separate backend keys.
+- `platform-modules/jenkins-platform/` composes the Jenkins network, security, compute, edge, and observability modules.
+
+See [docs/live-environments.md](docs/live-environments.md) for bootstrap, local plan, and CI/CD usage.
+
+---
+
 ## Platform Engineering Capabilities
 
 | Capability | Implementation |

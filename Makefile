@@ -3,13 +3,15 @@ REPO_ROOT := $(CURDIR)
 BACKSTAGE_APP_DIR := $(REPO_ROOT)/backstage-app
 TF_PLAN ?= tfplan.json
 TF_ENV ?= dev
+LIVE_DIR := live/$(TF_ENV)
 
-.PHONY: help local-up local-down local-ps local-logs local-health backstage-install backstage-start backstage-validate fmt validate lint security policy quality tfsec provision bootstrap scaffold dev-up
+.PHONY: help local-up local-down local-ps local-logs local-health backstage-install backstage-start backstage-validate fmt validate validate-live lint security policy quality tfsec provision bootstrap bootstrap-state scaffold dev-up
 
 help:
 	@printf "%s\n" \
-		"provision             Quickstart: init + validate + plan for TF_ENV=$(TF_ENV)" \
+		"provision             Init + validate + plan live/$(TF_ENV)" \
 		"bootstrap             Install pre-commit hooks and tooling" \
+		"bootstrap-state       Plan the remote-state bootstrap root" \
 		"scaffold              List available Backstage scaffolder templates" \
 		"dev-up                Start full local dev environment" \
 		"local-up              Start the local platform stack" \
@@ -31,10 +33,17 @@ bootstrap:
 
 provision:
 	@echo "==> Provisioning $(TF_ENV) environment"
-	terraform init -backend-config=backend-config-$(TF_ENV).hcl
-	terraform fmt -check -recursive
-	terraform validate
-	terraform plan -var-file=terraform.$(TF_ENV).tfvars -out=tfplan-$(TF_ENV)
+	cd $(LIVE_DIR) && terraform init -backend-config=backend.hcl
+	cd $(LIVE_DIR) && terraform fmt -check
+	cd $(LIVE_DIR) && terraform validate
+	cd $(LIVE_DIR) && terraform plan -out=tfplan-$(TF_ENV)
+
+bootstrap-state:
+	@echo "==> Planning remote-state bootstrap root"
+	cd bootstrap/remote-state && terraform init
+	cd bootstrap/remote-state && terraform fmt -check
+	cd bootstrap/remote-state && terraform validate
+	cd bootstrap/remote-state && terraform plan
 
 scaffold:
 	@echo "Available Backstage scaffolder templates:"
@@ -84,6 +93,10 @@ fmt:
 validate:
 	terraform init -backend=false
 	terraform validate
+
+validate-live:
+	cd $(LIVE_DIR) && terraform init -backend=false
+	cd $(LIVE_DIR) && terraform validate
 
 lint:
 	tflint --init

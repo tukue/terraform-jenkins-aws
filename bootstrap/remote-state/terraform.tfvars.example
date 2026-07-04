@@ -1,0 +1,9 @@
+aws_account_id    = "111111111111"
+aws_region        = "eu-north-1"
+state_bucket_name = "jenkins-tfstate-platform"
+lock_table_name   = "jenkins-terraform-locks"
+environment       = "shared"
+
+tags = {
+  CostCenter = "platform"
+}

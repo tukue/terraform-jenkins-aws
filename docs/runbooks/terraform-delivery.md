@@ -8,15 +8,34 @@ Run the same checks before opening a pull request:
 
 ```bash
 make quality
+make validate-live TF_ENV=dev
 ```
 
 For plan policy checks, create a JSON plan and pass it to Conftest:
 
 ```bash
-terraform plan -var-file=terraform.dev.tfvars -out=tfplan
+cd live/dev
+terraform init -backend-config=backend.hcl
+terraform plan -out=tfplan
 terraform show -json tfplan > tfplan.json
-make policy TF_PLAN=tfplan.json
+conftest test tfplan.json --policy ../../policies/terraform
 ```
+
+Use `live/qa` and `live/prod` for higher environments. Do not reuse a root-level plan across environments.
+
+## Remote state bootstrap
+
+The backend foundation lives in `bootstrap/remote-state`. Apply it once before initializing `live/*` roots:
+
+```bash
+cd bootstrap/remote-state
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform plan
+terraform apply
+```
+
+The bootstrap root manages the S3 state bucket, state access log bucket, KMS key, and DynamoDB lock table.
 
 ## Pull request expectations
 
@@ -28,9 +47,11 @@ make policy TF_PLAN=tfplan.json
 ## Apply workflow
 
 1. Merge only after the quality gate and environment plans pass.
-2. Use the `Jenkins Platform Delivery` workflow with `action=apply`.
+2. Use the `Jenkins Platform Delivery` workflow with `action=apply` and the target environment.
 3. Apply dev first, then qa, then prod.
-4. Confirm CloudWatch alarms, Jenkins health, and affected service endpoints after each apply.
+4. Confirm CloudWatch alarms, Jenkins health, ALB target health, and affected service endpoints after each apply.
+
+The GitHub Environment for each target should provide `AWS_ACCOUNT_ID`, `AWS_ROLE_ARN`, and `JENKINS_PUBLIC_KEY`. Require reviewers on `qa` and `prod`.
 
 ## Rollback workflow
 
