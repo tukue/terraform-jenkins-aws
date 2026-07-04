@@ -1,0 +1,7 @@
+aws_account_id = "111111111111"
+aws_region     = "eu-north-1"
+public_key     = "ssh-rsa REPLACE_ME_DEV"
+
+tags = {
+  Owner = "platform-team"
+}

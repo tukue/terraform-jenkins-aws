@@ -10,12 +10,20 @@ concurrency:
 on:
   push:
     paths:
+      - 'live/**'
+      - 'platform-modules/**'
+      - 'bootstrap/**'
+      - 'policies/**'
       - '**/*.tf'
       - '**/*.tfvars'
       - 'backend-config-*.hcl'
       - '.github/workflows/terraform-scan.yml'
   pull_request:
     paths:
+      - 'live/**'
+      - 'platform-modules/**'
+      - 'bootstrap/**'
+      - 'policies/**'
       - '**/*.tf'
       - '**/*.tfvars'
       - 'backend-config-*.hcl'
