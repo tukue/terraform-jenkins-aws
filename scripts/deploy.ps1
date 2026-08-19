@@ -35,8 +35,8 @@ try {
     }
 
     $appName = $config.APP_NAME
-    if ($appName -notmatch '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$') {
-        throw "APP_NAME must be a valid Kubernetes name."
+    if ($appName -notmatch '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$' -or $appName -match '--') {
+        throw "APP_NAME must be a valid Kubernetes name without consecutive hyphens."
     }
     if ($config.CONTAINER_PORT -notmatch '^\d+$') { throw "CONTAINER_PORT must be numeric." }
     if ($config.HEALTH_PATH -notmatch '^/') { throw "HEALTH_PATH must start with '/'." }
@@ -52,7 +52,12 @@ try {
     $image = "$repository`:$imageTag"
 
     aws eks update-kubeconfig --region $region --name $clusterName | Out-Host
-    aws ecr get-login-password --region $region | docker login --username AWS --password-stdin $registry | Out-Host
+    $ecrPassword = aws ecr get-login-password --region $region
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($ecrPassword)) {
+        throw "Unable to retrieve an ECR login password."
+    }
+    $ecrPassword | docker login --username AWS --password-stdin $registry | Out-Host
+    if ($LASTEXITCODE -ne 0) { throw "ECR Docker login failed." }
     docker build --file $dockerfile --tag $image $appPath | Out-Host
     docker push $image | Out-Host
 

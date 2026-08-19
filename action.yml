@@ -33,27 +33,49 @@ runs:
       run: |
         set -Eeuo pipefail
         test -f "$CONFIG_PATH"
-        set -a
-        source "$CONFIG_PATH"
-        set +a
-        : "${APP_NAME:?APP_NAME is required}"
-        : "${SOURCE_PATH:?SOURCE_PATH is required}"
-        : "${DOCKERFILE:?DOCKERFILE is required}"
-        : "${CONTAINER_PORT:?CONTAINER_PORT is required}"
-        : "${HEALTH_PATH:?HEALTH_PATH is required}"
-        : "${SERVICE_TYPE:?SERVICE_TYPE is required}"
-        [[ "$APP_NAME" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]]
+        declare -A config
+        while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+          line="${raw_line#"${raw_line%%[![:space:]]*}"}"
+          line="${line%"${line##*[![:space:]]}"}"
+          [[ -z "$line" || "$line" == \#* ]] && continue
+          [[ "$line" =~ ^([A-Z_]+)=([^[:cntrl:]]*)$ ]] || { echo "Invalid config line: $line" >&2; exit 1; }
+          key="${BASH_REMATCH[1]}"
+          value="${BASH_REMATCH[2]}"
+          case "$key" in
+            APP_NAME|SOURCE_PATH|DOCKERFILE|CONTAINER_PORT|HEALTH_PATH|SERVICE_TYPE|REPLICA_COUNT) ;;
+            *) echo "Unsupported config key: $key" >&2; exit 1 ;;
+          esac
+          [[ -z "${config[$key]+x}" ]] || { echo "Duplicate config key: $key" >&2; exit 1; }
+          config[$key]="$value"
+        done < "$CONFIG_PATH"
+        for key in APP_NAME SOURCE_PATH DOCKERFILE CONTAINER_PORT HEALTH_PATH SERVICE_TYPE; do
+          [[ -n "${config[$key]:-}" ]] || { echo "Missing required config key: $key" >&2; exit 1; }
+        done
+        APP_NAME="${config[APP_NAME]}"
+        SOURCE_PATH="${config[SOURCE_PATH]}"
+        DOCKERFILE="${config[DOCKERFILE]}"
+        CONTAINER_PORT="${config[CONTAINER_PORT]}"
+        HEALTH_PATH="${config[HEALTH_PATH]}"
+        SERVICE_TYPE="${config[SERVICE_TYPE]}"
+        REPLICA_COUNT="${config[REPLICA_COUNT]:-}"
+        [[ "$APP_NAME" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ && "$APP_NAME" != *--* ]]
         [[ "$CONTAINER_PORT" =~ ^[0-9]+$ ]]
         [[ "$HEALTH_PATH" == /* ]]
         [[ "$SERVICE_TYPE" == "ClusterIP" || "$SERVICE_TYPE" == "LoadBalancer" ]]
-        config_directory=$(dirname "$CONFIG_PATH")
-        source_directory="$config_directory/$SOURCE_PATH"
-        dockerfile="$source_directory/$DOCKERFILE"
+        [[ -z "$REPLICA_COUNT" || "$REPLICA_COUNT" =~ ^[1-9][0-9]*$ ]]
+        workspace=$(pwd -P)
+        config_directory=$(dirname "$(realpath "$CONFIG_PATH")")
+        source_directory=$(realpath -m "$config_directory/$SOURCE_PATH")
+        dockerfile=$(realpath -m "$source_directory/$DOCKERFILE")
+        [[ "$source_directory" == "$workspace" || "$source_directory" == "$workspace/"* ]]
+        [[ "$dockerfile" == "$source_directory/"* ]]
         test -f "$dockerfile"
         registry="${ECR_REPOSITORY%%/*}"
         image_tag="${APP_NAME}-${IMAGE_TAG}"
         image="${ECR_REPOSITORY}:${image_tag}"
-        aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$registry"
+        ecr_password=$(aws ecr get-login-password --region "$AWS_REGION")
+        [[ -n "$ecr_password" ]] || { echo "ECR returned an empty login password" >&2; exit 1; }
+        printf '%s' "$ecr_password" | docker login --username AWS --password-stdin "$registry"
         docker build --file "$dockerfile" --tag "$image" "$source_directory"
         docker push "$image"
         aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
