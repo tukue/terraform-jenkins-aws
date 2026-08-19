@@ -7,11 +7,37 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run application tests
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          config_path=platform/app.env
+          test -f "$config_path" || { echo "Missing $config_path" >&2; exit 1; }
+          test_command_count=$(grep -c '^TEST_COMMAND=' "$config_path" || true)
+          if [[ "$test_command_count" == "0" ]]; then
+            echo "TEST_COMMAND is not configured; skipping tests for this existing application."
+            exit 0
+          fi
+          [[ "$test_command_count" == "1" ]] || { echo "TEST_COMMAND must be defined once in $config_path" >&2; exit 1; }
+          test_command=$(sed -n 's/^TEST_COMMAND=//p' "$config_path")
+          [[ -n "$test_command" ]] || { echo "TEST_COMMAND must not be empty" >&2; exit 1; }
+          echo "Running configured application tests."
+          bash -o errexit -o pipefail -c "$test_command"
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4

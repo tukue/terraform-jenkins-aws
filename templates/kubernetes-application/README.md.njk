@@ -4,7 +4,7 @@ This application deploys to the platform EKS cluster when code is pushed to `mai
 
 ## Developer contract
 
-Provide source code and a Dockerfile at `${{ values.source_path }}`. The container must listen on `${{ values.container_port }}` and return HTTP success from `${{ values.health_path }}`.
+Provide source code and a Dockerfile at `${{ values.source_path }}`. The container must listen on `${{ values.container_port }}`, return HTTP success from `${{ values.health_path }}`, and have a test command that runs from the repository root.
 
 `platform/app.env` is generated from Backstage and defines the deployment contract. Do not add Terraform, Kubernetes manifests, registry credentials, or cluster configuration to this repository.
 
@@ -23,4 +23,4 @@ The platform team configures these shared GitHub Actions settings before the fir
 - `PLATFORM_DEPLOYMENT_ACTION_REPOSITORY` Backstage setting
 - `PLATFORM_DEPLOYMENT_ACTION_SHA` Backstage setting (full 40-character commit SHA)
 
-After that, push source changes to `main`; GitHub Actions builds the image, pushes it to ECR, deploys it with the platform Helm chart, waits for readiness, and reports the Service status.
+After that, push source changes to `main`; GitHub Actions runs the configured tests without AWS credentials, builds the image, and blocks ECR publication and EKS deployment if Trivy finds High or Critical vulnerabilities. Clean images are pushed to ECR, deployed with the platform Helm chart, checked for readiness, and reported with Service status.

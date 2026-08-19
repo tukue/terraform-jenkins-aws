@@ -103,10 +103,10 @@ git push main
         ↓
 GitHub Actions checks out that exact commit
         ↓
-Build image → push to ECR → deploy Helm chart to EKS → verify rollout
+Run application tests → build image → Trivy scan → push to ECR → deploy Helm chart to EKS → verify rollout
 ```
 
-The generated workflow receives cluster and registry details from platform-managed GitHub Actions settings. `platform/app.env` only describes the application: source path, Dockerfile, port, health path, service exposure, and replica count. See [Kubernetes Application Recommended Path](docs/kubernetes-application-recommended-path.md) for setup and troubleshooting.
+The generated workflow receives cluster and registry details from platform-managed GitHub Actions settings. `platform/app.env` only describes the application: source path, Dockerfile, test command, port, health path, service exposure, and replica count. See [Kubernetes Application Recommended Path](docs/kubernetes-application-recommended-path.md) for setup and troubleshooting.
 
 ### EKS Self-Service Flow
 
@@ -121,6 +121,7 @@ The generated workflow receives cluster and registry details from platform-manag
 
 - **Managed control plane** — No master node management, automatic patching with EKS-managed updates
 - **Encrypted at rest** — KMS-backed envelope encryption for all Kubernetes secrets
+- **Continuous image scanning** — Amazon ECR Enhanced scanning re-scans published images through Amazon Inspector
 - **Audit logging** — CloudWatch log group with 30–90 day retention by environment (api, audit, authenticator, controllerManager, scheduler)
 - **Workload identity** — OIDC provider + IRSA roles for Kubernetes service accounts, EKS Pod Identity Agent add-on
 - **Environment-aware sizing** — SPOT instances in dev/qa, ON_DEMAND in prod, tainted system node groups in prod

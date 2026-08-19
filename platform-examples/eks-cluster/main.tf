@@ -58,3 +58,16 @@ module "eks" {
     }
   }
 }
+
+resource "aws_ecr_registry_scanning_configuration" "platform" {
+  scan_type = "ENHANCED"
+
+  rule {
+    scan_frequency = "CONTINUOUS_SCAN"
+
+    repository_filter {
+      filter      = "*"
+      filter_type = "WILDCARD"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 name: Deploy application to the platform
-description: Build a Dockerfile-based application, publish it to ECR, and deploy it to EKS using the platform Helm chart.
+description: Build and scan a Dockerfile-based application, publish it to ECR, and deploy it to EKS using the platform Helm chart.
 inputs:
   config-path:
     description: Path to platform/app.env in the calling repository.
@@ -21,7 +21,7 @@ runs:
   using: composite
   steps:
     - uses: azure/setup-helm@v4
-    - name: Build, publish, and deploy
+    - name: Prepare image and authenticate to ECR
       shell: bash
       env:
         CONFIG_PATH: ${{ inputs.config-path }}
@@ -42,7 +42,7 @@ runs:
           key="${BASH_REMATCH[1]}"
           value="${BASH_REMATCH[2]}"
           case "$key" in
-            APP_NAME|SOURCE_PATH|DOCKERFILE|CONTAINER_PORT|HEALTH_PATH|SERVICE_TYPE|REPLICA_COUNT) ;;
+            APP_NAME|SOURCE_PATH|DOCKERFILE|CONTAINER_PORT|HEALTH_PATH|SERVICE_TYPE|REPLICA_COUNT|TEST_COMMAND) ;;
             *) echo "Unsupported config key: $key" >&2; exit 1 ;;
           esac
           [[ -z "${config[$key]+x}" ]] || { echo "Duplicate config key: $key" >&2; exit 1; }
@@ -76,11 +76,43 @@ runs:
         ecr_password=$(aws ecr get-login-password --region "$AWS_REGION")
         [[ -n "$ecr_password" ]] || { echo "ECR returned an empty login password" >&2; exit 1; }
         printf '%s' "$ecr_password" | docker login --username AWS --password-stdin "$registry"
-        docker build --file "$dockerfile" --tag "$image" "$source_directory"
-        docker push "$image"
-        aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
-        helm_args=(upgrade --install "$APP_NAME" "$PLATFORM_CHART" --namespace "$APP_NAME" --create-namespace --wait --timeout 10m --set "image.repository=$ECR_REPOSITORY" --set "image.tag=$image_tag" --set "containerPort=$CONTAINER_PORT" --set "health.path=$HEALTH_PATH" --set "service.type=$SERVICE_TYPE")
-        if [[ -n "${REPLICA_COUNT:-}" ]]; then helm_args+=(--set "replicaCount=$REPLICA_COUNT"); fi
+        {
+          echo "PLATFORM_APP_NAME=$APP_NAME"
+          echo "PLATFORM_SOURCE_DIRECTORY=$source_directory"
+          echo "PLATFORM_DOCKERFILE=$dockerfile"
+          echo "PLATFORM_IMAGE=$image"
+          echo "PLATFORM_IMAGE_TAG=$image_tag"
+          echo "PLATFORM_AWS_REGION=$AWS_REGION"
+          echo "PLATFORM_EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME"
+          echo "PLATFORM_ECR_REPOSITORY=$ECR_REPOSITORY"
+          echo "PLATFORM_CHART=$PLATFORM_CHART"
+          echo "PLATFORM_CONTAINER_PORT=$CONTAINER_PORT"
+          echo "PLATFORM_HEALTH_PATH=$HEALTH_PATH"
+          echo "PLATFORM_SERVICE_TYPE=$SERVICE_TYPE"
+          echo "PLATFORM_REPLICA_COUNT=$REPLICA_COUNT"
+        } >> "$GITHUB_ENV"
+
+    - name: Build container image
+      shell: bash
+      run: docker build --file "$PLATFORM_DOCKERFILE" --tag "$PLATFORM_IMAGE" "$PLATFORM_SOURCE_DIRECTORY"
+
+    - name: Scan image for High and Critical vulnerabilities
+      uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
+      with:
+        image-ref: ${{ env.PLATFORM_IMAGE }}
+        format: table
+        exit-code: '1'
+        severity: HIGH,CRITICAL
+        vuln-type: os,library
+
+    - name: Publish image and deploy
+      shell: bash
+      run: |
+        set -Eeuo pipefail
+        docker push "$PLATFORM_IMAGE"
+        aws eks update-kubeconfig --name "$PLATFORM_EKS_CLUSTER_NAME" --region "$PLATFORM_AWS_REGION"
+        helm_args=(upgrade --install "$PLATFORM_APP_NAME" "$PLATFORM_CHART" --namespace "$PLATFORM_APP_NAME" --create-namespace --wait --timeout 10m --set "image.repository=$PLATFORM_ECR_REPOSITORY" --set "image.tag=$PLATFORM_IMAGE_TAG" --set "containerPort=$PLATFORM_CONTAINER_PORT" --set "health.path=$PLATFORM_HEALTH_PATH" --set "service.type=$PLATFORM_SERVICE_TYPE")
+        if [[ -n "${PLATFORM_REPLICA_COUNT:-}" ]]; then helm_args+=(--set "replicaCount=$PLATFORM_REPLICA_COUNT"); fi
         helm "${helm_args[@]}"
-        kubectl rollout status "deployment/$APP_NAME" --namespace "$APP_NAME" --timeout=5m
-        kubectl get service "$APP_NAME" --namespace "$APP_NAME" --output wide
+        kubectl rollout status "deployment/$PLATFORM_APP_NAME" --namespace "$PLATFORM_APP_NAME" --timeout=5m
+        kubectl get service "$PLATFORM_APP_NAME" --namespace "$PLATFORM_APP_NAME" --output wide
