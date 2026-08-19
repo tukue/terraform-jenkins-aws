@@ -108,6 +108,18 @@ Run application tests → build image → Trivy scan → push to ECR → deploy 
 
 The generated workflow receives cluster and registry details from platform-managed GitHub Actions settings. `platform/app.env` only describes the application: source path, Dockerfile, test command, port, health path, service exposure, and replica count. See [Kubernetes Application Recommended Path](docs/kubernetes-application-recommended-path.md) for setup and troubleshooting.
 
+### Secure Delivery Gates
+
+Every Backstage-generated Kubernetes application receives these platform-managed controls:
+
+| Control | When it runs | Result |
+| :--- | :--- | :--- |
+| Application tests | Before AWS authentication | A failed `TEST_COMMAND` stops delivery before cloud credentials are available. |
+| Trivy image scan | After the Docker build, before ECR push | High or Critical OS and dependency vulnerabilities fail the workflow; the image is not published or deployed. |
+| Amazon ECR Enhanced scanning | Continuously after image publication | Amazon Inspector detects newly disclosed vulnerabilities in stored images and keeps findings current. |
+
+Developers remediate a failed test or Trivy finding in application code, dependencies, or the base image, then push again. ECR findings provide ongoing visibility for images that were clean when released but become vulnerable later.
+
 ### EKS Self-Service Flow
 
 1. **Discover** — Browse the EKS product in the Backstage catalog

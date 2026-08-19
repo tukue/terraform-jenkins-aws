@@ -1,7 +1,26 @@
+data "aws_iam_policy_document" "terraform_state_kms" {
+  # checkov:skip=CKV_AWS_109:KMS key policies require the account root principal to retain key administration access.
+  # checkov:skip=CKV_AWS_111:KMS key policies require the account root principal to retain key administration access.
+  # checkov:skip=CKV_AWS_356:KMS key policies require Resource="*" because a key policy is attached to one key.
+  statement {
+    sid    = "AllowAccountKeyAdministration"
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${var.aws_account_id}:root"]
+    }
+
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+}
+
 resource "aws_kms_key" "terraform_state" {
   description             = "KMS key for Terraform state and lock table encryption"
   deletion_window_in_days = 7
   enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.terraform_state_kms.json
 
   tags = merge(local.common_tags, {
     Name = "terraform-state"
@@ -14,6 +33,7 @@ resource "aws_kms_alias" "terraform_state" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
+  # checkov:skip=CKV_AWS_144:Cross-region replication requires an approved recovery account and region; it is managed by the landing zone.
   bucket = var.state_bucket_name
 
   tags = merge(local.common_tags, {
@@ -27,6 +47,7 @@ resource "aws_s3_bucket" "terraform_state" {
 
 # tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "terraform_state_logs" {
+  # checkov:skip=CKV_AWS_144:Cross-region replication requires an approved recovery account and region; it is managed by the landing zone.
   bucket = "${var.state_bucket_name}-logs"
 
   tags = merge(local.common_tags, {
@@ -43,6 +64,30 @@ resource "aws_s3_bucket_versioning" "terraform_state_logs" {
 
   versioning_configuration {
     status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "terraform_state_logs" {
+  bucket = aws_s3_bucket.terraform_state_logs.id
+
+  rule {
+    id     = "retire-old-access-logs"
+    status = "Enabled"
+
+    filter {}
+
+    transition {
+      days          = 90
+      storage_class = "STANDARD_IA"
+    }
+
+    expiration {
+      days = 365
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
 
@@ -73,11 +118,40 @@ resource "aws_s3_bucket_logging" "terraform_state" {
   target_prefix = "log/"
 }
 
+resource "aws_s3_bucket_notification" "terraform_state" {
+  bucket      = aws_s3_bucket.terraform_state.id
+  eventbridge = true
+}
+
+resource "aws_s3_bucket_notification" "terraform_state_logs" {
+  bucket      = aws_s3_bucket.terraform_state_logs.id
+  eventbridge = true
+}
+
 resource "aws_s3_bucket_versioning" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
 
   versioning_configuration {
     status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  rule {
+    id     = "retire-old-state-versions"
+    status = "Enabled"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = 365
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
 
