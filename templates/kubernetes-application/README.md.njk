@@ -8,6 +8,10 @@ Provide source code and a Dockerfile at `${{ values.source_path }}`. The contain
 
 `platform/app.env` is generated from Backstage and defines the deployment contract. Do not add Terraform, Kubernetes manifests, registry credentials, or cluster configuration to this repository.
 
+## How deployment uses your source
+
+The workflow starts with `actions/checkout`, which downloads the commit that triggered it from this repository. The platform action then reads `SOURCE_PATH` and `DOCKERFILE` from `platform/app.env` and builds that checked-out directory. Backstage creates this repository and configuration, but does not handle source code during deployment.
+
 ## Platform-managed prerequisites
 
 The platform team configures these shared GitHub Actions settings before the first deployment:

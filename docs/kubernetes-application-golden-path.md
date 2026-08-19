@@ -22,6 +22,14 @@ These settings are platform-owned. Application developers do not provide AWS cre
 
 Backstage creates and registers a repository containing `platform/app.env`, `catalog-info.yaml`, a deployment workflow, and a short README.
 
+## How the pipeline gets source code
+
+Backstage is not in the runtime source-download path. It creates the application repository and its delivery files, then returns the repository link. Developers clone that repository, add source code and a Dockerfile, and push to `main`.
+
+The generated workflow runs `actions/checkout`, which downloads the exact application commit that triggered the workflow. The deployment action reads `SOURCE_PATH` and `DOCKERFILE` from `platform/app.env`, then uses that checked-out directory as the Docker build context.
+
+For an existing application repository, add the generated `platform/app.env`, `.github/workflows/deploy.yml`, and `catalog-info.yaml` files to that repository. The pipeline then checks out and builds the existing source in place.
+
 ## Provide source code and deploy
 
 Add source code and a Dockerfile at the configured source path. The container must listen on the configured port and return HTTP success from the configured health path.
