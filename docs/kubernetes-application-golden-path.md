@@ -13,6 +13,8 @@ The platform team provisions the target EKS cluster and ECR repository, then con
 
 These settings are platform-owned. Application developers do not provide AWS credentials or infrastructure identifiers.
 
+Backstage also receives `PLATFORM_DEPLOYMENT_ACTION_REPOSITORY` and `PLATFORM_DEPLOYMENT_ACTION_SHA` as platform-managed configuration. The template renders these into the generated workflow; the SHA must be the full 40-character commit ID of the reviewed deployment action.
+
 ## Create an application
 
 1. In Backstage, select **Create Kubernetes Application**.

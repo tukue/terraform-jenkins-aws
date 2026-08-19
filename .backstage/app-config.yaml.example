@@ -98,6 +98,10 @@ scaffolder:
     name: 'Backstage Scaffolder'
     email: 'scaffolder@backstage.io'
   defaultCommitAction: 'commit'
+  defaultEnvironment:
+    parameters:
+      platformDeploymentActionRepository: ${PLATFORM_DEPLOYMENT_ACTION_REPOSITORY}
+      platformDeploymentActionSha: ${PLATFORM_DEPLOYMENT_ACTION_SHA}
 
 # TechDocs configuration
 techdocs:

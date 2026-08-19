@@ -98,6 +98,8 @@ spec:
           health_path: ${{ parameters.health_path }}
           service_type: ${{ parameters.service_type }}
           replica_count: ${{ parameters.replica_count }}
+          platform_deployment_action_repository: ${{ environment.parameters.platformDeploymentActionRepository }}
+          platform_deployment_action_sha: ${{ environment.parameters.platformDeploymentActionSha }}
     - id: publish
       name: Publish application repository
       action: publish:github

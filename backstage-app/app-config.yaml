@@ -73,6 +73,10 @@ auth:
 
 scaffolder:
   # see https://backstage.io/docs/features/software-templates/configuration for software template options
+  defaultEnvironment:
+    parameters:
+      platformDeploymentActionRepository: ${PLATFORM_DEPLOYMENT_ACTION_REPOSITORY}
+      platformDeploymentActionSha: ${PLATFORM_DEPLOYMENT_ACTION_SHA}
 
 catalog:
   import:
