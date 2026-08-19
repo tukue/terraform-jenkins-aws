@@ -1,0 +1,26 @@
+# ${{ values.name }}
+
+This application deploys to the platform EKS cluster when code is pushed to `main`.
+
+## Developer contract
+
+Provide source code and a Dockerfile at `${{ values.source_path }}`. The container must listen on `${{ values.container_port }}` and return HTTP success from `${{ values.health_path }}`.
+
+`platform/app.env` is generated from Backstage and defines the deployment contract. Do not add Terraform, Kubernetes manifests, registry credentials, or cluster configuration to this repository.
+
+## How deployment uses your source
+
+The workflow starts with `actions/checkout`, which downloads the commit that triggered it from this repository. The platform action then reads `SOURCE_PATH` and `DOCKERFILE` from `platform/app.env` and builds that checked-out directory. Backstage creates this repository and configuration, but does not handle source code during deployment.
+
+## Platform-managed prerequisites
+
+The platform team configures these shared GitHub Actions settings before the first deployment:
+
+- `AWS_DEPLOY_ROLE_ARN` secret
+- `PLATFORM_AWS_REGION` variable
+- `PLATFORM_EKS_CLUSTER_NAME` variable
+- `PLATFORM_ECR_REPOSITORY` variable
+- `PLATFORM_DEPLOYMENT_ACTION_REPOSITORY` Backstage setting
+- `PLATFORM_DEPLOYMENT_ACTION_SHA` Backstage setting (full 40-character commit SHA)
+
+After that, push source changes to `main`; GitHub Actions builds the image, pushes it to ECR, deploys it with the platform Helm chart, waits for readiness, and reports the Service status.

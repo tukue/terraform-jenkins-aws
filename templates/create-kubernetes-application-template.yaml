@@ -1,0 +1,126 @@
+$schema: https://backstage.io/schema/kinds/Template
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-kubernetes-application
+  title: Create Kubernetes Application
+  description: Create a Dockerfile-based application repository wired to the platform EKS deployment path.
+  tags: [kubernetes, eks, ecr, github-actions, golden-path]
+spec:
+  owner: group:default/platform-team
+  type: service
+  parameters:
+    - title: Application details
+      required: [name, description, owner]
+      properties:
+        name:
+          title: Application name
+          type: string
+          description: Used for the Kubernetes namespace, Helm release, and image tag prefix.
+          pattern: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?$'
+          maxLength: 53
+        description:
+          title: Description
+          type: string
+          maxLength: 160
+        owner:
+          title: Owning team
+          type: string
+          default: group:default/platform-team
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds: [Group]
+    - title: Runtime contract
+      required: [container_port, health_path]
+      properties:
+        source_path:
+          title: Source path
+          type: string
+          default: .
+          description: Repository-relative directory containing application source code.
+          pattern: '^[A-Za-z0-9._/-]+$'
+        dockerfile_path:
+          title: Dockerfile path
+          type: string
+          default: Dockerfile
+          description: Path relative to the source path.
+          pattern: '^[A-Za-z0-9._/-]+$'
+        container_port:
+          title: Container port
+          type: integer
+          default: 8080
+          minimum: 1
+          maximum: 65535
+        health_path:
+          title: Health endpoint
+          type: string
+          default: /healthz
+          pattern: '^/[A-Za-z0-9._~!$&''()*+,;=:@/%-]*$'
+        service_type:
+          title: Service exposure
+          type: string
+          enum: [ClusterIP, LoadBalancer]
+          default: ClusterIP
+          description: LoadBalancer creates a public AWS load balancer; use only when needed.
+        replica_count:
+          title: Replicas
+          type: integer
+          default: 2
+          minimum: 1
+          maximum: 10
+    - title: Repository
+      required: [repoUrl]
+      properties:
+        repoUrl:
+          title: Repository location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts: [github.com]
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+              additionalScopes:
+                github: [workflow]
+  steps:
+    - id: fetch-base
+      name: Generate deployment files
+      action: fetch:template
+      input:
+        url: ./kubernetes-application
+        targetPath: ./
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+          source_path: ${{ parameters.source_path }}
+          dockerfile_path: ${{ parameters.dockerfile_path }}
+          container_port: ${{ parameters.container_port }}
+          health_path: ${{ parameters.health_path }}
+          service_type: ${{ parameters.service_type }}
+          replica_count: ${{ parameters.replica_count }}
+          platform_deployment_action_repository: ${{ environment.parameters.platformDeploymentActionRepository }}
+          platform_deployment_action_sha: ${{ environment.parameters.platformDeploymentActionSha }}
+    - id: publish
+      name: Publish application repository
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+        defaultBranch: main
+        description: ${{ parameters.description }}
+    - id: register
+      name: Register application in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+  output:
+    links:
+      - title: Application repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Catalog entry
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+    text:
+      - title: Next steps
+        content: Add your source code and Dockerfile, then push to `main` to build, deploy, and verify the application.

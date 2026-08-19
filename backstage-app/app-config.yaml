@@ -73,6 +73,10 @@ auth:
 
 scaffolder:
   # see https://backstage.io/docs/features/software-templates/configuration for software template options
+  defaultEnvironment:
+    parameters:
+      platformDeploymentActionRepository: ${PLATFORM_DEPLOYMENT_ACTION_REPOSITORY}
+      platformDeploymentActionSha: ${PLATFORM_DEPLOYMENT_ACTION_SHA}
 
 catalog:
   import:
@@ -105,6 +109,10 @@ catalog:
         - allow: [Template]
     - type: file
       target: ${REPO_ROOT}/templates/create-standard-service-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-kubernetes-application-template.yaml
       rules:
         - allow: [Template]
     - type: file

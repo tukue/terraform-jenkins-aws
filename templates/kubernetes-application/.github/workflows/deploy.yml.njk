@@ -1,0 +1,27 @@
+name: Build and Deploy Application
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.PLATFORM_AWS_REGION }}
+      - uses: ${{ values.platform_deployment_action_repository }}@${{ values.platform_deployment_action_sha }}
+        with:
+          config-path: platform/app.env
+          image-tag: ${{ github.sha }}
+          aws-region: ${{ vars.PLATFORM_AWS_REGION }}
+          eks-cluster-name: ${{ vars.PLATFORM_EKS_CLUSTER_NAME }}
+          ecr-repository: ${{ vars.PLATFORM_ECR_REPOSITORY }}
