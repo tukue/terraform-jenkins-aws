@@ -7,11 +7,43 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run application tests
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          config_path=platform/app.env
+          test -f "$config_path" || { echo "Missing $config_path" >&2; exit 1; }
+          legacy_command_count=$(grep -c '^TEST_COMMAND=' "$config_path" || true)
+          [[ "$legacy_command_count" == "0" ]] || { echo "TEST_COMMAND is not supported. Replace it with an approved TEST_RUNNER." >&2; exit 1; }
+          test_runner_count=$(grep -c '^TEST_RUNNER=' "$config_path" || true)
+          if [[ "$test_runner_count" == "0" ]]; then
+            echo "TEST_RUNNER is not configured; skipping tests for this existing application."
+            exit 0
+          fi
+          [[ "$test_runner_count" == "1" ]] || { echo "TEST_RUNNER must be defined once in $config_path" >&2; exit 1; }
+          test_runner=$(sed -n 's/^TEST_RUNNER=//p' "$config_path")
+          case "$test_runner" in
+            npm) npm test ;;
+            python-unittest) python -m unittest discover ;;
+            pytest) python -m pytest ;;
+            go) go test ./... ;;
+            *) echo "Unsupported TEST_RUNNER: $test_runner. Choose npm, python-unittest, pytest, or go." >&2; exit 1 ;;
+          esac
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4

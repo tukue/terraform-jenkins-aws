@@ -5,7 +5,7 @@ metadata:
   name: create-kubernetes-application
   title: Create Kubernetes Application
   description: Create a Dockerfile-based application repository wired to the platform EKS deployment path.
-  tags: [kubernetes, eks, ecr, github-actions, golden-path]
+  tags: [kubernetes, eks, ecr, github-actions, recommended-path]
 spec:
   owner: group:default/platform-team
   type: service
@@ -31,7 +31,7 @@ spec:
           ui:options:
             allowedKinds: [Group]
     - title: Runtime contract
-      required: [container_port, health_path]
+      required: [container_port, health_path, test_runner]
       properties:
         source_path:
           title: Source path
@@ -56,6 +56,13 @@ spec:
           type: string
           default: /healthz
           pattern: '^/[A-Za-z0-9._~!$&''()*+,;=:@/%-]*$'
+        test_runner:
+          title: Test runner
+          type: string
+          description: Approved test runner executed before image build and deployment.
+          enum: [npm, python-unittest, pytest, go]
+          default: python-unittest
+          enumNames: [npm test, Python unittest, pytest, Go test]
         service_type:
           title: Service exposure
           type: string
@@ -96,6 +103,7 @@ spec:
           dockerfile_path: ${{ parameters.dockerfile_path }}
           container_port: ${{ parameters.container_port }}
           health_path: ${{ parameters.health_path }}
+          test_runner: ${{ parameters.test_runner }}
           service_type: ${{ parameters.service_type }}
           replica_count: ${{ parameters.replica_count }}
           platform_deployment_action_repository: ${{ environment.parameters.platformDeploymentActionRepository }}

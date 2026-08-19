@@ -55,6 +55,7 @@ The example assumes the regional landing zone already provides:
 - **Private endpoint**: Cluster API endpoint is private in qa/prod environments
 - **Security groups**: Least-privilege ingress rules for cluster API communication
 - **IMDSv2**: Enforced on all node group instances
+- **ECR Enhanced scanning**: Configure account-wide Amazon Inspector scanning through the [ECR Enhanced Scanning Runbook](../../docs/runbooks/ecr-enhanced-scanning.md)
 
 ### Node groups
 - **AL2023**: Amazon Linux 2023 as the default AMI for all node groups

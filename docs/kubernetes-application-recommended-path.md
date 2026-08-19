@@ -13,12 +13,14 @@ The platform team provisions the target EKS cluster and ECR repository, then con
 
 These settings are platform-owned. Application developers do not provide AWS credentials or infrastructure identifiers.
 
+The platform team enables Amazon ECR Enhanced scanning with `CONTINUOUS_SCAN` once per AWS account and Region by following the [ECR Enhanced Scanning Runbook](runbooks/ecr-enhanced-scanning.md). Amazon Inspector re-scans published images as vulnerability intelligence changes; this complements the pre-push Trivy deployment gate.
+
 Backstage also receives `PLATFORM_DEPLOYMENT_ACTION_REPOSITORY` and `PLATFORM_DEPLOYMENT_ACTION_SHA` as platform-managed configuration. The template renders these into the generated workflow; the SHA must be the full 40-character commit ID of the reviewed deployment action.
 
 ## Create an application
 
 1. In Backstage, select **Create Kubernetes Application**.
-2. Provide the application name, owning team, source path, Dockerfile path, container port, and health endpoint.
+2. Provide the application name, owning team, source path, Dockerfile path, container port, health endpoint, and repository-root test command.
 3. Keep `ClusterIP` unless the service must be public. Selecting `LoadBalancer` creates an AWS load balancer.
 4. Choose a GitHub repository location and create the component.
 
@@ -34,23 +36,27 @@ For an existing application repository, add the generated `platform/app.env`, `.
 
 ## Provide source code and deploy
 
-Add source code and a Dockerfile at the configured source path. The container must listen on the configured port and return HTTP success from the configured health path.
+Add source code and a Dockerfile at the configured source path. The container must listen on the configured port, return HTTP success from the configured health path, and set `TEST_RUNNER` in `platform/app.env` to `npm`, `python-unittest`, `pytest`, or `go`.
 
 ```text
 git push main
+    -> runs the configured tests without AWS credentials
     -> GitHub Actions assumes the platform deployment role
-    -> builds and pushes a unique image to ECR
+    -> builds the image and scans it with Trivy
+    -> fails on High or Critical vulnerabilities before ECR push or EKS deployment
+    -> pushes a clean, unique image to ECR
     -> creates the application namespace
     -> deploys the platform Helm chart
     -> waits for rollout readiness
     -> prints the Kubernetes Service status
 ```
 
-The generated `platform/app.env` is the only deployment configuration developers normally edit. Its values are validated by the deployment action before Docker builds or Kubernetes changes occur.
+The generated `platform/app.env` is the only deployment configuration developers normally edit. Its values are validated by the workflow and deployment action before Docker builds or Kubernetes changes occur. Existing application repositories without `TEST_RUNNER` remain compatible, but their workflows print an explicit warning and skip tests until the setting is added. Replace any legacy `TEST_COMMAND` value with an approved `TEST_RUNNER`; legacy commands fail safely rather than being executed.
 
 ## Troubleshoot
 
 - Workflow fails before build: validate `platform/app.env` paths and the Dockerfile.
+- Trivy blocks the image: update the vulnerable base image or dependency, rebuild locally, and push the remediation. High and Critical findings are a deployment gate.
 - Image push fails: ask the platform team to confirm the OIDC role and ECR permissions.
 - Rollout fails: inspect the workflow output, then run `kubectl describe deployment <app> -n <app>` and `kubectl get events -n <app>` using an approved platform identity.
 - Service has no public address: a `LoadBalancer` service can take several minutes; use `kubectl get service <app> -n <app>` to check status.
