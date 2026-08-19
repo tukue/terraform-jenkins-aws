@@ -47,6 +47,35 @@ Organizations struggle with slow, inconsistent infrastructure delivery — teams
                                              └──────────────────────────────┘
 ```
 
+### Kubernetes Application Delivery Architecture
+
+```mermaid
+flowchart LR
+    subgraph Provisioning[Platform provisioning - Terraform]
+        TF[Terraform] --> VPC[Amazon VPC\nprivate and public subnets]
+        TF --> EKS[Amazon EKS\nmanaged node groups]
+        TF --> ECR[Amazon ECR\nimmutable scanned images]
+        TF --> IAM[AWS IAM and OIDC\nGitHub Actions deployment role]
+        TF --> CW[Amazon CloudWatch\nEKS control-plane logs]
+        VPC --> EKS
+    end
+
+    subgraph Delivery[Application delivery - every push to main]
+        DEV[Developer source code\nDockerfile and platform/app.env] --> GHA[GitHub Actions\ncheckout, build, deploy]
+        IAM -. federated authentication .-> GHA
+        GHA --> BUILD[Docker build\ncommit-tagged image]
+        BUILD --> ECR
+        ECR --> EKS
+        GHA --> HELM[Helm upgrade\nnamespace and Service]
+        HELM --> EKS
+    end
+
+    EKS --> ALB[AWS Load Balancer Controller\nApplication Load Balancer]
+    ALB --> USERS[Application users]
+```
+
+Terraform provisions the AWS foundation once per environment. Each application push then uses GitHub Actions and AWS IAM OIDC to build a Docker image, push it to Amazon ECR, deploy it to Amazon EKS with Helm, and verify the rollout. The load balancer path applies only when the application enables ingress.
+
 ---
 
 ## Developer Experience (DevX)
