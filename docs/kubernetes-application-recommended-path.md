@@ -1,4 +1,4 @@
-# Kubernetes Application Golden Path
+# Kubernetes Application Recommended Path
 
 Use this path to deploy a Dockerfile-based application without managing Terraform, EKS credentials, Helm charts, Kubernetes manifests, or ECR login commands.
 
