@@ -1,7 +1,4 @@
 data "aws_iam_policy_document" "terraform_state_kms" {
-  # checkov:skip=CKV_AWS_109:KMS key policies require the account root principal to retain key administration access.
-  # checkov:skip=CKV_AWS_111:KMS key policies require the account root principal to retain key administration access.
-  # checkov:skip=CKV_AWS_356:KMS key policies require Resource="*" because a key policy is attached to one key.
   statement {
     sid    = "AllowAccountKeyAdministration"
     effect = "Allow"
@@ -33,7 +30,6 @@ resource "aws_kms_alias" "terraform_state" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  # checkov:skip=CKV_AWS_144:Cross-region replication requires an approved recovery account and region; it is managed by the landing zone.
   bucket = var.state_bucket_name
 
   tags = merge(local.common_tags, {
@@ -47,7 +43,6 @@ resource "aws_s3_bucket" "terraform_state" {
 
 # tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "terraform_state_logs" {
-  # checkov:skip=CKV_AWS_144:Cross-region replication requires an approved recovery account and region; it is managed by the landing zone.
   bucket = "${var.state_bucket_name}-logs"
 
   tags = merge(local.common_tags, {

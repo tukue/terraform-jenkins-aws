@@ -238,9 +238,6 @@ resource "aws_route_table_association" "dev_proj_1_private_rt_subnet_association
 
 # Network ACL for additional security
 resource "aws_network_acl" "main" {
-  # checkov:skip=CKV2_AWS_1:Every subnet is explicitly associated through aws_network_acl_association.subnets below.
-  # checkov:skip=CKV_AWS_231:NACL ingress rule for port 3389 is an AWS default; will be restricted per environment
-  # checkov:skip=CKV_AWS_232:NACL ingress rule for port 22 is required for SSH access; CIDR is controlled by variable
   vpc_id = aws_vpc.dev_proj_1_vpc_eu_north_1.id
 
   # Allow inbound HTTPS
