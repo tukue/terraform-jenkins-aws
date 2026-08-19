@@ -42,7 +42,7 @@ runs:
           key="${BASH_REMATCH[1]}"
           value="${BASH_REMATCH[2]}"
           case "$key" in
-            APP_NAME|SOURCE_PATH|DOCKERFILE|CONTAINER_PORT|HEALTH_PATH|SERVICE_TYPE|REPLICA_COUNT|TEST_COMMAND) ;;
+            APP_NAME|SOURCE_PATH|DOCKERFILE|CONTAINER_PORT|HEALTH_PATH|SERVICE_TYPE|REPLICA_COUNT|TEST_RUNNER) ;;
             *) echo "Unsupported config key: $key" >&2; exit 1 ;;
           esac
           [[ -z "${config[$key]+x}" ]] || { echo "Duplicate config key: $key" >&2; exit 1; }

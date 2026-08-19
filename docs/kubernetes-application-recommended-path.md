@@ -13,7 +13,7 @@ The platform team provisions the target EKS cluster and ECR repository, then con
 
 These settings are platform-owned. Application developers do not provide AWS credentials or infrastructure identifiers.
 
-The EKS reference provisioning root also enables Amazon ECR Enhanced scanning with `CONTINUOUS_SCAN` for every repository in its AWS account and Region. Amazon Inspector re-scans published images as vulnerability intelligence changes; this complements the pre-push Trivy deployment gate.
+The platform team enables Amazon ECR Enhanced scanning with `CONTINUOUS_SCAN` once per AWS account and Region by following the [ECR Enhanced Scanning Runbook](runbooks/ecr-enhanced-scanning.md). Amazon Inspector re-scans published images as vulnerability intelligence changes; this complements the pre-push Trivy deployment gate.
 
 Backstage also receives `PLATFORM_DEPLOYMENT_ACTION_REPOSITORY` and `PLATFORM_DEPLOYMENT_ACTION_SHA` as platform-managed configuration. The template renders these into the generated workflow; the SHA must be the full 40-character commit ID of the reviewed deployment action.
 
@@ -36,7 +36,7 @@ For an existing application repository, add the generated `platform/app.env`, `.
 
 ## Provide source code and deploy
 
-Add source code and a Dockerfile at the configured source path. The container must listen on the configured port, return HTTP success from the configured health path, and have a `TEST_COMMAND` in `platform/app.env` (for example, `npm test` or `python -m unittest discover`).
+Add source code and a Dockerfile at the configured source path. The container must listen on the configured port, return HTTP success from the configured health path, and set `TEST_RUNNER` in `platform/app.env` to `npm`, `python-unittest`, `pytest`, or `go`.
 
 ```text
 git push main
@@ -51,7 +51,7 @@ git push main
     -> prints the Kubernetes Service status
 ```
 
-The generated `platform/app.env` is the only deployment configuration developers normally edit. Its values are validated by the workflow and deployment action before Docker builds or Kubernetes changes occur. Existing application repositories without `TEST_COMMAND` remain compatible, but their workflows print an explicit warning and skip tests until the setting is added.
+The generated `platform/app.env` is the only deployment configuration developers normally edit. Its values are validated by the workflow and deployment action before Docker builds or Kubernetes changes occur. Existing application repositories without `TEST_RUNNER` remain compatible, but their workflows print an explicit warning and skip tests until the setting is added. Replace any legacy `TEST_COMMAND` value with an approved `TEST_RUNNER`; legacy commands fail safely rather than being executed.
 
 ## Troubleshoot
 

@@ -4,7 +4,7 @@ This application deploys to the platform EKS cluster when code is pushed to `mai
 
 ## Developer contract
 
-Provide source code and a Dockerfile at `${{ values.source_path }}`. The container must listen on `${{ values.container_port }}`, return HTTP success from `${{ values.health_path }}`, and have a test command that runs from the repository root.
+Provide source code and a Dockerfile at `${{ values.source_path }}`. The container must listen on `${{ values.container_port }}`, return HTTP success from `${{ values.health_path }}`, and use the approved test runner selected in `platform/app.env`.
 
 `platform/app.env` is generated from Backstage and defines the deployment contract. Do not add Terraform, Kubernetes manifests, registry credentials, or cluster configuration to this repository.
 

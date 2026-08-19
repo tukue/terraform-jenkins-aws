@@ -31,7 +31,7 @@ spec:
           ui:options:
             allowedKinds: [Group]
     - title: Runtime contract
-      required: [container_port, health_path, test_command]
+      required: [container_port, health_path, test_runner]
       properties:
         source_path:
           title: Source path
@@ -56,12 +56,13 @@ spec:
           type: string
           default: /healthz
           pattern: '^/[A-Za-z0-9._~!$&''()*+,;=:@/%-]*$'
-        test_command:
-          title: Test command
+        test_runner:
+          title: Test runner
           type: string
-          description: Command run from the repository root before image build and deployment, for example `npm test` or `python -m unittest discover`.
-          minLength: 1
-          pattern: '^[^\\r\\n]+$'
+          description: Approved test runner executed before image build and deployment.
+          enum: [npm, python-unittest, pytest, go]
+          default: python-unittest
+          enumNames: [npm test, Python unittest, pytest, Go test]
         service_type:
           title: Service exposure
           type: string
@@ -102,7 +103,7 @@ spec:
           dockerfile_path: ${{ parameters.dockerfile_path }}
           container_port: ${{ parameters.container_port }}
           health_path: ${{ parameters.health_path }}
-          test_command: ${{ parameters.test_command }}
+          test_runner: ${{ parameters.test_runner }}
           service_type: ${{ parameters.service_type }}
           replica_count: ${{ parameters.replica_count }}
           platform_deployment_action_repository: ${{ environment.parameters.platformDeploymentActionRepository }}

@@ -114,9 +114,9 @@ Every Backstage-generated Kubernetes application receives these platform-managed
 
 | Control | When it runs | Result |
 | :--- | :--- | :--- |
-| Application tests | Before AWS authentication | A failed `TEST_COMMAND` stops delivery before cloud credentials are available. |
+| Application tests | Before AWS authentication | A failed approved `TEST_RUNNER` stops delivery before cloud credentials are available. |
 | Trivy image scan | After the Docker build, before ECR push | High or Critical OS and dependency vulnerabilities fail the workflow; the image is not published or deployed. |
-| Amazon ECR Enhanced scanning | Continuously after image publication | Amazon Inspector detects newly disclosed vulnerabilities in stored images and keeps findings current. |
+| Amazon ECR Enhanced scanning | Continuously after image publication | Amazon Inspector detects newly disclosed vulnerabilities in stored images and keeps findings current; the platform team enables it once per account and Region. |
 
 Developers remediate a failed test or Trivy finding in application code, dependencies, or the base image, then push again. ECR findings provide ongoing visibility for images that were clean when released but become vulnerable later.
 
