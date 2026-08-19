@@ -1,273 +1,102 @@
-# Terraform Jenkins AWS
+# Kubernetes Application Platform on AWS
 
-This repository contains Terraform configurations to automate the deployment of a Jenkins server on AWS. It provisions infrastructure such as VPC, EC2 instances, S3 backend for state management, and Route 53 for domain configuration.
+This repository provisions a Jenkins server and an application platform on AWS. The application platform reuses the existing VPC and adds an EKS cluster, managed worker nodes, a private ECR repository, and a small Helm deployment contract.
 
-👉 **GitHub Repository**: [https://github.com/tukue/terraform-jenkins-aws](https://github.com/tukue/terraform-jenkins-aws)
+## Developer Golden Path
 
----
+Any Dockerfile-based application repository can use the platform. The developer adds one small file at `platform/app.env`, then either pushes to `main` or runs one command:
 
-## Features
+```powershell
+make deploy IMAGE_TAG=<unique-image-tag>
+```
 
-- **Jenkins Deployment**: Automates the setup of a Jenkins server on an EC2 instance.
-- **S3 Backend**: Stores Terraform state files securely in an S3 bucket.
-- **Networking**: Configures VPC, subnets, and security groups.
-- **Load Balancer**: Sets up an Application Load Balancer (ALB) for traffic routing.
-- **Domain Management**: Integrates with Route 53 for DNS and SSL certificate management.
+The command reads the platform's Terraform outputs, authenticates to ECR and EKS, builds and pushes the image, creates the application namespace, deploys with Helm, waits for the rollout, and prints the Service status. It does not run Terraform or require developers to know VPC, node, or registry details.
 
----
+Start by copying [`platform/app.env.example`](platform/app.env.example) into the application repository as `platform/app.env`:
+
+```dotenv
+APP_NAME=my-api
+SOURCE_PATH=..
+DOCKERFILE=Dockerfile
+CONTAINER_PORT=8080
+HEALTH_PATH=/healthz
+SERVICE_TYPE=LoadBalancer
+REPLICA_COUNT=2
+```
+
+The config is intentionally language-neutral. `SOURCE_PATH` and `DOCKERFILE` are relative to `platform/app.env`; the directory must contain the application's source and Dockerfile. The application must expose `CONTAINER_PORT` and return HTTP success from `HEALTH_PATH`. [`apps/sample-api`](apps/sample-api) demonstrates the contract.
+
+The reusable contract in [`charts/application`](charts/application) supplies the Deployment, Service, resource requests/limits, and liveness/readiness probes. A default `LoadBalancer` Service receives an AWS address; use `kubectl get service <app> -n <app>` to obtain it once provisioned.
 
 ## Prerequisites
 
-- AWS account with necessary permissions.
-- Terraform installed on your local machine.
-- SSH key pair for accessing the EC2 instance.
+Platform operators need Terraform >= 1.6, AWS credentials for `eu-north-1`, and values for the existing VPC/Jenkins inputs plus:
 
----
+```hcl
+kubernetes_version    = "<supported EKS version>"
+eks_public_access_cidrs = ["<operator CIDR>/32"]
+cicd_principal_arn    = "arn:aws:iam::<account-id>:role/<github-deploy-role>" # optional
+```
 
-## Backend Configuration
+Application developers need AWS CLI, Docker, Helm, kubectl, and Terraform available on `PATH`. Their AWS identity must have ECR push permissions and EKS access; the identity that creates the cluster is automatically an administrator.
 
-This project uses an S3 bucket as the backend to store Terraform state files securely. Each environment (`dev`, `QA`, `production`) has its own backend configuration file.
+## Provision the Platform
 
-### Backend Configuration Files
-- `backend-config-dev.hcl`: Backend configuration for the `dev` environment.
-- `backend-config-qa.hcl`: Backend configuration for the `QA` environment.
-- `backend-config-prod.hcl`: Backend configuration for the `production` environment.
+This is an operator action, performed before application delivery:
 
-### Initializing the Backend
-To initialize the backend for a specific environment, use the `-backend-config` flag with the `terraform init` command.
-
-#### For `dev` Environment:
 ```bash
-terraform init -backend-config="backend-config-dev.hcl"
+terraform init
+terraform workspace select dev
+terraform apply -var-file="terraform.tfvars"
 ```
 
-#### For `QA` Environment:
+The existing Terraform inputs remain required. The EKS worker nodes run in the VPC's private subnets; the added NAT gateway gives them outbound image and package access. Terraform outputs `eks_cluster_name` and `ecr_repository_url`, which deployment tooling consumes automatically.
+
+## Deploy and Verify Locally
+
+```powershell
+make test
+make deploy IMAGE_TAG=<unique-image-tag>
+kubectl get pods -n sample-api
+kubectl get service sample-api -n sample-api
+```
+
+If the deployment fails, `helm` reports template/configuration errors and `kubectl rollout status` returns the failed rollout. Inspect the workload with:
+
 ```bash
-terraform init -backend-config="backend-config-qa.hcl"
+kubectl describe deployment sample-api -n sample-api
+kubectl get events -n sample-api --sort-by=.lastTimestamp
+kubectl logs deployment/sample-api -n sample-api
 ```
 
-#### For `Production` Environment:
-```bash
-terraform init -backend-config="backend-config-prod.hcl"
+## Continuous Deployment
+
+This repository's sample workflow tests, builds, pushes, deploys, waits for readiness, and prints Service status. Other application repositories can use the portable composite action in [`action.yml`](action.yml):
+
+```yaml
+- uses: tukue/terraform-jenkins-aws@<pinned-commit-sha>
+  with:
+    config-path: platform/app.env
+    image-tag: ${{ github.sha }}
+    aws-region: ${{ vars.AWS_REGION }}
+    eks-cluster-name: ${{ vars.EKS_CLUSTER_NAME }}
+    ecr-repository: ${{ vars.ECR_REPOSITORY }}
 ```
 
----
+The calling workflow must check out application code, run its language-specific tests, and authenticate to AWS with GitHub OIDC before this action. The action then handles Docker, ECR, Kubernetes namespace creation, Helm, rollout verification, and Service status.
 
-## Usage
+Before enabling it, an operator creates a GitHub OIDC-enabled IAM deployment role with ECR push permissions and supplies its ARN as the `cicd_principal_arn` Terraform input. Add that ARN as the `AWS_DEPLOY_ROLE_ARN` GitHub secret, and set `AWS_REGION`, `EKS_CLUSTER_NAME`, and `ECR_REPOSITORY` as GitHub repository variables from Terraform outputs. The Terraform EKS access entry grants that CI role cluster access; developers do not manage Kubernetes credentials.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/tukue/terraform-jenkins-aws.git
-   cd terraform-jenkins-aws
-   ```
+## Platform Boundaries
 
-2. Create and switch to a workspace:
-   Terraform workspaces allow you to manage multiple environments (e.g., `dev`, `QA`, `production`) using the same configuration.
+- **Infrastructure:** Terraform provisions VPC, Jenkins, state storage, EKS, nodes, NAT, IAM, and ECR.
+- **Platform:** Helm chart, image repository, deployment script, and CI workflow translate the application contract into Kubernetes resources.
+- **Developer:** Application code, Dockerfile, health endpoint, and `platform/app.env`.
 
-   - Create a workspace for `dev`:
-     ```bash
-     terraform workspace new dev
-     ```
+## Current Limitations
 
-   - Create a workspace for `QA`:
-     ```bash
-     terraform workspace new QA
-     ```
+- No ingress controller, DNS automation, secret manager integration, autoscaling, or workload observability stack is provisioned yet.
+- The EKS API is public and restricted by `eks_public_access_cidrs`; use narrow CIDRs.
+- A `LoadBalancer` Service creates an AWS load balancer per exposed application. Add an ingress controller and shared DNS/certificate integration before operating many public services.
 
-   - Create a workspace for `production`:
-     ```bash
-     terraform workspace new production
-     ```
-
-   - Switch between workspaces:
-     ```bash
-     terraform workspace select <workspace-name>
-     ```
-
-3. Use environment-specific `.tfvars` files:
-   Each environment has its own `.tfvars` file to manage configurations. Use the `-var-file` flag to specify the appropriate file when running Terraform commands.
-
-   - For `dev`:
-     ```bash
-     terraform plan -var-file="terraform.tfvars"
-     terraform apply -var-file="terraform.tfvars"
-     ```
-
-   - For `QA`:
-     ```bash
-     terraform plan -var-file="terraform.qa.tfvars"
-     terraform apply -var-file="terraform.qa.tfvars"
-     ```
-
-   - For `production`:
-     ```bash
-     terraform plan -var-file="terraform.prod.tfvars"
-     terraform apply -var-file="terraform.prod.tfvars"
-     ```
-
-4. Plan the infrastructure:
-   ```bash
-   terraform plan -var-file="terraform.<env>.tfvars"
-   ```
-
-5. Apply the configuration:
-   ```bash
-   terraform apply -var-file="terraform.<env>.tfvars"
-   ```
-
-   Replace `<env>` with `tfvars`, `qa.tfvars`, or `prod.tfvars` based on the environment.
-
----
-
-## Outputs
-
-After applying the configuration, Terraform will output the following:
-
-- Jenkins EC2 instance public IP.
-- Load balancer DNS name.
-- Hosted zone ID.
-- ACM certificate ARN.
-
----
-
-## Notes
-
-- Ensure that `.tfvars` files are added to `.gitignore` to avoid committing sensitive data.
-- Use the `terraform.tfvars` file for `dev`, `terraform.qa.tfvars` for `QA`, and `terraform.prod.tfvars` for `production` environments.
-- Add `backend-config-*.hcl` files to `.gitignore` to avoid committing backend configuration files.
-
-### Example `.gitignore` Entry:
-```plaintext
-# Ignore backend configuration files
-backend-config-*.hcl
-```
-
----
-
-## Ansible Configuration
-
-This project uses Ansible to configure the Jenkins server after provisioning the infrastructure with Terraform. The Ansible playbook installs necessary tools like Docker, Git, and Jenkins on the EC2 instance.
-
-### Steps to Configure and Use Ansible
-
-1. **Install Ansible**:
-   Ensure that Ansible is installed on your local machine. If not, install it using the following command:
-   ```bash
-   sudo apt update
-   sudo apt install ansible -y
-   ```
-
-2. Install Required Python Libraries: Install the boto3 and botocore Python libraries, which are required for the AWS EC2 dynamic inventory plugin:
-
-pip install boto3 botocore  
-
-3. Configure the Dynamic Inventory: The dynamic inventory is configured in the file ansible/inventory/aws_ec2.yml. Below is the configuration:
-
-plugin: aws_ec2
-regions:
-  - aws-region
-filters:
-  tag:Name: ec2-instance-tag-name
-keyed_groups:
-  - key: tags.Name
-    prefix: tag_Name_
-compose:
-  ansible_host: public_ip_address  
-
-plugin: aws_ec2: Enables the AWS EC2 dynamic inventory plugin.
-regions: Specifies the AWS region to query (e.g., eu-north-1).
-filters: Filters EC2 instances based on the Name tag (e.g., Jenkins:Ubuntu-Linux-EC2).
-compose: Ensures Ansible uses the public IP address for SSH connections. 
-
-4. Update the Ansible Configuration: Ensure the ansible.cfg file is configured to use the dynamic inventory and the correct SSH key:
-[defaults]
-inventory = ./inventory/aws_ec2.yml
-host_key_checking = False
-remote_user = ubuntu
-private_key_file = ssh key
-
-[inventory]
-enable_plugins = aws_ec2 
-
-5. Test the Dynamic Inventory: Verify that the dynamic inventory is working and fetching the correct EC2 instances:
-
-ansible-inventory -i ansible/inventory/aws_ec2.yml --list 
-
-6. 
-ansible -i ansible/inventory/aws_ec2.yml tag_Name__ec2_tag_name -m ping --private-key ~/.ssh/ssh-private-key --user ubuntu
-
-7. Run the Ansible Playbook: Execute the Ansible playbook to configure Jenkins and other tools on the EC2 instance 
-
-ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/playbook/jenkins-setup.yml --private-key ~/.ssh/ssh-key --user ubuntu
-
-
----
-
-## Architecture Diagram
-
-+-----------------------------+
-|         AWS Account         |
-+-----------------------------+
-            |
-            v
-+-----------------------------+
-|           VPC              |
-|  CIDR: 10.0.0.0/16         |
-+-----------------------------+
-    |                   |
-    v                   v
-+-----------+       +-----------+
-| Public    |       | Private   |
-| Subnets   |       | Subnets   |
-| (2)       |       | (2)       |
-+-----------+       +-----------+
-    |                   |
-    v                   v
-+-----------------------------+
-| Internet Gateway           |
-+-----------------------------+
-            |
-            v
-+-----------------------------+
-| Application Load Balancer  |
-| - HTTP (80)                |
-| - HTTPS (443)              |
-+-----------------------------+
-            |
-            v
-+-----------------------------+
-| Target Group               |
-| - Port: 8080               |
-+-----------------------------+
-            |
-            v
-+-----------------------------+
-| Jenkins EC2 Instance       |
-| - Public IP Enabled        |
-| - Security Groups:         |
-|   - SSH (22), HTTP (80),   |
-|     HTTPS (443), Jenkins   |
-|     (8080)                 |
-+-----------------------------+
-
-+-----------------------------+
-| Route 53 Hosted Zone        |
-| - DNS Records               |
-+-----------------------------+
-
-+-----------------------------+
-| ACM Certificate             |
-| - SSL for HTTPS             |
-+-----------------------------+
-
-+-----------------------------+     
-| S3 Bucket                   |
-| - Stores Terraform State    |
-| - Versioning Enabled        |
-+-----------------------------+
-https://github.com/user-attachments/assets/f481888c-decf-407a-b788-1dbdbcd7bc9f
-
-
-
-
-
+The legacy Jenkins EC2 path, Terraform security scan, Route 53/ACM modules, and `argocd-application.yaml` are not application delivery components. In particular, Argo CD itself is not provisioned by this repository, and that manifest is not part of the recommended path.

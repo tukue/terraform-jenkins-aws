@@ -11,12 +11,12 @@ locals {
 # Create CloudWatch Log Group for VPC Flow Logs
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/flow-logs/${var.environment}"
-  retention_in_days = 30  # Adjust retention period as needed
+  retention_in_days = 30 # Adjust retention period as needed
 
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-vpc-flow-logs"
+      Name    = "${var.environment}-vpc-flow-logs"
       Purpose = "VPC Flow Logs Storage"
     }
   )
@@ -42,7 +42,7 @@ resource "aws_iam_role" "vpc_flow_logs_role" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-vpc-flow-logs-role"
+      Name    = "${var.environment}-vpc-flow-logs-role"
       Purpose = "VPC Flow Logs IAM Role"
     }
   )
@@ -64,7 +64,7 @@ resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
           "logs:DescribeLogGroups",
           "logs:DescribeLogStreams"
         ]
-        Effect = "Allow"
+        Effect   = "Allow"
         Resource = "${aws_cloudwatch_log_group.vpc_flow_logs.arn}:*"
       }
     ]
@@ -95,7 +95,7 @@ resource "aws_flow_log" "vpc_flow_logs" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-vpc-flow-logs"
+      Name    = "${var.environment}-vpc-flow-logs"
       Purpose = "Network Traffic Monitoring"
     }
   )
@@ -111,8 +111,10 @@ resource "aws_subnet" "dev_proj_1_public_subnets" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-public-subnet-${count.index + 1}"
-      Type = "Public"
+      Name                                                = "${var.environment}-public-subnet-${count.index + 1}"
+      Type                                                = "Public"
+      "kubernetes.io/role/elb"                            = "1"
+      "kubernetes.io/cluster/${var.environment}-platform" = "shared"
     }
   )
 }
@@ -127,8 +129,10 @@ resource "aws_subnet" "dev_proj_1_private_subnets" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-private-subnet-${count.index + 1}"
-      Type = "Private"
+      Name                                                = "${var.environment}-private-subnet-${count.index + 1}"
+      Type                                                = "Private"
+      "kubernetes.io/role/internal-elb"                   = "1"
+      "kubernetes.io/cluster/${var.environment}-platform" = "shared"
     }
   )
 }
@@ -169,7 +173,10 @@ resource "aws_route_table_association" "dev_proj_1_public_rt_subnet_association"
 # Private Route Table
 resource "aws_route_table" "dev_proj_1_private_subnets" {
   vpc_id = aws_vpc.dev_proj_1_vpc_eu_north_1.id
-  #depends_on = [aws_nat_gateway.nat_gateway]
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.platform.id
+  }
   tags = merge(
     local.common_tags,
     {
@@ -218,9 +225,27 @@ resource "aws_network_acl" "main" {
     protocol   = "tcp"
     rule_no    = 300
     action     = "allow"
-    cidr_block = var.allowed_ssh_cidr  # This should be restricted in variables
+    cidr_block = var.allowed_ssh_cidr # This should be restricted in variables
     from_port  = 22
     to_port    = 22
+  }
+
+  ingress {
+    protocol   = "-1"
+    rule_no    = 400
+    action     = "allow"
+    cidr_block = var.vpc_cidr
+    from_port  = 0
+    to_port    = 0
+  }
+
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 500
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 1024
+    to_port    = 65535
   }
 
   # Allow all outbound
@@ -239,4 +264,15 @@ resource "aws_network_acl" "main" {
       Name = "${var.environment}-network-acl"
     }
   )
+}
+
+resource "aws_eip" "platform_nat" {
+  domain = "vpc"
+}
+
+resource "aws_nat_gateway" "platform" {
+  allocation_id = aws_eip.platform_nat.id
+  subnet_id     = aws_subnet.dev_proj_1_public_subnets[0].id
+
+  depends_on = [aws_internet_gateway.dev_proj_1_public_internet_gateway]
 }

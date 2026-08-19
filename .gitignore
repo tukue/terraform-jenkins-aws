@@ -6,6 +6,10 @@
 # Ignore crash logs
 crash.log
 
+# Ignore Python bytecode
+__pycache__/
+*.py[cod]
+
 # Ignore Terraform variable files (if they contain sensitive data)
 *.tfvars
 *.tfvars.json
@@ -18,9 +22,6 @@ override.tf.json
 
 # Ignore .terraform directory
 .terraform/
-
-# Ignore local environment files
-.terraform.lock.hcl
 
 # Ignore remote backend configuration files
 remote_backend_s3.tf    
