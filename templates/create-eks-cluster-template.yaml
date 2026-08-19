@@ -117,8 +117,8 @@ spec:
         endpoint_public_access:
           title: Public API Endpoint
           type: boolean
-          description: Allow public access to the Kubernetes API server
-          default: true
+          description: Allow public access only when a platform operator configures trusted CIDRs
+          default: false
 
         admin_iam_role_arn:
           title: Admin IAM Role ARN

@@ -113,14 +113,14 @@ variable "endpoint_private_access" {
 
 variable "endpoint_public_access" {
   type        = bool
-  default     = true
-  description = "Enable public API server endpoint access"
+  default     = false
+  description = "Enable public API server endpoint access. Keep disabled unless trusted CIDRs are explicitly configured."
 }
 
 variable "endpoint_public_access_cidrs" {
   type        = list(string)
-  default     = ["0.0.0.0/0"]
-  description = "CIDR blocks allowed to access the public API server endpoint"
+  default     = []
+  description = "Trusted CIDR blocks allowed to access the public API server endpoint when enabled"
 }
 
 variable "enable_cluster_logging" {

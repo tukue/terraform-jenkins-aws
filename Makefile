@@ -112,3 +112,17 @@ quality: fmt validate lint security
 
 tfsec:
 	tfsec . --exclude-downloaded-modules
+
+.PHONY: app-test app-deploy
+
+APP_CONFIG_PATH ?= apps/sample-api/platform/app.env
+IMAGE_TAG ?= local
+AWS_REGION ?= eu-north-1
+EKS_CLUSTER_NAME ?=
+ECR_REPOSITORY ?=
+
+app-test:
+	python -m unittest discover -s apps/sample-api
+
+app-deploy:
+	powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 -ConfigPath $(APP_CONFIG_PATH) -ImageTag $(IMAGE_TAG) -Region $(AWS_REGION) -ClusterName $(EKS_CLUSTER_NAME) -Repository $(ECR_REPOSITORY)

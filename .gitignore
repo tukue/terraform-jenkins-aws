@@ -37,3 +37,7 @@ backend-config-*.
 backstage-app/node_modules/
 backstage-app/node_modules.broken/
 .bin/
+
+# Python bytecode produced by sample application tests
+__pycache__/
+*.py[cod]

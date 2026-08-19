@@ -1,0 +1,35 @@
+name: Build and Deploy Sample Application
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/sample-api/**'
+      - 'charts/application/**'
+      - '.github/workflows/application-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -r apps/sample-api/requirements.txt && python -m unittest discover -s apps/sample-api
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: ./
+        with:
+          config-path: apps/sample-api/platform/app.env
+          image-tag: ${{ github.sha }}
+          aws-region: ${{ vars.AWS_REGION }}
+          eks-cluster-name: ${{ vars.EKS_CLUSTER_NAME }}
+          ecr-repository: ${{ vars.ECR_REPOSITORY }}

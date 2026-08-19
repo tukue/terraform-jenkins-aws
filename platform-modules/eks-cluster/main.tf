@@ -150,6 +150,11 @@ resource "aws_eks_cluster" "this" {
     }
 
     precondition {
+      condition     = !var.endpoint_public_access || (length(var.endpoint_public_access_cidrs) > 0 && !contains(var.endpoint_public_access_cidrs, "0.0.0.0/0"))
+      error_message = "Public EKS API access requires explicit trusted CIDRs and must not allow 0.0.0.0/0."
+    }
+
+    precondition {
       condition     = var.aws_account_id == "" || data.aws_caller_identity.current.account_id == var.aws_account_id
       error_message = "The active AWS credentials do not match aws_account_id. Use credentials for the intended account before applying."
     }

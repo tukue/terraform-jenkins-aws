@@ -72,14 +72,14 @@ variable "endpoint_private_access" {
 
 variable "endpoint_public_access" {
   type        = bool
-  default     = true
-  description = "Enable public API server endpoint"
+  default     = false
+  description = "Enable public API server endpoint only with explicit trusted CIDRs"
 }
 
 variable "endpoint_public_access_cidrs" {
   type        = list(string)
-  default     = ["0.0.0.0/0"]
-  description = "CIDR blocks for public API server endpoint access"
+  default     = []
+  description = "Trusted CIDR blocks for public API server endpoint access"
 }
 
 variable "enable_lb_controller" {
