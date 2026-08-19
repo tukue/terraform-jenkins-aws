@@ -1,0 +1,17 @@
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "{{ aws_region }}"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "{{ environment }}"
+}
+
+variable "vpc_name" {
+  description = "VPC name"
+  type        = string
+  default     = "{{ vpc_name }}"
+}

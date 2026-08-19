@@ -1,6 +1,13 @@
+variable "kms_key_id" {
+  description = "KMS key ARN for CloudWatch log group encryption"
+  type        = string
+  default     = null
+}
+
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "vpc_name" {
@@ -31,11 +38,17 @@ variable "environment" {
 variable "allowed_ssh_cidr" {
   description = "CIDR block allowed for SSH access"
   type        = string
-  default     = "0.0.0.0/0"  # This should be overridden with a specific IP range
+  default     = "0.0.0.0/0" # This should be overridden with a specific IP range
 }
 
 variable "flow_logs_retention_days" {
   description = "Number of days to retain VPC flow logs"
   type        = number
   default     = 30
+}
+
+variable "enable_nat_gateway" {
+  description = "Create NAT gateways so private subnets can reach the internet for package installation and updates"
+  type        = bool
+  default     = true
 }

@@ -1,0 +1,7 @@
+module "standard_service" {
+  source          = "../../platform-modules/service-tier-wrapper"
+  service_name    = "${{ values.service_name }}"
+  tier            = "${{ values.tier }}"
+  container_image = "${{ values.container_image }}"
+  environment     = "${{ values.environment }}"
+}

@@ -1,0 +1,224 @@
+name: Jenkins Platform Delivery
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: jenkins-platform-delivery-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TF_VERSION: 1.11.2
+
+on:
+  pull_request:
+    paths:
+      - 'live/**'
+      - 'platform-modules/**'
+      - 'bootstrap/**'
+      - 'policies/**'
+      - '**/*.tf'
+      - '**/*.tfvars'
+      - 'backend-config-*.hcl'
+      - '.github/workflows/jenkins-platform-delivery.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'live/**'
+      - 'platform-modules/**'
+      - 'bootstrap/**'
+      - 'policies/**'
+      - '**/*.tf'
+      - '**/*.tfvars'
+      - 'backend-config-*.hcl'
+      - '.github/workflows/jenkins-platform-delivery.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+jobs:
+  quality-gate:
+    name: Quality Gate & Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@6e87008f9dd1fe3e34e66aca6c97b4a69f72a7f4 # v4
+
+      - name: Initialize TFLint
+        run: tflint --init
+
+      - name: Run TFLint
+        run: tflint --recursive
+
+      - name: Download tfsec
+        run: |
+          wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 -O /usr/local/bin/tfsec
+          chmod +x /usr/local/bin/tfsec
+
+      - name: Run tfsec
+        run: tfsec . --exclude-downloaded-modules
+
+  validate-live-roots:
+    name: Validate live/${{ matrix.environment }}
+    runs-on: ubuntu-latest
+    needs: quality-gate
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          - qa
+          - prod
+    defaults:
+      run:
+        shell: bash
+        working-directory: live/${{ matrix.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform init without backend
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        run: terraform validate
+
+  plan-selected:
+    name: Plan ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: validate-live-roots
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch'
+    environment:
+      name: ${{ inputs.environment }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: live/${{ inputs.environment }}
+    env:
+      TF_VAR_aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+      TF_VAR_public_key: ${{ secrets.JENKINS_PUBLIC_KEY }}
+      TF_VAR_grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c # v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: Terraform init
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Terraform plan
+        run: terraform plan -out=tfplan-${{ inputs.environment }}
+
+      - name: Terraform show (JSON)
+        run: terraform show -json tfplan-${{ inputs.environment }} > tfplan-${{ inputs.environment }}.json
+
+      - name: Install Conftest
+        run: |
+          curl -sL https://github.com/open-policy-agent/conftest/releases/download/v0.58.0/conftest_0.58.0_Linux_x86_64.tar.gz | tar xz
+          sudo mv conftest /usr/local/bin/
+
+      - name: Run OPA Policy Check (Conftest)
+        run: conftest test tfplan-${{ inputs.environment }}.json --policy ../../policies/terraform
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: |
+            live/${{ inputs.environment }}/tfplan-${{ inputs.environment }}
+            live/${{ inputs.environment }}/tfplan-${{ inputs.environment }}.json
+          retention-days: 7
+
+  apply:
+    name: Apply ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: validate-live-roots
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
+    environment:
+      name: ${{ inputs.environment }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: live/${{ inputs.environment }}
+    env:
+      TF_VAR_aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+      TF_VAR_public_key: ${{ secrets.JENKINS_PUBLIC_KEY }}
+      TF_VAR_grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: Terraform init
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Terraform plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform show (JSON)
+        run: terraform show -json tfplan > tfplan-${{ inputs.environment }}.json
+
+      - name: Install Conftest
+        run: |
+          curl -sL https://github.com/open-policy-agent/conftest/releases/download/v0.58.0/conftest_0.58.0_Linux_x86_64.tar.gz | tar xz
+          sudo mv conftest /usr/local/bin/
+
+      - name: Run OPA Policy Check (Conftest)
+        run: conftest test tfplan-${{ inputs.environment }}.json --policy ../../policies/terraform
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve tfplan

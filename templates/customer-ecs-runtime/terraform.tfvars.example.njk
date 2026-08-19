@@ -1,0 +1,9 @@
+# Use the environment-specific files for real deployments.
+# terraform.dev.tfvars
+# terraform.qa.tfvars
+# terraform.prod.tfvars
+aws_region = "${{ values.aws_region }}"
+aws_account_id = "${{ values.aws_account_id }}"
+customer_name = "${{ values.customer_name }}"
+tenant_name = "${{ values.tenant_name }}"
+container_image = "${{ values.container_image }}"

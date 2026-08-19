@@ -1,0 +1,143 @@
+name: ECS Runtime Delivery
+
+permissions:
+  contents: read
+  id-token: write
+
+on:
+  pull_request:
+    paths:
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - "backend-config-*.hcl"
+      - ".github/workflows/ecs-runtime-delivery.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - "backend-config-*.hcl"
+      - ".github/workflows/ecs-runtime-delivery.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      action:
+        description: Delivery action
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+        default: plan
+
+jobs:
+  validate:
+    name: Validate Terraform
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Initialize TFLint
+        run: tflint --init
+
+      - name: Run TFLint
+        run: tflint --recursive
+
+      - name: Terraform init
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        run: terraform validate
+
+  plan:
+    name: Plan ${{ matrix.environment }}
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          - qa
+          - prod
+    if: github.event_name != 'workflow_dispatch' || (inputs.action == 'plan' && matrix.environment == inputs.environment)
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ values.aws_region }}
+
+      - name: Terraform init
+        run: terraform init -backend-config=backend-config-${{ matrix.environment }}.hcl
+
+      - name: Terraform plan
+        run: terraform plan -var-file=terraform.${{ matrix.environment }}.tfvars -out=tfplan-${{ matrix.environment }}
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ matrix.environment }}
+          path: tfplan-${{ matrix.environment }}
+
+  apply:
+    name: Apply ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ values.aws_region }}
+
+      - name: Terraform init
+        run: terraform init -backend-config=backend-config-${{ inputs.environment }}.hcl
+
+      - name: Terraform plan
+        run: terraform plan -var-file=terraform.${{ inputs.environment }}.tfvars -out=tfplan
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve tfplan

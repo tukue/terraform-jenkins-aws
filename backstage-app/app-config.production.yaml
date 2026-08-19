@@ -1,0 +1,98 @@
+app:
+  title: Platform Product Portal
+  baseUrl: ${APP_BASE_URL}
+
+backend:
+  baseUrl: ${BACKEND_BASE_URL}
+  listen:
+    port: ${BACKEND_PORT}
+  auth:
+    keys:
+      - secret: ${BACKEND_SECRET}
+
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DATABASE}
+      ssl:
+        rejectUnauthorized: false
+
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+
+auth:
+  providers:
+    github:
+      production:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location, Template, Group, User]
+  locations:
+    - type: file
+      target: ${REPO_ROOT}/catalog-info.yaml
+    - type: file
+      target: ${REPO_ROOT}/.backstage/system-and-components.yaml
+    - type: file
+      target: ${REPO_ROOT}/.backstage/platform-resources.yaml
+    - type: file
+      target: ${REPO_ROOT}/.backstage/groups-and-users.yaml
+    - type: file
+      target: ${REPO_ROOT}/platform-modules/customer-ecs-runtime/catalog-info.yaml
+    - type: file
+      target: ${REPO_ROOT}/platform-modules/jenkins-infrastructure/catalog-info.yaml
+    - type: file
+      target: ${REPO_ROOT}/platform-modules/service-tier-wrapper/catalog-info.yaml
+    - type: file
+      target: ${REPO_ROOT}/templates/create-jenkins-ec2-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-customer-ecs-runtime-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-standard-service-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-s3-bucket-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-vpc-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-rds-database-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-ec2-instance-template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ${REPO_ROOT}/templates/create-security-group-template.yaml
+      rules:
+        - allow: [Template]
+
+techdocs:
+  builder: external
+  generator:
+    runIn: local
+  publisher:
+    type: awsS3
+    awsS3:
+      bucketName: ${TECHDOCS_S3_BUCKET}
+      region: ${TECHDOCS_S3_REGION}
+
+permission:
+  enabled: true

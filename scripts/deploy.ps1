@@ -1,7 +1,13 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$ImageTag,
-    [string]$ConfigPath = "apps/sample-api/platform/app.env"
+    [string]$ConfigPath = "apps/sample-api/platform/app.env",
+    [Parameter(Mandatory = $true)]
+    [string]$Region,
+    [Parameter(Mandatory = $true)]
+    [string]$ClusterName,
+    [Parameter(Mandatory = $true)]
+    [string]$Repository
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,7 +15,7 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repositoryRoot
 
 try {
-    foreach ($command in @("aws", "docker", "helm", "kubectl", "terraform")) {
+    foreach ($command in @("aws", "docker", "helm", "kubectl")) {
         if (-not (Get-Command $command -ErrorAction SilentlyContinue)) {
             throw "Required command '$command' was not found on PATH."
         }
@@ -41,10 +47,6 @@ try {
     $dockerfile = Join-Path $appPath $config.DOCKERFILE
     if (-not (Test-Path -LiteralPath $dockerfile)) { throw "Dockerfile not found: $dockerfile" }
 
-    $region = (terraform output -raw aws_region 2>$null)
-    if (-not $region) { $region = "eu-north-1" }
-    $clusterName = terraform output -raw eks_cluster_name
-    $repository = terraform output -raw ecr_repository_url
     $registry = $repository.Split('/')[0]
     $imageTag = "$appName-$ImageTag"
     $image = "$repository`:$imageTag"

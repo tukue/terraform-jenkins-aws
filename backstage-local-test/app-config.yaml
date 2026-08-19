@@ -1,0 +1,62 @@
+app:
+  title: Platform Product Portal - Local Test
+  baseUrl: http://localhost:7000
+
+organization:
+  name: Platform Engineering
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: http://localhost:7000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+  cache:
+    store: memory
+
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN:-}
+
+catalog:
+  providers:
+    # Local file provider for our catalog-info.yaml
+    file:
+      - target: /repo/catalog-info.yaml
+      - target: /repo/.backstage/system-and-components.yaml
+      - target: /repo/.backstage/groups-and-users.yaml
+      - target: /repo/templates/create-jenkins-ec2-template.yaml
+      - target: /repo/templates/create-customer-ecs-runtime-template.yaml
+      - target: /repo/templates/create-standard-service-template.yaml
+
+scaffolder:
+  # GitHub integration for scaffolder
+  github:
+    token: ${GITHUB_TOKEN:-}
+    visibility: public
+
+techdocs:
+  builder: local
+  generator:
+    runIn: local
+  publisher:
+    type: local
+
+auth:
+  environment: development
+  providers:
+    guest: {}
+
+proxy:
+  endpoints:
+    '/jenkins':
+      target: 'http://localhost:8080'
+      changeOrigin: true

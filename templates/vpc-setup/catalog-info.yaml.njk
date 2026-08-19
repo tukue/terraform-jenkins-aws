@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: {{ vpc_name }}
+  description: VPC for {{ project }}
+  links:
+    - title: AWS Console
+      url: https://{{ aws_region }}.console.aws.amazon.com/vpc/home?region={{ aws_region }}#vpcs:search={{ vpc_name }}
+spec:
+  type: network
+  owner: {{ owner }}
+  system: {{ project }}

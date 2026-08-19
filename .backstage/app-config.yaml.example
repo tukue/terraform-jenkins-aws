@@ -1,0 +1,139 @@
+app:
+  title: Jenkins Platform Portal
+  baseUrl: http://localhost:3000
+  support:
+    url: https://github.com/tukue/terraform-jenkins-aws/issues
+    items:
+      - title: Issues
+        icon: github
+        links:
+          - url: https://github.com/tukue/terraform-jenkins-aws/issues
+            title: GitHub Issues
+      - title: Slack
+        links:
+          - url: https://your-slack-workspace.slack.com/channels/platform-engineering
+            title: #platform-engineering
+
+backend:
+  # Default PostgreSQL database
+  database:
+    client: pg
+    connection:
+      host: ${DB_HOST}
+      port: ${DB_PORT}
+      user: ${DB_USER}
+      password: ${DB_PASSWORD}
+      database: ${DB_NAME}
+  cache:
+    store: memory
+
+auth:
+  # OAuth2 configuration for GitHub
+  environment: production
+  providers:
+    github:
+      development:
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+        ## Uncomment the `callbackUrl` if you are behind a reverse proxy, it is the
+        ##`public url` of your backstage instance.
+        callbackUrl: http://localhost:3000/api/auth/github/handler/frame
+
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+  
+  # AWS integration (optional)
+  aws:
+    - region: 'us-east-1'
+      roleArn: 'arn:aws:iam::ACCOUNT_ID:role/backstage-role'
+      externalId: ${AWS_EXTERNAL_ID}
+
+# Catalog with locations for discovery
+catalog:
+  # Default location for entities
+  defaultNamespace: default
+
+  # Catalog providers
+  providers:
+    # GitHub provider for discovering catalog files
+    github:
+      providerId: production
+      organization: 'tukue'
+      token: ${GITHUB_TOKEN}
+      branch: 'main'
+      catalogPath: '/catalog-info.yaml'
+      schedule:
+        initialDelay: { minutes: 1 }
+        frequency: { minutes: 30 }
+
+  # Catalog locations
+  locations:
+    # Local location for testing
+    - type: file
+      target: ../../examples/entities.yaml
+
+    # GitHub repository root
+    - type: url
+      target: https://raw.githubusercontent.com/tukue/terraform-jenkins-aws/main/catalog-info.yaml
+      rules:
+        - allow: [Component, System, Group, User, API, Resource]
+
+    # System and components definition
+    - type: url
+      target: https://raw.githubusercontent.com/tukue/terraform-jenkins-aws/main/.backstage/system-and-components.yaml
+      rules:
+        - allow: [System, Component, API, Resource]
+
+    # Groups and users definition
+    - type: url
+      target: https://raw.githubusercontent.com/tukue/terraform-jenkins-aws/main/.backstage/groups-and-users.yaml
+      rules:
+        - allow: [Group, User]
+
+# Scaffolder configuration for templates
+scaffolder:
+  defaultAuthor:
+    name: 'Backstage Scaffolder'
+    email: 'scaffolder@backstage.io'
+  defaultCommitAction: 'commit'
+
+# TechDocs configuration
+techdocs:
+  builder: 'local'  # or 'external' for production
+  generators:
+    techdocs: 'docker'
+  publisher:
+    type: 'local'  # or 'googleGcs', 'awsS3' for production
+    # For AWS S3:
+    # type: 'awsS3'
+    # bucketName: 'your-techdocs-bucket'
+    # region: 'us-east-1'
+
+# Kubernetes configuration (optional)
+kubernetes:
+  serviceLocatorMethod:
+    type: 'multiTenant'
+  clusterLocatorMethods:
+    - type: 'config'
+      clusters:
+        - url: ${K8S_URL}
+          name: 'cluster-1'
+          authProvider: 'serviceAccount'
+          skipTLSVerify: false
+          caFile: '/etc/kubernetes/ca.crt'
+          serviceAccountToken: ${K8S_TOKEN}
+
+# Prometheus monitoring (optional)
+prometheus:
+  proxyUrl: http://prometheus:9090
+
+# Feature flags
+feature:
+  # Enable experimental features
+  experimental: true
+
+# Google Analytics (optional)
+googleAnalytics:
+  trackingId: ${GOOGLE_ANALYTICS_ID}

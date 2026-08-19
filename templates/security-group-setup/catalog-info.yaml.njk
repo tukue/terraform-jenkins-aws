@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: {{ name }}
+  description: Security group for {{ project }} in {{ environment }}
+  tags:
+    - aws
+    - security-group
+    - terraform
+spec:
+  type: security-group
+  owner: {{ owner }}
+  system: internal-developer-platform

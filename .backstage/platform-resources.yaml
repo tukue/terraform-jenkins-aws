@@ -1,0 +1,158 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: aws-vpc-network
+  title: AWS VPC Network
+  description: Shared VPC, subnet, and routing foundation used by Jenkins and customer runtimes
+  tags:
+    - aws
+    - vpc
+    - networking
+    - terraform
+spec:
+  type: network
+  owner: platform-team
+  system: internal-developer-platform
+  dependencyOf:
+    - component:default/terraform-networking
+    - component:default/terraform-jenkins-module
+    - component:default/customer-ecs-runtime-product
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: jenkins-ec2-runtime
+  title: Jenkins EC2 Runtime
+  description: EC2 compute runtime that hosts the Jenkins platform product
+  tags:
+    - aws
+    - ec2
+    - jenkins
+    - compute
+spec:
+  type: compute
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/aws-vpc-network
+  dependencyOf:
+    - component:default/terraform-jenkins-module
+    - component:default/ansible-jenkins-setup
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: terraform-state-s3-backend
+  title: Terraform State S3 Backend
+  description: S3-backed Terraform state storage used by environment-specific platform deployments
+  tags:
+    - aws
+    - s3
+    - terraform
+    - state
+spec:
+  type: storage
+  owner: platform-team
+  system: internal-developer-platform
+  providesApis:
+    - terraform-state-backend
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: platform-load-balancer
+  title: Platform Load Balancer
+  description: Application Load Balancer and target group entry point for platform services
+  tags:
+    - aws
+    - alb
+    - load-balancer
+spec:
+  type: load-balancer
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/aws-vpc-network
+    - resource:default/jenkins-ec2-runtime
+  dependencyOf:
+    - component:default/terraform-load-balancer
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: customer-ecs-cluster
+  title: Customer ECS Runtime Cluster
+  description: ECS runtime capability provisioned for customer-facing services through platform templates
+  tags:
+    - aws
+    - ecs
+    - runtime
+    - self-service
+spec:
+  type: compute
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/aws-vpc-network
+  dependencyOf:
+    - component:default/customer-ecs-runtime-product
+    - component:default/customer-ecs-runtime
+    - component:default/service-tier-wrapper
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: observability-prometheus
+  title: Prometheus Observability Workspace
+  description: Managed and local Prometheus metrics collection for platform services
+  tags:
+    - prometheus
+    - observability
+    - metrics
+spec:
+  type: observability
+  owner: platform-team
+  system: internal-developer-platform
+  dependencyOf:
+    - component:default/platform-product-foundation
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: observability-grafana
+  title: Grafana Dashboards
+  description: Grafana dashboards for platform runtime and delivery visibility
+  tags:
+    - grafana
+    - observability
+    - dashboard
+spec:
+  type: dashboard
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/observability-prometheus
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: cloudwatch-monitoring
+  title: CloudWatch Monitoring
+  description: AWS CloudWatch alarms and metrics for Jenkins and supporting platform services
+  tags:
+    - aws
+    - cloudwatch
+    - observability
+spec:
+  type: observability
+  owner: platform-team
+  system: internal-developer-platform
+  dependsOn:
+    - resource:default/jenkins-ec2-runtime

@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: rds-database
+  description: RDS database instance with automated backups, encrypted storage, and managed master password
+  tags:
+    - terraform
+    - aws
+    - rds
+    - database
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform

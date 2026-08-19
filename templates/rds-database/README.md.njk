@@ -1,0 +1,32 @@
+# RDS Database: {{ identifier }}
+
+This repository contains the Terraform configuration for the RDS database `{{ identifier }}` in the `{{ environment }}` environment.
+
+## Infrastructure Details
+
+- **Engine:** {{ engine }} {{ engine_version }}
+- **Instance Class:** {{ instance_class }}
+- **Environment:** {{ environment }}
+- **Project:** {{ project }}
+- **Owner:** {{ owner }}
+
+## Usage
+
+1. Initialize Terraform:
+   ```bash
+   terraform init
+   ```
+
+2. Plan the changes:
+   ```bash
+   terraform plan
+   ```
+
+3. Apply the changes:
+   ```bash
+   terraform apply
+   ```
+
+## Security Note
+
+The database master password is generated and managed by Amazon RDS in AWS Secrets Manager. Terraform outputs the secret ARN, not the password value.

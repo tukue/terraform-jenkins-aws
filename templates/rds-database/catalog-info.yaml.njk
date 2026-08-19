@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: {{ identifier }}
+  description: RDS Database instance for {{ project }}
+  links:
+    - title: AWS Console
+      url: https://{{ aws_region }}.console.aws.amazon.com/rds/home?region={{ aws_region }}#database:id={{ identifier }}
+spec:
+  type: database
+  owner: {{ owner }}
+  system: {{ project }}

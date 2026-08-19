@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ec2-instance
+  description: Reusable EC2 instance module with metadata options, EBS encryption, and user data support
+  tags:
+    - terraform
+    - aws
+    - ec2
+    - compute
+spec:
+  type: terraform-module
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform

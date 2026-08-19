@@ -1,0 +1,6 @@
+aws_region = "eu-north-1"
+aws_account_id = "123456789012"
+tenant_name = "acme-store"
+enable_waf = true
+enable_autoscaling = true
+alb_ingress_cidr_blocks = ["203.0.113.0/24"]

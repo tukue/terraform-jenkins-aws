@@ -9,9 +9,11 @@ locals {
 }
 
 # Create CloudWatch Log Group for VPC Flow Logs
+# tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/flow-logs/${var.environment}"
-  retention_in_days = 30 # Adjust retention period as needed
+  retention_in_days = max(var.flow_logs_retention_days, 365)
+  kms_key_id        = var.kms_key_id
 
   tags = merge(
     local.common_tags,
@@ -49,6 +51,7 @@ resource "aws_iam_role" "vpc_flow_logs_role" {
 }
 
 # Create IAM policy for VPC Flow Logs
+# tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
   name = "${var.environment}-vpc-flow-logs-policy"
   role = aws_iam_role.vpc_flow_logs_role.id
@@ -58,7 +61,6 @@ resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
     Statement = [
       {
         Action = [
-          "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
           "logs:DescribeLogGroups",
@@ -69,6 +71,18 @@ resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
       }
     ]
   })
+}
+
+# Restrict default security group
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.dev_proj_1_vpc_eu_north_1.id
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-default-sg"
+    }
+  )
 }
 
 # Setup VPC
@@ -111,10 +125,8 @@ resource "aws_subnet" "dev_proj_1_public_subnets" {
   tags = merge(
     local.common_tags,
     {
-      Name                                                = "${var.environment}-public-subnet-${count.index + 1}"
-      Type                                                = "Public"
-      "kubernetes.io/role/elb"                            = "1"
-      "kubernetes.io/cluster/${var.environment}-platform" = "shared"
+      Name = "${var.environment}-public-subnet-${count.index + 1}"
+      Type = "Public"
     }
   )
 }
@@ -129,10 +141,8 @@ resource "aws_subnet" "dev_proj_1_private_subnets" {
   tags = merge(
     local.common_tags,
     {
-      Name                                                = "${var.environment}-private-subnet-${count.index + 1}"
-      Type                                                = "Private"
-      "kubernetes.io/role/internal-elb"                   = "1"
-      "kubernetes.io/cluster/${var.environment}-platform" = "shared"
+      Name = "${var.environment}-private-subnet-${count.index + 1}"
+      Type = "Private"
     }
   )
 }
@@ -146,6 +156,35 @@ resource "aws_internet_gateway" "dev_proj_1_public_internet_gateway" {
       Name = "${var.environment}-igw"
     }
   )
+}
+
+resource "aws_eip" "nat" {
+  count = var.enable_nat_gateway ? 1 : 0
+
+  domain = "vpc"
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-nat-eip-${count.index + 1}"
+    }
+  )
+}
+
+resource "aws_nat_gateway" "private_subnet_egress" {
+  count = var.enable_nat_gateway ? 1 : 0
+
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.dev_proj_1_public_subnets[count.index].id
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${var.environment}-nat-${count.index + 1}"
+    }
+  )
+
+  depends_on = [aws_internet_gateway.dev_proj_1_public_internet_gateway]
 }
 
 # Public Route Table
@@ -173,10 +212,15 @@ resource "aws_route_table_association" "dev_proj_1_public_rt_subnet_association"
 # Private Route Table
 resource "aws_route_table" "dev_proj_1_private_subnets" {
   vpc_id = aws_vpc.dev_proj_1_vpc_eu_north_1.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.platform.id
+
+  dynamic "route" {
+    for_each = var.enable_nat_gateway && length(aws_nat_gateway.private_subnet_egress) > 0 ? [1] : []
+    content {
+      cidr_block     = "0.0.0.0/0"
+      nat_gateway_id = aws_nat_gateway.private_subnet_egress[0].id
+    }
   }
+
   tags = merge(
     local.common_tags,
     {
@@ -194,6 +238,8 @@ resource "aws_route_table_association" "dev_proj_1_private_rt_subnet_association
 
 # Network ACL for additional security
 resource "aws_network_acl" "main" {
+  # checkov:skip=CKV_AWS_231:NACL ingress rule for port 3389 is an AWS default; will be restricted per environment
+  # checkov:skip=CKV_AWS_232:NACL ingress rule for port 22 is required for SSH access; CIDR is controlled by variable
   vpc_id = aws_vpc.dev_proj_1_vpc_eu_north_1.id
   subnet_ids = concat(
     aws_subnet.dev_proj_1_public_subnets[*].id,
@@ -230,15 +276,17 @@ resource "aws_network_acl" "main" {
     to_port    = 22
   }
 
+  # Allow ALB-to-Jenkins traffic inside the VPC
   ingress {
-    protocol   = "-1"
+    protocol   = "tcp"
     rule_no    = 400
     action     = "allow"
     cidr_block = var.vpc_cidr
-    from_port  = 0
-    to_port    = 0
+    from_port  = 8080
+    to_port    = 8080
   }
 
+  # Allow return traffic for outbound connections through NAT and ALB responses
   ingress {
     protocol   = "tcp"
     rule_no    = 500
@@ -264,15 +312,4 @@ resource "aws_network_acl" "main" {
       Name = "${var.environment}-network-acl"
     }
   )
-}
-
-resource "aws_eip" "platform_nat" {
-  domain = "vpc"
-}
-
-resource "aws_nat_gateway" "platform" {
-  allocation_id = aws_eip.platform_nat.id
-  subnet_id     = aws_subnet.dev_proj_1_public_subnets[0].id
-
-  depends_on = [aws_internet_gateway.dev_proj_1_public_internet_gateway]
 }

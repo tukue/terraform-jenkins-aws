@@ -15,13 +15,13 @@ resource "aws_acm_certificate" "dev_proj_1_acm_arn" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-certificate"
+      Name    = "${var.environment}-certificate"
       Service = "Jenkins"
     }
   )
 
   lifecycle {
-    create_before_destroy = false
+    create_before_destroy = true
   }
 }
 

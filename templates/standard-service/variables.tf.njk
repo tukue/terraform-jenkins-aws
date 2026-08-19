@@ -1,0 +1,29 @@
+variable "service_name" {
+  description = "Name of the service"
+  type        = string
+  default     = "${{ values.service_name }}"
+}
+
+variable "tier" {
+  description = "Service tier (dev, qa, prod)"
+  type        = string
+  default     = "${{ values.tier }}"
+}
+
+variable "container_image" {
+  description = "Container image URL"
+  type        = string
+  default     = "${{ values.container_image }}"
+}
+
+variable "environment" {
+  description = "Target environment"
+  type        = string
+  default     = "${{ values.environment }}"
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "${{ values.aws_region }}"
+}

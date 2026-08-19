@@ -1,0 +1,106 @@
+services:
+  backstage:
+    build:
+      context: .
+      dockerfile: backstage-app/Dockerfile.local
+    container_name: platform-local-backstage
+    restart: unless-stopped
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      REPO_ROOT: /repo
+      APP_CONFIG_app_baseUrl: ${APP_URL:-http://localhost:7000}
+      APP_CONFIG_backend_baseUrl: ${BACKEND_URL:-http://localhost:7007}
+      APP_CONFIG_backend_cors_origin: ${APP_URL:-http://localhost:7000}
+    ports:
+      - "${BACKSTAGE_PORT:-7000}:3000"
+      - "${BACKSTAGE_BACKEND_PORT:-7007}:7007"
+    volumes:
+      - .:/repo:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: platform-local-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability-service/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - platform_local_prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: platform-local-node-exporter
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+    ports:
+      - "${NODE_EXPORTER_PORT:-9100}:9100"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: platform-local-cadvisor
+    restart: unless-stopped
+    privileged: true
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=15s
+      - --disable_metrics=percpu,referenced_memory,cpu_topology,resctrl
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "${CADVISOR_PORT:-8081}:8080"
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: platform-local-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - platform_local_grafana_data:/var/lib/grafana
+      - ./observability-service/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability-service/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: platform-local-vault
+    restart: unless-stopped
+    command: server -dev -dev-root-token-id=${VAULT_DEV_ROOT_TOKEN_ID:-root} -dev-listen-address=0.0.0.0:8200
+    environment:
+      VAULT_ADDR: http://0.0.0.0:8200
+      VAULT_API_ADDR: http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "${VAULT_PORT:-8200}:8200"
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  platform_local_prometheus_data:
+  platform_local_grafana_data:

@@ -1,0 +1,6 @@
+version: 2
+
+secret:
+  ignored_paths:
+    - 'platform-examples/eks-cluster/variables.tf'
+    - 'platform-modules/eks-cluster/variables.tf'

@@ -1,0 +1,22 @@
+services:
+  backstage:
+    image: ${BACKSTAGE_IMAGE:-ghcr.io/backstage/community-all-in-one:latest}
+    container_name: backstage-local
+    restart: unless-stopped
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      APP_CONFIG_app_baseUrl: http://localhost:7000
+      APP_CONFIG_backend_baseUrl: http://localhost:7007
+      APP_CONFIG_backend_cors_origin: http://localhost:7000
+    ports:
+      - "7000:3000"
+      - "7007:7007"
+    volumes:
+      - ./app-config.yaml:/app/app-config.local.yaml:ro
+      - ..:/repo:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s

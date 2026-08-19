@@ -1,0 +1,128 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: backstage-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-backstage}
+      POSTGRES_USER: ${DB_USER:-backstage}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-backstage}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - backstage_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-backstage} -d ${DB_NAME:-backstage}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backstage:
+    image: ${BACKSTAGE_IMAGE:-ghcr.io/backstage/community-all-in-one:latest}
+    container_name: backstage
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_CONFIG_backend_database_connection_host: ${DB_HOST:-postgres}
+      APP_CONFIG_backend_database_connection_port: ${DB_PORT:-5432}
+      APP_CONFIG_backend_database_connection_user: ${DB_USER:-backstage}
+      APP_CONFIG_backend_database_connection_password: ${DB_PASSWORD:-backstage}
+      APP_CONFIG_backend_database_connection_database: ${DB_NAME:-backstage}
+      APP_CONFIG_app_baseUrl: ${APP_URL:-http://localhost:3000}
+      APP_CONFIG_backend_baseUrl: ${BACKEND_URL:-http://localhost:7007}
+      APP_CONFIG_backend_cors_origin: ${APP_URL:-http://localhost:3000}
+      APP_CONFIG_integrations_github_0_host: github.com
+      APP_CONFIG_integrations_github_0_token: ${GITHUB_TOKEN:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      AWS_REGION: ${AWS_REGION:-}
+      AWS_ROLE_ARN: ${AWS_ROLE_ARN:-}
+      AWS_EXTERNAL_ID: ${AWS_EXTERNAL_ID:-}
+      JENKINS_URL: ${JENKINS_URL:-}
+      JENKINS_USERNAME: ${JENKINS_USERNAME:-}
+      JENKINS_TOKEN: ${JENKINS_TOKEN:-}
+      NODE_ENV: ${NODE_ENV:-production}
+    ports:
+      - "${BACKSTAGE_PORT:-3000}:3000"
+      - "${BACKSTAGE_BACKEND_PORT:-7007}:7007"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: backstage-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      - backstage
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: backstage-node-exporter
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+    ports:
+      - "${NODE_EXPORTER_PORT:-9100}:9100"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: backstage-cadvisor
+    restart: unless-stopped
+    privileged: true
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=15s
+      - --disable_metrics=percpu,referenced_memory,cpu_topology,resctrl
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "${CADVISOR_PORT:-8081}:8080"
+    depends_on:
+      - backstage
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: backstage-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+
+volumes:
+  backstage_postgres_data:
+  prometheus_data:
+  grafana_data:

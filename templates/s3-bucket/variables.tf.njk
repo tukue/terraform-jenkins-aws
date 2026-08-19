@@ -1,0 +1,81 @@
+variable "bucket_name" {
+  description = "Globally unique S3 bucket name"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.bucket_name))
+    error_message = "bucket_name must be a valid S3 bucket name."
+  }
+}
+
+variable "environment" {
+  description = "Target environment"
+  type        = string
+
+  validation {
+    condition     = contains(["dev", "qa", "prod"], var.environment)
+    error_message = "environment must be dev, qa, or prod."
+  }
+}
+
+variable "owner" {
+  description = "Owning team or person"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "${{ values.aws_region }}"
+}
+
+variable "aws_account_id" {
+  description = "AWS account ID allowed for deployment"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.aws_account_id))
+    error_message = "aws_account_id must be a 12-digit AWS account ID."
+  }
+}
+
+variable "force_destroy" {
+  description = "Allow Terraform to delete a non-empty bucket"
+  type        = bool
+  default     = ${{ values.force_destroy }}
+}
+
+variable "versioning_enabled" {
+  description = "Enable S3 bucket versioning"
+  type        = bool
+  default     = ${{ values.versioning_enabled }}
+}
+
+variable "lifecycle_expiration_days" {
+  description = "Days before noncurrent object versions expire"
+  type        = number
+  default     = ${{ values.lifecycle_expiration_days }}
+
+  validation {
+    condition     = var.lifecycle_expiration_days >= 30 && var.lifecycle_expiration_days <= 3650
+    error_message = "lifecycle_expiration_days must be between 30 and 3650."
+  }
+}
+
+variable "tags" {
+  description = "Additional tags"
+  type        = map(string)
+  default     = {}
+}
+
+locals {
+  common_tags = merge(
+    var.tags,
+    {
+      Environment = var.environment
+      Owner       = var.owner
+      Project     = "platform-storage"
+      ManagedBy   = "Terraform"
+    }
+  )
+}

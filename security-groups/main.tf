@@ -9,6 +9,8 @@ locals {
 }
 
 resource "aws_security_group" "ec2_sg_ssh_http" {
+  # checkov:skip=CKV2_AWS_5:Security groups are referenced by EC2 and ALB resources in the calling module
+  # checkov:skip=CKV_AWS_382:Egress CIDR is controlled by caller via allowed_jenkins_egress_cidr_blocks variable
   name        = var.ec2_sg_name
   description = "Enable the Port 22(SSH) & Port 80(http)"
   vpc_id      = var.vpc_id
@@ -49,25 +51,70 @@ resource "aws_security_group" "ec2_sg_ssh_http" {
     }
   }
 
-  #Outgoing request
   egress {
-    description = "Allow outgoing request"
+    description = "Allow Jenkins outbound traffic to approved CIDR blocks"
+    cidr_blocks = var.allowed_jenkins_egress_cidr_blocks
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]  # This is generally acceptable for outbound traffic
   }
 
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-sg-ssh-http"
+      Name    = "${var.environment}-sg-ssh-http"
       Purpose = "Allow SSH, HTTP, and HTTPS traffic from specified ranges"
     }
   )
 }
 
+resource "aws_security_group" "alb_http_https" {
+  # checkov:skip=CKV2_AWS_5:Security groups are referenced by ALB resources in the calling module
+  name        = var.alb_sg_name
+  description = "Allow public HTTP and HTTPS access to the Jenkins ALB"
+  vpc_id      = var.vpc_id
+
+  dynamic "ingress" {
+    for_each = length(var.allowed_alb_cidr_blocks) > 0 ? [1] : []
+    content {
+      description = "Allow HTTP from approved CIDR blocks"
+      cidr_blocks = var.allowed_alb_cidr_blocks
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+    }
+  }
+
+  dynamic "ingress" {
+    for_each = length(var.allowed_alb_cidr_blocks) > 0 ? [1] : []
+    content {
+      description = "Allow HTTPS from approved CIDR blocks"
+      cidr_blocks = var.allowed_alb_cidr_blocks
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+    }
+  }
+
+  egress {
+    description = "Allow outbound traffic to Jenkins targets inside the VPC"
+    cidr_blocks = [var.vpc_cidr]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name    = "${var.environment}-sg-jenkins-alb"
+      Purpose = "Public ALB access for Jenkins"
+    }
+  )
+}
+
 resource "aws_security_group" "ec2_jenkins_port_8080" {
+  # checkov:skip=CKV2_AWS_5:Security groups are referenced by EC2 and ALB resources in the calling module
   name        = var.ec2_jenkins_sg_name
   description = "Enable the Port 8080 for jenkins"
   vpc_id      = var.vpc_id
@@ -84,19 +131,26 @@ resource "aws_security_group" "ec2_jenkins_port_8080" {
     }
   }
 
-  # Add egress rule for Jenkins security group
+  ingress {
+    description     = "Allow Jenkins from ALB"
+    security_groups = [aws_security_group.alb_http_https.id]
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+  }
+
   egress {
-    description = "Allow outgoing request"
+    description = "Allow outbound traffic inside the VPC"
+    cidr_blocks = [var.vpc_cidr]
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]  # This is generally acceptable for outbound traffic
   }
 
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-sg-jenkins-8080"
+      Name    = "${var.environment}-sg-jenkins-8080"
       Purpose = "Allow Jenkins traffic on port 8080 from specified ranges"
     }
   )

@@ -1,0 +1,37 @@
+# Customer ECS Runtime
+
+This repository provisions a customer-specific ECS runtime on AWS.
+
+## What it includes
+
+- ECS cluster, service, and task definition
+- Application Load Balancer and optional Route 53 alias
+- ECR repository with image scanning defaults
+- WAF protection and ECS autoscaling
+- Environment-specific Terraform backend and variable files for `dev`, `qa`, and `prod`
+- GitHub Actions workflows for provisioning and image delivery
+
+## Environment files
+
+- `backend-config-dev.hcl`
+- `backend-config-qa.hcl`
+- `backend-config-prod.hcl`
+- `terraform.dev.tfvars`
+- `terraform.qa.tfvars`
+- `terraform.prod.tfvars`
+
+Use the `dev` files first, then promote through `qa` and `prod` with the delivery workflows.
+
+## Workflows
+
+- `ecs-runtime-delivery.yml` provisions the runtime infrastructure
+- `build-scan-push-ecr.yml` builds, scans, pushes, and deploys the application image
+
+The provisioning workflow uses `terraform fmt -check`, `terraform validate`, and TFLint as the baseline policy layer before any security scan runs.
+
+## Quick start
+
+1. Confirm the AWS account and AWS region chosen in Backstage.
+2. Review the environment-specific tfvars files.
+3. Run the delivery workflow for `dev`.
+4. Promote to `qa` and `prod` after validation.

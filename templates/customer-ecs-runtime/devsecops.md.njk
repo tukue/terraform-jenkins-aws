@@ -1,0 +1,27 @@
+# DevSecOps Checklist
+
+Customer: ${{ values.customer_name }}
+Tenant: ${{ values.tenant_name }}
+AWS Account: ${{ values.aws_account_id }}
+AWS Region: ${{ values.aws_region }}
+
+## DevSecOps Checklist
+
+- [ ] Container image scanned for HIGH and CRITICAL findings before ECR push
+- [ ] Approved image pushed to ECR and deployed to ECS only after the scan passes
+- [ ] Runtime provisioning workflow validated in `dev`, `qa`, and `prod`
+- [ ] Secrets stored in AWS Secrets Manager or Parameter Store
+- [ ] ECS execution-role allow-lists configured for every injected secret
+- [ ] Application task role scoped to only the AWS resources it needs
+- [ ] WAF enabled for public traffic
+- [ ] IAM reviewed for least privilege
+- [ ] Runtime tags include owner, account, region, and customer
+- [ ] CloudWatch logs and metrics enabled
+- [ ] Dashboards and alerts available to support teams
+- [ ] Runbooks prepared for deployment, rollback, and incident handling
+
+## Notes
+
+Deployment notes:
+
+${{ values.message | default("No additional notes provided.") }}

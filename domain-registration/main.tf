@@ -20,40 +20,40 @@ resource "aws_route53domains_registered_domain" "domain" {
   }
 
   admin_contact {
-    first_name         = var.admin_contact.first_name
-    last_name          = var.admin_contact.last_name
-    email             = var.admin_contact.email
-    phone_number      = var.admin_contact.phone_number
-    address_line_1    = var.admin_contact.address_line_1
-    city              = var.admin_contact.city
-    state             = var.admin_contact.state
-    zip_code          = var.admin_contact.zip_code
-    country_code      = var.admin_contact.country_code
+    first_name     = var.admin_contact.first_name
+    last_name      = var.admin_contact.last_name
+    email          = var.admin_contact.email
+    phone_number   = var.admin_contact.phone_number
+    address_line_1 = var.admin_contact.address_line_1
+    city           = var.admin_contact.city
+    state          = var.admin_contact.state
+    zip_code       = var.admin_contact.zip_code
+    country_code   = var.admin_contact.country_code
   }
 
   # Registrant and Tech contact usually match admin contact
   registrant_contact {
-    first_name         = var.admin_contact.first_name
-    last_name          = var.admin_contact.last_name
-    email             = var.admin_contact.email
-    phone_number      = var.admin_contact.phone_number
-    address_line_1    = var.admin_contact.address_line_1
-    city              = var.admin_contact.city
-    state             = var.admin_contact.state
-    zip_code          = var.admin_contact.zip_code
-    country_code      = var.admin_contact.country_code
+    first_name     = var.admin_contact.first_name
+    last_name      = var.admin_contact.last_name
+    email          = var.admin_contact.email
+    phone_number   = var.admin_contact.phone_number
+    address_line_1 = var.admin_contact.address_line_1
+    city           = var.admin_contact.city
+    state          = var.admin_contact.state
+    zip_code       = var.admin_contact.zip_code
+    country_code   = var.admin_contact.country_code
   }
 
   tech_contact {
-    first_name         = var.admin_contact.first_name
-    last_name          = var.admin_contact.last_name
-    email             = var.admin_contact.email
-    phone_number      = var.admin_contact.phone_number
-    address_line_1    = var.admin_contact.address_line_1
-    city              = var.admin_contact.city
-    state             = var.admin_contact.state
-    zip_code          = var.admin_contact.zip_code
-    country_code      = var.admin_contact.country_code
+    first_name     = var.admin_contact.first_name
+    last_name      = var.admin_contact.last_name
+    email          = var.admin_contact.email
+    phone_number   = var.admin_contact.phone_number
+    address_line_1 = var.admin_contact.address_line_1
+    city           = var.admin_contact.city
+    state          = var.admin_contact.state
+    zip_code       = var.admin_contact.zip_code
+    country_code   = var.admin_contact.country_code
   }
 
   # Auto renew the domain
@@ -67,12 +67,14 @@ resource "aws_route53domains_registered_domain" "domain" {
 
 # Create the hosted zone
 resource "aws_route53_zone" "primary" {
+  # checkov:skip=CKV2_AWS_38:DNSSEC signing requires additional KMS and IAM setup not yet implemented
+  # checkov:skip=CKV2_AWS_39:DNS query logging requires additional infrastructure not yet provisioned
   name = var.domain_name
-  
+
   tags = merge(
     local.common_tags,
     {
-      Name = "${var.environment}-hosted-zone"
+      Name    = "${var.environment}-hosted-zone"
       Service = "DNS"
     }
   )
