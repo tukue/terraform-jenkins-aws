@@ -11,6 +11,7 @@ We transformed a raw Terraform repo into a **Platform-as-a-Product** model.
 ### 📚 Core Documentation
 *   **[Architecture Guide](docs/architecture.md)**: Detailed system design.
 *   **[Deployment Guide](DEPLOYMENT-GUIDE.md)**: Steps for `dev`, `qa`, and `prod` delivery.
+*   **[Kubernetes Application Golden Path](docs/kubernetes-application-golden-path.md)**: Create an application in Backstage, add source code, and deploy it to EKS.
 *   **[Backstage Quickstart](BACKSTAGE-QUICKSTART.md)**: 5-minute local portal setup.
 *   **[Implementation Backlog](IMPLEMENTATION-BACKLOG.md)**: 12-week maturity roadmap.
 

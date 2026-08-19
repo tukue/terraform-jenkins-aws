@@ -58,6 +58,7 @@ The local Backstage setup should load:
 - `templates/create-jenkins-ec2-template.yaml`
 - `templates/create-customer-ecs-runtime-template.yaml`
 - `templates/create-standard-service-template.yaml`
+- `templates/create-kubernetes-application-template.yaml`
 
 In the UI, the simplest smoke test is:
 
@@ -66,7 +67,7 @@ In the UI, the simplest smoke test is:
 3. open the catalog
 4. confirm the platform system and components load
 5. open the `Create` page
-6. confirm the Jenkins, customer ECS runtime, and standard service templates appear
+6. confirm the Jenkins, customer ECS runtime, standard service, and Kubernetes application templates appear
 
 ## KISS Rules
 

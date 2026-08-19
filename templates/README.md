@@ -60,6 +60,12 @@ The provisioning workflow treats `terraform fmt -check`, `terraform validate`, a
 The ECS module also provisions a dedicated ECR repository for the approved image.
 If the application source repository is private, add a `SOURCE_REPO_TOKEN` secret in the generated runtime repo for checkout access.
 
+### Kubernetes Application
+
+**File**: `create-kubernetes-application-template.yaml`
+
+Creates a Dockerfile-based application repository with a minimal `platform/app.env` contract, a Backstage catalog entry, and a GitHub Actions workflow that invokes the platform EKS/ECR deployment action. Developers add only their source code and Dockerfile, then push to `main`.
+
 ### Secure S3 Bucket
 
 **File**: `create-s3-bucket-template.yaml`
