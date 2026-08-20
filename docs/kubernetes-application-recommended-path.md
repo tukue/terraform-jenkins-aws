@@ -42,7 +42,8 @@ Add source code and a Dockerfile at the configured source path. The container mu
 git push main
     -> runs the configured tests without AWS credentials
     -> GitHub Actions assumes the platform deployment role
-    -> builds the image and scans it with Trivy
+    -> builds the image and retains a CycloneDX SBOM workflow artifact for 90 days
+    -> scans the image with Trivy
     -> fails on High or Critical vulnerabilities before ECR push or EKS deployment
     -> pushes a clean, unique image to ECR
     -> creates the application namespace
@@ -52,6 +53,8 @@ git push main
 ```
 
 The generated `platform/app.env` is the only deployment configuration developers normally edit. Its values are validated by the workflow and deployment action before Docker builds or Kubernetes changes occur. Existing application repositories without `TEST_RUNNER` remain compatible, but their workflows print an explicit warning and skip tests until the setting is added. Replace any legacy `TEST_COMMAND` value with an approved `TEST_RUNNER`; legacy commands fail safely rather than being executed.
+
+Download the `sbom-<application>-<image-tag>` workflow artifact when investigating a dependency vulnerability or responding to an incident. The SBOM records the packages included in the built container image and is retained for 90 days.
 
 ## Troubleshoot
 

@@ -103,7 +103,7 @@ git push main
         ↓
 GitHub Actions checks out that exact commit
         ↓
-Run application tests → build image → Trivy scan → push to ECR → deploy Helm chart to EKS → verify rollout
+Run application tests → build image → generate SBOM → Trivy scan → push to ECR → deploy Helm chart to EKS → verify rollout
 ```
 
 The generated workflow receives cluster and registry details from platform-managed GitHub Actions settings. `platform/app.env` only describes the application: source path, Dockerfile, test command, port, health path, service exposure, and replica count. See [Kubernetes Application Recommended Path](docs/kubernetes-application-recommended-path.md) for setup and troubleshooting.
@@ -115,6 +115,7 @@ Every Backstage-generated Kubernetes application receives these platform-managed
 | Control | When it runs | Result |
 | :--- | :--- | :--- |
 | Application tests | Before AWS authentication | A failed approved `TEST_RUNNER` stops delivery before cloud credentials are available. |
+| CycloneDX SBOM | After image build, before vulnerability scan | A 90-day workflow artifact records the packages included in the container image. |
 | Trivy image scan | After the Docker build, before ECR push | High or Critical OS and dependency vulnerabilities fail the workflow; the image is not published or deployed. |
 | Amazon ECR Enhanced scanning | Continuously after image publication | Amazon Inspector detects newly disclosed vulnerabilities in stored images and keeps findings current; the platform team enables it once per account and Region. |
 
