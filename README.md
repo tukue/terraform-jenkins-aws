@@ -291,13 +291,37 @@ The platform is structured around productized infrastructure modules:
 
 ## Disaster Recovery
 
-| Scenario | Strategy |
+| Scenario | Approach |
 | :--- | :--- |
 | **State loss** | Remote state in S3 with versioning + DynamoDB locking |
-| **Region failure** | Multi-region capability via Terraform workspaces |
+| **Region failure** | Multi-Region active/passive delivery using matching EKS clusters, ECR replication, and Route 53 failover |
 | **Data loss** | RDS automated backups, S3 versioning, EBS snapshots |
 | **Jenkins failure** | AMI-backed EC2 with startup provisioning script |
 | **Credential compromise** | Vault dynamic secrets with automatic rotation |
+
+The platform DR approach deploys the same scanned image to matching primary and standby EKS clusters, uses ECR replication to make the image available in both Regions, and uses Route 53 health-check failover for a stable application endpoint. See [Warm-Standby EKS Reference](platform-examples/eks-warm-standby-dr/README.md), [ECR Replication Reference](platform-examples/ecr-replication-dr/README.md), [Route 53 Failover Reference](platform-examples/route53-failover-dr/README.md), and the [Multi-Region DR Runbook](docs/runbooks/multi-region-dr.md).
+
+### Portfolio Warm-Standby Approach
+
+```text
+Primary Region EKS cluster ── build once / deploy immutable image ──┐
+                                                                   ├─ ECR replication ──> Standby Region EKS cluster
+Developer push ─> CI tests, SBOM, Trivy scan ─> primary ECR ──────┘                         minimal ready capacity
+                                                                                               ↓
+Primary endpoint unavailable ─> Route 53 validates standby health ─> DNS failover
+```
+
+1. Terraform provisions matching EKS clusters in separate Regions using the existing `eks-cluster` module.
+2. A separate account-baseline Terraform state replicates matching ECR repositories to the standby Region.
+3. The platform action builds, scans, and pushes once, then waits for the replicated digest before deploying the same image tag to both clusters.
+4. A DNS Terraform state creates Route 53 health checks and active/passive alias records for the regional endpoints.
+5. Route 53 directs clients to the standby endpoint when the primary health check fails; operators manage incident communications and failback through the runbook.
+
+| Platform owns | Application team owns |
+| :--- | :--- |
+| Regional Terraform, ECR replication, EKS configuration, dual-region delivery, DNS failover, runbooks, and evidence | Health endpoint, data replication, secret behavior, and RTO/RPO requirements |
+
+Production adoption still requires application data replication, secret replication, capacity planning, multi-account isolation, alerting, approvals, and recurring recovery exercises.
 
 ---
 

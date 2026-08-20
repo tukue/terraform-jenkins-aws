@@ -391,9 +391,10 @@ resource "aws_eks_addon" "this" {
   service_account_role_arn = each.value.service_account_role_arn != "" ? each.value.service_account_role_arn : null
 
   dynamic "pod_identity_association" {
-    for_each = each.value.pod_identity_role_arn != "" ? [1] : []
+    for_each = each.value.pod_identity_role_arn != "" && each.value.pod_identity_service_account != "" ? [1] : []
     content {
-      role_arn = each.value.pod_identity_role_arn
+      role_arn        = each.value.pod_identity_role_arn
+      service_account = each.value.pod_identity_service_account
     }
   }
 

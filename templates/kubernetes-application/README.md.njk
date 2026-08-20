@@ -20,7 +20,8 @@ The platform team configures these shared GitHub Actions settings before the fir
 - `PLATFORM_AWS_REGION` variable
 - `PLATFORM_EKS_CLUSTER_NAME` variable
 - `PLATFORM_ECR_REPOSITORY` variable
+- `PLATFORM_DEPLOYMENT_TARGETS` variable when multi-Region delivery is enabled
 - `PLATFORM_DEPLOYMENT_ACTION_REPOSITORY` Backstage setting
 - `PLATFORM_DEPLOYMENT_ACTION_SHA` Backstage setting (full 40-character commit SHA)
 
-After that, push source changes to `main`; GitHub Actions runs the configured tests without AWS credentials, builds the image, generates and retains a CycloneDX SBOM for 90 days, and blocks ECR publication and EKS deployment if Trivy finds High or Critical vulnerabilities. Clean images are pushed to ECR, deployed with the platform Helm chart, checked for readiness, and reported with Service status.
+After that, push source changes to `main`; GitHub Actions runs the configured tests without AWS credentials, builds the image, generates and retains a CycloneDX SBOM for 90 days, and blocks ECR publication and EKS deployment if Trivy finds High or Critical vulnerabilities. Clean images are pushed to ECR, deployed with the platform Helm chart, checked for readiness, and reported with Service status. When `PLATFORM_DEPLOYMENT_TARGETS` is configured, the action waits for ECR replication and deploys the same image digest to every additional target.

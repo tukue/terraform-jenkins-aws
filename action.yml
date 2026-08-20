@@ -17,6 +17,26 @@ inputs:
   ecr-repository:
     description: Terraform output ecr_repository_url.
     required: true
+  deployment-targets:
+    description: Optional ordered JSON array of deployment targets. The first target must match aws-region, eks-cluster-name, and ecr-repository.
+    required: false
+    default: ""
+  standby-aws-region:
+    description: Optional standby Region for a replicated ECR image and EKS deployment.
+    required: false
+    default: ""
+  standby-eks-cluster-name:
+    description: Optional standby EKS cluster name. Required with standby-aws-region.
+    required: false
+    default: ""
+  standby-ecr-repository:
+    description: Optional replicated ECR repository URL. Required with standby-aws-region.
+    required: false
+    default: ""
+  standby-replica-count:
+    description: Optional warm-standby replica count. Defaults to the primary replica count.
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -29,6 +49,11 @@ runs:
         AWS_REGION: ${{ inputs.aws-region }}
         EKS_CLUSTER_NAME: ${{ inputs.eks-cluster-name }}
         ECR_REPOSITORY: ${{ inputs.ecr-repository }}
+        DEPLOYMENT_TARGETS: ${{ inputs.deployment-targets }}
+        STANDBY_AWS_REGION: ${{ inputs.standby-aws-region }}
+        STANDBY_EKS_CLUSTER_NAME: ${{ inputs.standby-eks-cluster-name }}
+        STANDBY_ECR_REPOSITORY: ${{ inputs.standby-ecr-repository }}
+        STANDBY_REPLICA_COUNT: ${{ inputs.standby-replica-count }}
         PLATFORM_CHART: ${{ github.action_path }}/charts/application
       run: |
         set -Eeuo pipefail
@@ -63,6 +88,50 @@ runs:
         [[ "$HEALTH_PATH" == /* ]]
         [[ "$SERVICE_TYPE" == "ClusterIP" || "$SERVICE_TYPE" == "LoadBalancer" ]]
         [[ -z "$REPLICA_COUNT" || "$REPLICA_COUNT" =~ ^[1-9][0-9]*$ ]]
+        standby_values=("$STANDBY_AWS_REGION" "$STANDBY_EKS_CLUSTER_NAME" "$STANDBY_ECR_REPOSITORY")
+        standby_value_count=0
+        for standby_value in "${standby_values[@]}"; do
+          [[ -n "$standby_value" ]] && ((standby_value_count += 1))
+        done
+        [[ "$standby_value_count" == "0" || "$standby_value_count" == "3" ]] || { echo "standby-aws-region, standby-eks-cluster-name, and standby-ecr-repository must be configured together" >&2; exit 1; }
+        [[ -z "$STANDBY_REPLICA_COUNT" || "$STANDBY_REPLICA_COUNT" =~ ^[1-9][0-9]*$ ]] || { echo "standby-replica-count must be a positive integer" >&2; exit 1; }
+        deployment_targets_file="$RUNNER_TEMP/platform-deployment-targets.json"
+        if [[ -n "$DEPLOYMENT_TARGETS" ]]; then
+          printf '%s' "$DEPLOYMENT_TARGETS" | jq -e '
+            type == "array" and length > 0 and
+            all(.[];
+              type == "object" and
+              (.region | type == "string" and length > 0) and
+              (.eks_cluster_name | type == "string" and length > 0) and
+              (.ecr_repository | type == "string" and length > 0) and
+              (.replica_count? == null or ((.replica_count | type) == "number" and .replica_count > 0 and (.replica_count | floor) == .replica_count))
+            )
+          ' > "$deployment_targets_file" || { echo "deployment-targets must be a non-empty JSON target array" >&2; exit 1; }
+          jq -e --arg region "$AWS_REGION" --arg cluster "$EKS_CLUSTER_NAME" --arg repository "$ECR_REPOSITORY" '
+            .[0].region == $region and .[0].eks_cluster_name == $cluster and .[0].ecr_repository == $repository
+          ' "$deployment_targets_file" > /dev/null || { echo "The first deployment target must match aws-region, eks-cluster-name, and ecr-repository" >&2; exit 1; }
+        elif [[ -n "$STANDBY_AWS_REGION" ]]; then
+          jq -n \
+            --arg primary_region "$AWS_REGION" \
+            --arg primary_cluster "$EKS_CLUSTER_NAME" \
+            --arg primary_repository "$ECR_REPOSITORY" \
+            --arg primary_replicas "$REPLICA_COUNT" \
+            --arg standby_region "$STANDBY_AWS_REGION" \
+            --arg standby_cluster "$STANDBY_EKS_CLUSTER_NAME" \
+            --arg standby_repository "$STANDBY_ECR_REPOSITORY" \
+            --arg standby_replicas "$STANDBY_REPLICA_COUNT" \
+            '[
+              {region: $primary_region, eks_cluster_name: $primary_cluster, ecr_repository: $primary_repository, replica_count: $primary_replicas},
+              {region: $standby_region, eks_cluster_name: $standby_cluster, ecr_repository: $standby_repository, replica_count: $standby_replicas}
+            ]' > "$deployment_targets_file"
+        else
+          jq -n \
+            --arg primary_region "$AWS_REGION" \
+            --arg primary_cluster "$EKS_CLUSTER_NAME" \
+            --arg primary_repository "$ECR_REPOSITORY" \
+            --arg primary_replicas "$REPLICA_COUNT" \
+            '[{region: $primary_region, eks_cluster_name: $primary_cluster, ecr_repository: $primary_repository, replica_count: $primary_replicas}]' > "$deployment_targets_file"
+        fi
         workspace=$(pwd -P)
         config_directory=$(dirname "$(realpath "$CONFIG_PATH")")
         source_directory=$(realpath -m "$config_directory/$SOURCE_PATH")
@@ -86,6 +155,11 @@ runs:
           echo "PLATFORM_AWS_REGION=$AWS_REGION"
           echo "PLATFORM_EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME"
           echo "PLATFORM_ECR_REPOSITORY=$ECR_REPOSITORY"
+          echo "PLATFORM_DEPLOYMENT_TARGETS_FILE=$deployment_targets_file"
+          echo "PLATFORM_STANDBY_AWS_REGION=$STANDBY_AWS_REGION"
+          echo "PLATFORM_STANDBY_EKS_CLUSTER_NAME=$STANDBY_EKS_CLUSTER_NAME"
+          echo "PLATFORM_STANDBY_ECR_REPOSITORY=$STANDBY_ECR_REPOSITORY"
+          echo "PLATFORM_STANDBY_REPLICA_COUNT=$STANDBY_REPLICA_COUNT"
           echo "PLATFORM_CHART=$PLATFORM_CHART"
           echo "PLATFORM_CONTAINER_PORT=$CONTAINER_PORT"
           echo "PLATFORM_HEALTH_PATH=$HEALTH_PATH"
@@ -126,9 +200,43 @@ runs:
       run: |
         set -Eeuo pipefail
         docker push "$PLATFORM_IMAGE"
-        aws eks update-kubeconfig --name "$PLATFORM_EKS_CLUSTER_NAME" --region "$PLATFORM_AWS_REGION"
-        helm_args=(upgrade --install "$PLATFORM_APP_NAME" "$PLATFORM_CHART" --namespace "$PLATFORM_APP_NAME" --create-namespace --wait --timeout 10m --set "image.repository=$PLATFORM_ECR_REPOSITORY" --set "image.tag=$PLATFORM_IMAGE_TAG" --set "containerPort=$PLATFORM_CONTAINER_PORT" --set "health.path=$PLATFORM_HEALTH_PATH" --set "service.type=$PLATFORM_SERVICE_TYPE")
-        if [[ -n "${PLATFORM_REPLICA_COUNT:-}" ]]; then helm_args+=(--set "replicaCount=$PLATFORM_REPLICA_COUNT"); fi
-        helm "${helm_args[@]}"
-        kubectl rollout status "deployment/$PLATFORM_APP_NAME" --namespace "$PLATFORM_APP_NAME" --timeout=5m
-        kubectl get service "$PLATFORM_APP_NAME" --namespace "$PLATFORM_APP_NAME" --output wide
+        deploy_application() {
+          local region="$1"
+          local cluster_name="$2"
+          local repository="$3"
+          local replica_count="$4"
+          local kubeconfig_path="$RUNNER_TEMP/kubeconfig-${region}-${cluster_name}"
+
+          aws eks update-kubeconfig --name "$cluster_name" --region "$region" --kubeconfig "$kubeconfig_path"
+          helm_args=(upgrade --install "$PLATFORM_APP_NAME" "$PLATFORM_CHART" --kubeconfig "$kubeconfig_path" --namespace "$PLATFORM_APP_NAME" --create-namespace --wait --timeout 10m --set "image.repository=$repository" --set "image.tag=$PLATFORM_IMAGE_TAG" --set "containerPort=$PLATFORM_CONTAINER_PORT" --set "health.path=$PLATFORM_HEALTH_PATH" --set "service.type=$PLATFORM_SERVICE_TYPE")
+          if [[ -n "$replica_count" ]]; then helm_args+=(--set "replicaCount=$replica_count"); fi
+          helm "${helm_args[@]}"
+          kubectl --kubeconfig "$kubeconfig_path" rollout status "deployment/$PLATFORM_APP_NAME" --namespace "$PLATFORM_APP_NAME" --timeout=5m
+          kubectl --kubeconfig "$kubeconfig_path" get service "$PLATFORM_APP_NAME" --namespace "$PLATFORM_APP_NAME" --output wide
+        }
+
+        primary_repository_name="${PLATFORM_ECR_REPOSITORY#*/}"
+        image_digest=$(aws ecr describe-images --region "$PLATFORM_AWS_REGION" --repository-name "$primary_repository_name" --image-ids "imageTag=$PLATFORM_IMAGE_TAG" --query 'imageDetails[0].imageDigest' --output text)
+        [[ -n "$image_digest" && "$image_digest" != "None" ]] || { echo "Unable to resolve the primary ECR image digest" >&2; exit 1; }
+        target_count=$(jq 'length' "$PLATFORM_DEPLOYMENT_TARGETS_FILE")
+        for ((target_index = 0; target_index < target_count; target_index++)); do
+          target_region=$(jq -er ".[$target_index].region" "$PLATFORM_DEPLOYMENT_TARGETS_FILE")
+          target_cluster=$(jq -er ".[$target_index].eks_cluster_name" "$PLATFORM_DEPLOYMENT_TARGETS_FILE")
+          target_repository=$(jq -er ".[$target_index].ecr_repository" "$PLATFORM_DEPLOYMENT_TARGETS_FILE")
+          target_replicas=$(jq -r ".[$target_index].replica_count // empty" "$PLATFORM_DEPLOYMENT_TARGETS_FILE")
+          target_replicas="${target_replicas:-$PLATFORM_REPLICA_COUNT}"
+
+          if [[ "$target_index" -gt 0 ]]; then
+            target_repository_name="${target_repository#*/}"
+            for attempt in {1..30}; do
+              target_digest=$(aws ecr describe-images --region "$target_region" --repository-name "$target_repository_name" --image-ids "imageTag=$PLATFORM_IMAGE_TAG" --query 'imageDetails[0].imageDigest' --output text 2>/dev/null || true)
+              [[ "$target_digest" == "$image_digest" ]] && break
+              if [[ "$attempt" == "30" ]]; then
+                echo "Replicated image digest was not available in $target_region after 5 minutes" >&2
+                exit 1
+              fi
+              sleep 10
+            done
+          fi
+          deploy_application "$target_region" "$target_cluster" "$target_repository" "$target_replicas"
+        done

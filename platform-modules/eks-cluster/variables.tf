@@ -30,6 +30,13 @@ variable "aws_account_id" {
   description = "AWS account ID where the EKS cluster is provisioned"
 }
 
+variable "kms_key_arn" {
+  type        = string
+  default     = null
+  nullable    = true
+  description = "Optional KMS key ARN for EKS control-plane log encryption"
+}
+
 variable "network_profile" {
   type        = string
   default     = "standard"
@@ -233,10 +240,11 @@ variable "node_groups" {
 
 variable "cluster_addons" {
   type = map(object({
-    addon_version            = optional(string, "")
-    resolve_conflicts        = optional(string, "OVERWRITE")
-    service_account_role_arn = optional(string, "")
-    pod_identity_role_arn    = optional(string, "")
+    addon_version                = optional(string, "")
+    resolve_conflicts            = optional(string, "OVERWRITE")
+    service_account_role_arn     = optional(string, "")
+    pod_identity_role_arn        = optional(string, "")
+    pod_identity_service_account = optional(string, "")
   }))
   default = {
     vpc-cni    = {}

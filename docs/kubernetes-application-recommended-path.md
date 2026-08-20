@@ -11,6 +11,27 @@ The platform team provisions the target EKS cluster and ECR repository, then con
 - `PLATFORM_EKS_CLUSTER_NAME` variable
 - `PLATFORM_ECR_REPOSITORY` variable
 
+For multi-Region delivery, the platform team configures `PLATFORM_DEPLOYMENT_TARGETS` as an ordered JSON array. Its first target must match the primary variables above; every additional target must point to a cluster and ECR repository receiving replicated images.
+
+```json
+[
+  {
+    "region": "REPLACE_WITH_PRIMARY_REGION",
+    "eks_cluster_name": "platform-primary",
+    "ecr_repository": "123456789012.dkr.ecr.REPLACE_WITH_PRIMARY_REGION.amazonaws.com/platform-applications",
+    "replica_count": 2
+  },
+  {
+    "region": "REPLACE_WITH_STANDBY_REGION",
+    "eks_cluster_name": "platform-standby",
+    "ecr_repository": "123456789012.dkr.ecr.REPLACE_WITH_STANDBY_REGION.amazonaws.com/platform-applications",
+    "replica_count": 1
+  }
+]
+```
+
+The legacy `PLATFORM_STANDBY_*` variables remain supported for an existing two-Region setup, but new platform environments should use `PLATFORM_DEPLOYMENT_TARGETS`.
+
 These settings are platform-owned. Application developers do not provide AWS credentials or infrastructure identifiers.
 
 The platform team enables Amazon ECR Enhanced scanning with `CONTINUOUS_SCAN` once per AWS account and Region by following the [ECR Enhanced Scanning Runbook](runbooks/ecr-enhanced-scanning.md). Amazon Inspector re-scans published images as vulnerability intelligence changes; this complements the pre-push Trivy deployment gate.
@@ -47,8 +68,9 @@ git push main
     -> fails on High or Critical vulnerabilities before ECR push or EKS deployment
     -> pushes a clean, unique image to ECR
     -> creates the application namespace
-    -> deploys the platform Helm chart
-    -> waits for rollout readiness
+    -> deploys the platform Helm chart to the primary cluster
+    -> when enabled, waits for ECR replication and deploys the same image tag to every additional target
+    -> waits for rollout readiness in every configured Region
     -> prints the Kubernetes Service status
 ```
 
@@ -63,3 +85,4 @@ Download the `sbom-<application>-<image-tag>` workflow artifact when investigati
 - Image push fails: ask the platform team to confirm the OIDC role and ECR permissions.
 - Rollout fails: inspect the workflow output, then run `kubectl describe deployment <app> -n <app>` and `kubectl get events -n <app>` using an approved platform identity.
 - Service has no public address: a `LoadBalancer` service can take several minutes; use `kubectl get service <app> -n <app>` to check status.
+- Standby deployment times out: confirm ECR replication includes the repository prefix and that the deployment role can describe images and access the standby EKS cluster.
