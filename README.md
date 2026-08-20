@@ -294,10 +294,34 @@ The platform is structured around productized infrastructure modules:
 | Scenario | Strategy |
 | :--- | :--- |
 | **State loss** | Remote state in S3 with versioning + DynamoDB locking |
-| **Region failure** | Multi-region capability via Terraform workspaces |
+| **Region failure** | Portfolio warm-standby reference using matching regional EKS clusters and ECR image replication |
 | **Data loss** | RDS automated backups, S3 versioning, EBS snapshots |
 | **Jenkins failure** | AMI-backed EC2 with startup provisioning script |
 | **Credential compromise** | Vault dynamic secrets with automatic rotation |
+
+The portfolio DR reference is intentionally non-production-grade. It demonstrates regional infrastructure symmetry, ECR image replication, and a controlled failover drill without claiming automated traffic failover or data recovery. See [Warm-Standby DR Reference](platform-examples/eks-warm-standby-dr/README.md), [ECR Replication Reference](platform-examples/ecr-replication-dr/README.md), and the [DR Drill Runbook](docs/runbooks/portfolio-warm-standby-dr.md).
+
+### Portfolio Warm-Standby Approach
+
+```text
+Primary Region EKS cluster ── build once / deploy immutable image ──┐
+                                                                   ├─ ECR replication ──> Standby Region EKS cluster
+Developer push ─> CI tests, SBOM, Trivy scan ─> primary ECR ──────┘                         minimal ready capacity
+                                                                                               ↓
+Primary endpoint unavailable ─> operator validates standby ─> manual sandbox traffic switch
+```
+
+1. Terraform provisions matching EKS clusters in separate Regions using the existing `eks-cluster` module.
+2. A separate account-baseline Terraform state replicates matching ECR repositories to the standby Region.
+3. The drill verifies the same immutable image digest, Helm release, workload readiness, and health endpoint in both clusters.
+4. An operator simulates the primary outage and manually directs sandbox traffic to the standby endpoint.
+5. The drill records recovery timestamps and gaps; both stacks are destroyed after the demonstration to avoid ongoing cost.
+
+| Platform owns | Application team owns |
+| :--- | :--- |
+| Regional Terraform, ECR replication, EKS configuration, drill process, and evidence | Health endpoint, stateless behavior, and future data RTO/RPO requirements |
+
+Production adoption requires separately designed data replication, secrets replication, Route 53 or ARC failover, capacity planning, multi-account isolation, alerting, approvals, and recurring recovery exercises.
 
 ---
 
