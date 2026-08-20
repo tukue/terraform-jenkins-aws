@@ -16,15 +16,15 @@ For multi-Region delivery, the platform team configures `PLATFORM_DEPLOYMENT_TAR
 ```json
 [
   {
-    "region": "eu-north-1",
+    "region": "REPLACE_WITH_PRIMARY_REGION",
     "eks_cluster_name": "platform-primary",
-    "ecr_repository": "123456789012.dkr.ecr.eu-north-1.amazonaws.com/platform-applications",
+    "ecr_repository": "123456789012.dkr.ecr.REPLACE_WITH_PRIMARY_REGION.amazonaws.com/platform-applications",
     "replica_count": 2
   },
   {
-    "region": "eu-west-1",
+    "region": "REPLACE_WITH_STANDBY_REGION",
     "eks_cluster_name": "platform-standby",
-    "ecr_repository": "123456789012.dkr.ecr.eu-west-1.amazonaws.com/platform-applications",
+    "ecr_repository": "123456789012.dkr.ecr.REPLACE_WITH_STANDBY_REGION.amazonaws.com/platform-applications",
     "replica_count": 1
   }
 ]

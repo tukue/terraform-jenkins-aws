@@ -12,13 +12,11 @@ variable "aws_profile" {
 variable "primary_region" {
   type        = string
   description = "Region serving normal application traffic"
-  default     = "eu-north-1"
 }
 
 variable "standby_region" {
   type        = string
   description = "Region hosting the warm standby cluster"
-  default     = "eu-west-1"
 
   validation {
     condition     = var.standby_region != var.primary_region

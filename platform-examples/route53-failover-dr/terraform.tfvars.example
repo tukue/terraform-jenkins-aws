@@ -4,12 +4,12 @@ record_name    = "api.example.com"
 
 primary_endpoint = {
   record_name = "primary.api.example.com"
-  dns_name    = "primary-alb-123.eu-north-1.elb.amazonaws.com"
+  dns_name    = "primary-alb-123.REPLACE_WITH_PRIMARY_REGION.elb.amazonaws.com"
   zone_id     = "Z0ABCDEF123456"
 }
 
 standby_endpoint = {
   record_name = "standby.api.example.com"
-  dns_name    = "standby-alb-456.eu-west-1.elb.amazonaws.com"
+  dns_name    = "standby-alb-456.REPLACE_WITH_STANDBY_REGION.elb.amazonaws.com"
   zone_id     = "Z0ABCDEF123456"
 }

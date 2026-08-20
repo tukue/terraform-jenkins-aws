@@ -12,13 +12,11 @@ variable "aws_profile" {
 variable "source_region" {
   type        = string
   description = "Region containing the source ECR registry"
-  default     = "eu-north-1"
 }
 
 variable "destination_region" {
   type        = string
   description = "Region receiving replicated images"
-  default     = "eu-west-1"
 
   validation {
     condition     = var.destination_region != var.source_region

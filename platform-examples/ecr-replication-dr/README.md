@@ -14,7 +14,7 @@ ECR replication configuration is a singleton per source registry. Apply this exa
 
 ## Demonstration
 
-1. Copy `terraform.tfvars.example` to a local `terraform.tfvars`.
+1. Copy `terraform.tfvars.example` to a local `terraform.tfvars` and provide the source and destination Regions. Both are required and must differ.
 2. Apply in a sandbox account.
 3. Push an immutable image to an ECR repository matching `repository_prefix`.
 4. Verify the image digest appears in the destination Region before deploying it to the standby EKS cluster.

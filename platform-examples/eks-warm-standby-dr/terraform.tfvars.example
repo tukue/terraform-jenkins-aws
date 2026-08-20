@@ -1,5 +1,5 @@
 aws_account_id = "123456789012"
-primary_region = "eu-north-1"
-standby_region = "eu-west-1"
+primary_region = "REPLACE_WITH_PRIMARY_REGION"
+standby_region = "REPLACE_WITH_STANDBY_REGION"
 cluster_name   = "portfolio-dr"
 environment    = "dev"

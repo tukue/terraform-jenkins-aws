@@ -15,7 +15,7 @@ This is a portfolio reference, not production-grade DR. It does not configure ap
 
 ## Demonstration
 
-1. Copy `terraform.tfvars.example` to a local `terraform.tfvars` and provide an account ID.
+1. Copy `terraform.tfvars.example` to a local `terraform.tfvars` and provide an account ID, primary Region, and standby Region. Both Regions are required and must differ.
 2. Run `terraform init`, `terraform plan`, and `terraform apply` only in a sandbox account.
 3. Configure ECR replication and deploy the same immutable image digest to both clusters.
 4. Follow [the DR runbook](../../docs/runbooks/portfolio-warm-standby-dr.md) to demonstrate controlled failover.
