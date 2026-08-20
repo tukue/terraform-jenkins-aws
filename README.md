@@ -308,7 +308,7 @@ Primary Region EKS cluster ── build once / deploy immutable image ──┐
                                                                    ├─ ECR replication ──> Standby Region EKS cluster
 Developer push ─> CI tests, SBOM, Trivy scan ─> primary ECR ──────┘                         minimal ready capacity
                                                                                                ↓
-Primary endpoint unavailable ─> operator validates standby ─> manual sandbox traffic switch
+Primary endpoint unavailable ─> Route 53 validates standby health ─> DNS failover
 ```
 
 1. Terraform provisions matching EKS clusters in separate Regions using the existing `eks-cluster` module.
