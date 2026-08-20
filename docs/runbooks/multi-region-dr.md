@@ -7,10 +7,10 @@ This runbook operates the platform's active/passive regional recovery path for s
 1. Apply `platform-examples/ecr-replication-dr/` once from the account-baseline state.
 2. Apply `platform-examples/eks-warm-standby-dr/` from the regional-platform state, using production capacity settings and separate Terraform state per Region.
 3. Apply `platform-examples/route53-failover-dr/` from a DNS state that is independent of either Region.
-4. Configure each application repository with `PLATFORM_AWS_REGION`, `PLATFORM_EKS_CLUSTER_NAME`, and `PLATFORM_ECR_REPOSITORY` for the primary target, plus `PLATFORM_STANDBY_AWS_REGION`, `PLATFORM_STANDBY_EKS_CLUSTER_NAME`, and `PLATFORM_STANDBY_ECR_REPOSITORY` for the standby target.
+4. Configure each application repository with `PLATFORM_AWS_REGION`, `PLATFORM_EKS_CLUSTER_NAME`, and `PLATFORM_ECR_REPOSITORY` for the primary target, plus `PLATFORM_DEPLOYMENT_TARGETS` for the ordered regional target list. The first list item must match the primary target.
 5. Grant the GitHub OIDC deployment role ECR push and image-description access in the primary Region, ECR image-description access in the standby Region, and EKS access to both clusters.
 
-All three standby settings are required together. The optional `PLATFORM_STANDBY_REPLICA_COUNT` reduces standby cost while retaining a ready workload.
+Each additional target must reference an ECR repository that receives the primary image through replication. Set a lower `replica_count` for warm standby targets when appropriate.
 
 ## Normal delivery
 

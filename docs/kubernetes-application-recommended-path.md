@@ -11,12 +11,26 @@ The platform team provisions the target EKS cluster and ECR repository, then con
 - `PLATFORM_EKS_CLUSTER_NAME` variable
 - `PLATFORM_ECR_REPOSITORY` variable
 
-For multi-Region delivery, the platform team also configures all of these variables:
+For multi-Region delivery, the platform team configures `PLATFORM_DEPLOYMENT_TARGETS` as an ordered JSON array. Its first target must match the primary variables above; every additional target must point to a cluster and ECR repository receiving replicated images.
 
-- `PLATFORM_STANDBY_AWS_REGION`
-- `PLATFORM_STANDBY_EKS_CLUSTER_NAME`
-- `PLATFORM_STANDBY_ECR_REPOSITORY`
-- `PLATFORM_STANDBY_REPLICA_COUNT` (optional)
+```json
+[
+  {
+    "region": "eu-north-1",
+    "eks_cluster_name": "platform-primary",
+    "ecr_repository": "123456789012.dkr.ecr.eu-north-1.amazonaws.com/platform-applications",
+    "replica_count": 2
+  },
+  {
+    "region": "eu-west-1",
+    "eks_cluster_name": "platform-standby",
+    "ecr_repository": "123456789012.dkr.ecr.eu-west-1.amazonaws.com/platform-applications",
+    "replica_count": 1
+  }
+]
+```
+
+The legacy `PLATFORM_STANDBY_*` variables remain supported for an existing two-Region setup, but new platform environments should use `PLATFORM_DEPLOYMENT_TARGETS`.
 
 These settings are platform-owned. Application developers do not provide AWS credentials or infrastructure identifiers.
 
@@ -55,7 +69,7 @@ git push main
     -> pushes a clean, unique image to ECR
     -> creates the application namespace
     -> deploys the platform Helm chart to the primary cluster
-    -> when enabled, waits for ECR replication and deploys the same image tag to the standby cluster
+    -> when enabled, waits for ECR replication and deploys the same image tag to every additional target
     -> waits for rollout readiness in every configured Region
     -> prints the Kubernetes Service status
 ```
