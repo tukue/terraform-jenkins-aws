@@ -57,3 +57,7 @@ jobs:
           aws-region: ${{ vars.PLATFORM_AWS_REGION }}
           eks-cluster-name: ${{ vars.PLATFORM_EKS_CLUSTER_NAME }}
           ecr-repository: ${{ vars.PLATFORM_ECR_REPOSITORY }}
+          standby-aws-region: ${{ vars.PLATFORM_STANDBY_AWS_REGION }}
+          standby-eks-cluster-name: ${{ vars.PLATFORM_STANDBY_EKS_CLUSTER_NAME }}
+          standby-ecr-repository: ${{ vars.PLATFORM_STANDBY_ECR_REPOSITORY }}
+          standby-replica-count: ${{ vars.PLATFORM_STANDBY_REPLICA_COUNT }}

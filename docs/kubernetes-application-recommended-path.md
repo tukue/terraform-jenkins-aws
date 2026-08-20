@@ -11,6 +11,13 @@ The platform team provisions the target EKS cluster and ECR repository, then con
 - `PLATFORM_EKS_CLUSTER_NAME` variable
 - `PLATFORM_ECR_REPOSITORY` variable
 
+For multi-Region delivery, the platform team also configures all of these variables:
+
+- `PLATFORM_STANDBY_AWS_REGION`
+- `PLATFORM_STANDBY_EKS_CLUSTER_NAME`
+- `PLATFORM_STANDBY_ECR_REPOSITORY`
+- `PLATFORM_STANDBY_REPLICA_COUNT` (optional)
+
 These settings are platform-owned. Application developers do not provide AWS credentials or infrastructure identifiers.
 
 The platform team enables Amazon ECR Enhanced scanning with `CONTINUOUS_SCAN` once per AWS account and Region by following the [ECR Enhanced Scanning Runbook](runbooks/ecr-enhanced-scanning.md). Amazon Inspector re-scans published images as vulnerability intelligence changes; this complements the pre-push Trivy deployment gate.
@@ -47,8 +54,9 @@ git push main
     -> fails on High or Critical vulnerabilities before ECR push or EKS deployment
     -> pushes a clean, unique image to ECR
     -> creates the application namespace
-    -> deploys the platform Helm chart
-    -> waits for rollout readiness
+    -> deploys the platform Helm chart to the primary cluster
+    -> when enabled, waits for ECR replication and deploys the same image tag to the standby cluster
+    -> waits for rollout readiness in every configured Region
     -> prints the Kubernetes Service status
 ```
 
@@ -63,3 +71,4 @@ Download the `sbom-<application>-<image-tag>` workflow artifact when investigati
 - Image push fails: ask the platform team to confirm the OIDC role and ECR permissions.
 - Rollout fails: inspect the workflow output, then run `kubectl describe deployment <app> -n <app>` and `kubectl get events -n <app>` using an approved platform identity.
 - Service has no public address: a `LoadBalancer` service can take several minutes; use `kubectl get service <app> -n <app>` to check status.
+- Standby deployment times out: confirm ECR replication includes the repository prefix and that the deployment role can describe images and access the standby EKS cluster.
