@@ -56,7 +56,7 @@ jobs:
         run: tfsec . --exclude-downloaded-modules
 
       - name: Run Checkov
-        uses: bridgecrewio/checkov-action@a6a5c23963b9d127020ae43a959cd5d8eefc94c7 # v12
+        uses: bridgecrewio/checkov-action@7b972723c44fb3d256283fac96fae5d7c1894bb7 # v12
         with:
           directory: .
           framework: terraform
